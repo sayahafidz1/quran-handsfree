@@ -1,0 +1,96 @@
+﻿# Quran Hands-Free
+
+`quran-handsfree` adalah aplikasi independen untuk pengalaman membaca dan melantunkan Al-Qur'an secara hands-free (tanpa tangan).
+
+Proyek ini merupakan **produk terpisah** dari repository `tilawa`. Engine pengenalan Al-Qur'an upstream (`yazinsai/tilawa`) digunakan murni sebagai recognition engine tanpa memodifikasi source upstream tersebut.
+
+> **Attribution:** Quran recognition powered by Tilawa. Lihat [THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md).
+
+## Lisensi
+
+Proyek ini dilisensikan di bawah [MIT License](LICENSE).
+
+Pihak ketiga yang digunakan, termasuk `@tilawa/core`, memiliki atribusi dan lisensi yang dicatat dalam [docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md).
+
+---
+
+## Struktur Proyek
+
+```text
+quran-handsfree/
+├── src/
+│   ├── app/                 # Bootstrapping & koordinasi aplikasi
+│   ├── audio/               # Audio capture & resampler 16 kHz Mono Float32
+│   ├── recognition/         # Abstraksi & kontrak pengenalan suara
+│   │   └── tilawa/          # Adapter & boundary integrasi @tilawa/core
+│   ├── workers/             # Web Worker untuk inferensi ONNX & Tilawa Session
+│   ├── ui/                  # Presentasi & styling antarmuka
+│   ├── main.ts              # Entry point utama aplikasi
+│   └── vite-env.d.ts        # Type declarations lingkungan Vite
+├── public/
+│   ├── manifest.webmanifest # Konfigurasi PWA Web Manifest
+│   ├── sw.js                # Service worker untuk caching offline
+│   └── tilawa/              # Folder aset runtime Tilawa (dipin/checksum)
+├── docs/
+│   ├── ARCHITECTURE.md      # Detail arsitektur & pemisahan layer
+│   ├── DECISIONS.md         # Catatan keputusan arsitektur (ADR)
+│   ├── GOALS.md             # Tujuan produk, batasan, & backlog
+│   ├── NEXT_STEPS.md        # Roadmap & langkah pengembangan berikutnya
+│   ├── PROJECT_CONTEXT.md   # Konteks hidup proyek untuk kolaborasi agent/engineer
+│   ├── THIRD_PARTY_NOTICES.md # Lisensi & atribusi pihak ketiga
+│   └── TILAWA_INTEGRATION.md  # Spesifikasi teknis integrasi Tilawa
+├── AGENTS.md                # Panduan & batasan kerja bagi agent pengembang
+├── package.json             # Dependensi aplikasi (@tilawa/core, onnxruntime-web)
+├── tsconfig.json            # Konfigurasi TypeScript
+├── vite.config.ts           # Konfigurasi Vite bundler & Worker
+└── README.md                # Dokumentasi utama proyek
+```
+
+---
+
+## Batas Integrasi (Integration Boundary)
+
+- **`src/recognition/tilawa/`**: Berfungsi sebagai boundary/adapter antara kontrak aplikasi dan paket publik `@tilawa/core`.
+- **Pemisahan Product Logic**: Alur logika produk di masa depan (seperti `discovery -> lock -> verify -> next ayah`) **tidak boleh dicampur** ke dalam adapter Tilawa. Adapter hanya bertugas memetakan stream audio ke session Tilawa dan meneruskan event pengenalan.
+- **Isolasi Engine**: Jangan mengimpor source internal Tilawa atau menduplikasi kodenya jika API publik `@tilawa/core` mencukupi.
+- **Portabilitas**: Desain arsitektur ini memungkinkan aplikasi berjalan sebagai Web/PWA saat ini dan dapat diadopsi ke React Native/Android nanti dengan mengganti adapter platform tanpa merusak product logic inti.
+
+---
+
+## Menjalankan Aplikasi
+
+### 1. Instalasi Dependensi
+```bash
+npm install
+```
+
+### 2. Penyiapan Aset Runtime Tilawa
+Unduh aset model dari rilis resmi Tilawa dan letakkan di `public/tilawa/` sesuai instruksi di [public/tilawa/README.md](public/tilawa/README.md):
+- `fastconformer_full_mixed.onnx`
+- `vocab.json`
+- `quran_ctc_tokens.json`
+- `quran.json`
+- `export_metadata.json`
+
+Setiap aset wajib dipin versinya dan diverifikasi checksum-nya.
+
+### 3. Menjalankan Server Development
+```bash
+npm run dev
+```
+
+### 4. Membangun untuk Produksi
+```bash
+npm run build
+```
+
+---
+
+## Dokumentasi Lengkap
+
+Untuk memahami konteks teknis dan arsitektur lebih dalam:
+1. [AGENTS.md](AGENTS.md) — Panduan kerja dan batasan mutlak pengembang.
+2. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Diagram arsitektur dan prinsip modularitas.
+3. [docs/GOALS.md](docs/GOALS.md) — Visi produk dan fitur backlog.
+4. [docs/TILAWA_INTEGRATION.md](docs/TILAWA_INTEGRATION.md) — Panduan integrasi teknis engine Tilawa.
+5. [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md) — Konteks status dan panduan kelanjutan proyek.

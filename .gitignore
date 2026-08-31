@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.vite/
+public/tilawa/*.onnx
+public/tilawa/quran.json
+public/tilawa/quran_ctc_tokens.json
+public/tilawa/vocab.json
+public/tilawa/export_metadata.json

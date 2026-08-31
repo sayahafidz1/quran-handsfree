@@ -1,0 +1,8 @@
+{
+  "name": "Quran Hands-Free",
+  "short_name": "Quran HF",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f2e8",
+  "theme_color": "#0b3b32"
+}

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b3b32" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <title>Quran Hands-Free</title>
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <p class="eyebrow">QURAN HANDS-FREE</p>
+        <h1>Teman membaca Al-Qur'an tanpa tangan</h1>
+        <p class="intro">Tentukan posisi awal ayat dengan perintah suara atau mulai melantunkan bacaan langsung di perangkat Anda tanpa server.</p>
+      </header>
+
+      <!-- LOCKED POSITION / ANCHOR -->
+      <section class="card anchor-card" aria-live="polite">
+        <p class="label">Posisi Terkunci (Anchor Position)</p>
+        <div class="anchor-display">
+          <p id="anchor-position" class="anchor-text">Belum ada posisi yang dikunci</p>
+          <span id="anchor-badge" class="badge">Siap</span>
+        </div>
+        <p id="anchor-detail" class="muted">Gunakan perintah suara (misal: "Al-Baqarah ayat 255") atau baca langsung.</p>
+      </section>
+
+      <!-- VOICE COMMAND NAVIGATION SECTION -->
+      <section class="card" aria-live="polite">
+        <p class="label">Navigasi Perintah Suara (Voice Command)</p>
+        <p class="section-desc">Ucapkan atau ketik nama surat dan nomor ayat untuk langsung melompat ke posisi awal.</p>
+        
+        <div class="command-input-group">
+          <input
+            type="text"
+            id="command-input"
+            placeholder="Contoh: Al-Baqarah ayat 255, Surat Yasin ayat 58"
+            aria-label="Teks perintah suara"
+          />
+          <button id="command-submit" type="button">Proses</button>
+          <button id="command-voice" type="button" class="btn-voice">🎤 Bicara</button>
+        </div>
+
+        <div class="quick-examples">
+          <span class="example-label">Coba contoh:</span>
+          <button type="button" class="chip" data-cmd="Al-Baqarah ayat 255">Al-Baqarah ayat 255</button>
+          <button type="button" class="chip" data-cmd="Surat Yasin ayat 58">Surat Yasin ayat 58</button>
+          <button type="button" class="chip" data-cmd="Al-Kahfi ayat 10">Al-Kahfi ayat 10</button>
+          <button type="button" class="chip" data-cmd="Surat 2 ayat 255">Surat 2 ayat 255</button>
+          <button type="button" class="chip chip-invalid" data-cmd="Al-Baqarah ayat 300">Al-Baqarah 300 (tolak)</button>
+        </div>
+
+        <p id="command-feedback" class="feedback-msg"></p>
+      </section>
+
+      <!-- RECITATION RECOGNITION (TILAWA) SECTION -->
+      <section class="card" aria-live="polite">
+        <p class="label">Pengenalan Bacaan (Recitation Recognition)</p>
+        <p id="status">Memeriksa kesiapan aset Tilawa…</p>
+        <p id="detail" class="muted"></p>
+        <div class="actions">
+          <button id="prepare" type="button">Siapkan pengenalan</button>
+          <button id="start" type="button" disabled>Mulai mendengarkan</button>
+          <button id="stop" type="button" disabled>Berhenti</button>
+        </div>
+      </section>
+
+      <section class="card result" aria-live="polite">
+        <p class="label">Bacaan Tilawa terdeteksi</p>
+        <p id="verse">Belum ada ayat yang terdeteksi.</p>
+        <p id="confidence" class="muted"></p>
+      </section>
+
+      <footer>Quran recognition powered by Tilawa & Quran Hands-Free Navigation.</footer>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
