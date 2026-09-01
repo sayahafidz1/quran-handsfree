@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "setup": "node scripts/setup-tilawa.mjs",
     "test": "node --experimental-strip-types --test test/**/*.test.ts"
   },
   "dependencies": {
