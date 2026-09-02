@@ -65,14 +65,19 @@ npm install
 ```
 
 ### 2. Penyiapan Aset Runtime Tilawa
-Unduh aset model dari rilis resmi Tilawa dan letakkan di `public/tilawa/` sesuai instruksi di [public/tilawa/README.md](public/tilawa/README.md):
+Jalankan setup otomatis yang mengambil aset dari Tilawa release resmi ke `public/tilawa/`:
+```bash
+npm run setup
+```
+
+Script setup akan memeriksa dan mengunduh ulang aset yang belum ada atau tidak valid:
 - `fastconformer_full_mixed.onnx`
 - `vocab.json`
 - `quran_ctc_tokens.json`
 - `quran.json`
 - `export_metadata.json`
 
-Setiap aset wajib dipin versinya dan diverifikasi checksum-nya.
+Aset yang digunakan dipin ke Tilawa release `v0.2.0`. Untuk fresh clone, jalankan `npm run setup` setelah `npm install`; setup dapat dijalankan ulang dengan aman.
 
 ### 3. Menjalankan Server Development
 ```bash
