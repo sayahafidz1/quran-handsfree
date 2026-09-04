@@ -34,3 +34,23 @@
 - **Konteks**: Pengguna perlu menentukan posisi awal bacaan tanpa melantunkan ayat terlebih dahulu.
 - **Keputusan**: Parsing perintah, validasi 114 surat/nomor ayat, dan penguncian anchor ditempatkan di `src/command/` serta `src/quran/`; Tilawa tetap terbatas pada discovery bacaan.
 - **Konsekuensi**: `VoiceCommandRecognizer` dapat diganti dengan STT on-device di masa depan tanpa mengubah parser, validator, coordinator, atau source upstream Tilawa.
+
+## 2026-09-04 — Memisahkan Pilihan Ayat User dari Discovery Tilawa
+- **Konteks**: Hasil `verse_match` Tilawa dapat datang setelah user memilih surat dan ayat melalui command.
+- **Keputusan**: `AnchorCoordinator` menyimpan `selectedVerse` terpisah dari `currentAnchor`. Command memperbarui `selectedVerse`, sementara discovery Tilawa hanya memperbarui anchor.
+- **Konsekuensi**: Pilihan user dapat dibaca kembali melalui `getSelectedVerse()` dan tidak berubah saat event `verse_match` diproses.
+
+## 2026-09-04 — Memisahkan Expected Verse dari Detected Verse
+- **Konteks**: Produk perlu membandingkan ayat yang dipilih user dengan ayat yang ditemukan recognition engine tanpa mengubah target bacaan.
+- **Keputusan**: `src/app/reading/ReadingState.ts` menyimpan `selectedVerse`, `expectedVerse`, dan `detectedVerse`. Seleksi command mengisi dua state pertama; event Tilawa hanya mengisi `detectedVerse`.
+- **Konsekuensi**: Hasil deteksi yang berbeda (misalnya `36:10`) dapat diamati tanpa auto-next-ayah atau perubahan target `36:3`.
+
+## 2026-09-04 — Menahan Perpindahan Anchor pada Deteksi yang Tidak Cocok
+- **Konteks**: Tilawa dapat mendeteksi ayat lain ketika user telah mengunci target bacaan.
+- **Keputusan**: `ReadingState` menghitung `verseMatch` dengan perbandingan exact `surah` dan `ayah`. `AnchorCoordinator` tetap memperbarui `detectedVerse`, tetapi tidak memindahkan anchor aktif jika hasilnya mismatch.
+- **Konsekuensi**: Aplikasi tetap menunggu ayat yang dipilih user, sementara hasil discovery yang cocok tetap dapat mengubah anchor seperti sebelumnya.
+
+## 2026-09-04 — Menerima Word Progress Hanya untuk Expected Verse
+- **Konteks**: Event `word_progress` Tilawa dapat berasal dari ayat yang berbeda dari target bacaan.
+- **Keputusan**: `ReadingState` memvalidasi pasangan `surah`/`ayah` pada progress terhadap `expectedVerse`. Progress yang cocok disimpan untuk UI, sedangkan progress yang berbeda diabaikan tanpa mengubah target atau progress terakhir yang valid.
+- **Konsekuensi**: UI tidak menampilkan kemajuan dari ayat lain dan progress valid tetap tersedia melalui `AnchorCoordinator.getWordProgress()`.

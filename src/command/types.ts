@@ -32,6 +32,11 @@ export type ParseCommandResult = ParseCommandSuccess | ParseCommandFailure;
 
 export type AnchorSource = "voice_command" | "recitation_discovery" | "manual";
 
+export interface SelectedVerse {
+  surah: number;
+  ayah: number;
+}
+
 export interface NavigationAnchor {
   surah: number;
   ayah: number;

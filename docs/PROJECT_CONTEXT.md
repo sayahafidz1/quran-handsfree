@@ -6,7 +6,7 @@ Dokumen ini mencatat status terkini, batasan mutlak, serta panduan bagi engineer
 
 ## 1. Status Terkini (Per 2026-08-28)
 
-- **Struktur Folder Modular**: Telah diselaraskan menjadi `src/app/`, `src/audio/`, `src/recognition/tilawa/`, `src/workers/`, dan `src/ui/`.
+- **Struktur Folder Modular**: Telah diselaraskan menjadi `src/app/`, `src/app/reading/`, `src/audio/`, `src/recognition/tilawa/`, `src/workers/`, dan `src/ui/`.
 - **Batas Integrasi**: `src/recognition/tilawa/TilawaAdapter.ts` bertindak sebagai adapter isolasi ke `@tilawa/core`.
 - **Kompilasi & Build**: TypeScript checking (`tsc --noEmit`) dan Vite bundle build (`npm run build`) berjalan bersih tanpa error.
 - **Service Worker & PWA**: Scaffold dasar service worker cache-first dan Web Manifest sudah terkonfigurasi.
@@ -22,6 +22,7 @@ Dokumen ini mencatat status terkini, batasan mutlak, serta panduan bagi engineer
 4. **Isolasi Logika Produk**: Logika bisnis produk di masa depan (`discovery -> lock -> verify -> next ayah`) harus ditempatkan di domain/app layer, bukan di dalam adapter Tilawa.
 5. **Portabilitas Multi-Platform**: Pertahankan abstraksi `RecognitionAdapter` agar siap diadopsi ke React Native/Android di kemudian hari.
 6. **Aset Ber-Checksum**: Seluruh aset model di `public/tilawa/` wajib dipin versinya dan diverifikasi hash SHA-256.
+7. **Pemisahan State Bacaan**: `ReadingState` menyimpan `selectedVerse`, `expectedVerse`, dan `detectedVerse`; hasil deteksi Tilawa tidak pernah mengubah `expectedVerse`.
 
 ---
 

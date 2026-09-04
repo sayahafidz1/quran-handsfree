@@ -217,8 +217,83 @@ test("Anchor Coordinator - State management & listeners", () => {
 
   // Set anchor from recitation discovery
   const recAnchor = coordinator.setAnchorFromRecitation(36, 58);
-  assert.equal(recAnchor.surah, 36);
-  assert.equal(recAnchor.ayah, 58);
-  assert.equal(recAnchor.source, "recitation_discovery");
-  assert.equal(notifiedAnchor?.surah, 36);
+  assert.equal(recAnchor?.surah, 2);
+  assert.equal(recAnchor?.ayah, 255);
+  assert.equal(recAnchor?.source, "voice_command");
+  assert.equal(notifiedAnchor?.surah, 2);
+});
+
+test("Anchor Coordinator - Selected verse is independent from recitation discovery", () => {
+  const coordinator = new AnchorCoordinator();
+  const parseRes = parseNavigationCommand("Yasin ayat 3");
+  assert.equal(parseRes.success, true);
+  if (parseRes.success) {
+    coordinator.setSelectedVerseFromCommand(parseRes);
+    coordinator.setAnchorFromCommand(parseRes);
+  }
+
+  assert.deepEqual(coordinator.getSelectedVerse(), { surah: 36, ayah: 3 });
+  assert.deepEqual(coordinator.getExpectedVerse(), { surah: 36, ayah: 3 });
+
+  coordinator.setAnchorFromRecitation(36, 4);
+  assert.deepEqual(coordinator.getSelectedVerse(), { surah: 36, ayah: 3 });
+  assert.deepEqual(coordinator.getExpectedVerse(), { surah: 36, ayah: 3 });
+  assert.deepEqual(coordinator.getDetectedVerse(), { surah: 36, ayah: 4 });
+  assert.deepEqual(coordinator.getVerseMatch(), false);
+  assert.deepEqual(coordinator.getAnchor()?.source, "voice_command");
+});
+
+test("Anchor Coordinator - Tilawa detection updates detected verse only", () => {
+  const coordinator = new AnchorCoordinator();
+  const selection = parseNavigationCommand("Yasin ayat 3");
+  assert.equal(selection.success, true);
+  if (selection.success) {
+    coordinator.setSelectedVerseFromCommand(selection);
+  }
+
+  coordinator.setAnchorFromRecitation(36, 3);
+  assert.deepEqual(coordinator.getDetectedVerse(), { surah: 36, ayah: 3 });
+  assert.deepEqual(coordinator.getExpectedVerse(), { surah: 36, ayah: 3 });
+
+  coordinator.setAnchorFromRecitation(36, 10);
+  assert.deepEqual(coordinator.getDetectedVerse(), { surah: 36, ayah: 10 });
+  assert.deepEqual(coordinator.getExpectedVerse(), { surah: 36, ayah: 3 });
+  assert.equal(coordinator.getVerseMatch(), false);
+  assert.deepEqual(coordinator.getAnchor()?.ayah, 3);
+});
+
+test("Anchor Coordinator - Word progress is accepted only for the expected verse", () => {
+  const coordinator = new AnchorCoordinator();
+  const selection = parseNavigationCommand("Yasin ayat 3");
+  assert.equal(selection.success, true);
+  if (selection.success) {
+    coordinator.setSelectedVerseFromCommand(selection);
+  }
+
+  assert.equal(coordinator.setWordProgress(36, 3, 4, 7), true);
+  assert.deepEqual(coordinator.getWordProgress(), {
+    surah: 36,
+    ayah: 3,
+    wordIndex: 4,
+    totalWords: 7
+  });
+
+  assert.equal(coordinator.setWordProgress(36, 10, 2, 8), false);
+  assert.deepEqual(coordinator.getWordProgress(), {
+    surah: 36,
+    ayah: 3,
+    wordIndex: 4,
+    totalWords: 7
+  });
+  assert.deepEqual(coordinator.getExpectedVerse(), { surah: 36, ayah: 3 });
+});
+
+test("Anchor Coordinator - Selecting a new expected verse clears prior word progress", () => {
+  const coordinator = new AnchorCoordinator();
+  coordinator.setSelectedVerse(36, 3);
+  assert.equal(coordinator.setWordProgress(36, 3, 4, 7), true);
+
+  coordinator.setSelectedVerse(36, 4);
+  assert.equal(coordinator.getWordProgress(), null);
+  assert.deepEqual(coordinator.getExpectedVerse(), { surah: 36, ayah: 4 });
 });

@@ -1,12 +1,13 @@
 import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
 import { TilawaAdapter } from "../recognition/tilawa/TilawaAdapter.ts";
 import type { RecognitionEvent } from "../recognition/types.ts";
+import { getSurahInfo } from "../quran/index.ts";
 import {
   AnchorCoordinator,
   WebSpeechCommandRecognizer,
   parseNavigationCommand,
   type CommandRecognitionEvent,
-  type NavigationAnchor
+  type SelectedVerse
 } from "../command/index.ts";
 
 export function initApp(): void {
@@ -39,18 +40,12 @@ export function initApp(): void {
   const stop = document.querySelector<HTMLButtonElement>("#stop")!;
 
   // Subscribe to Anchor changes
-  anchorCoordinator.subscribe((anchor: NavigationAnchor) => {
-    anchorPositionEl.textContent = `Surat ${anchor.surahInfo ? anchor.surahInfo.name : anchor.surahName} (${anchor.surah}), Ayat ${anchor.ayah}`;
+  anchorCoordinator.subscribeToSelectedVerse((selectedVerse: SelectedVerse) => {
+    const surahInfo = getSurahInfo(selectedVerse.surah);
+    anchorPositionEl.textContent = `Surat ${surahInfo ? surahInfo.name : `Surat ${selectedVerse.surah}`} (${selectedVerse.surah}), Ayat ${selectedVerse.ayah}`;
     anchorBadgeEl.textContent = "LOCKED POSITION";
     anchorBadgeEl.className = "badge locked";
-
-    const sourceLabel =
-      anchor.source === "voice_command"
-        ? "perintah suara"
-        : anchor.source === "recitation_discovery"
-        ? "deteksi bacaan Tilawa"
-        : "manual";
-    anchorDetailEl.textContent = `Posisi awal dikunci melalui ${sourceLabel}. Siap diverifikasi pada mode hands-free.`;
+    anchorDetailEl.textContent = "Posisi awal dipilih melalui perintah pengguna. Hasil deteksi Tilawa tidak mengubah pilihan ini.";
   });
 
   // Handle Command Submission
@@ -210,7 +205,15 @@ export function initApp(): void {
       }
     }
     if (event.type === "word_progress") {
-      detail.textContent = `Kemajuan ayat ${event.surah}:${event.ayah} — kata ${event.word_index}/${event.total_words}`;
+      const accepted = anchorCoordinator.setWordProgress(
+        event.surah,
+        event.ayah,
+        event.word_index,
+        event.total_words
+      );
+      if (accepted) {
+        detail.textContent = `Kemajuan ayat ${event.surah}:${event.ayah} — kata ${event.word_index}/${event.total_words}`;
+      }
     }
   }
 

@@ -37,8 +37,10 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
                         │ src/command/coordinator/  │
                         │ AnchorCoordinator.ts      │
                         │ ───────────────────────── │
-                        │   LOCKED POSITION         │
-                        │   (Surah & Ayah Anchor)   │
+                        │   ReadingState             │
+                        │   selectedVerse            │
+                        │   expectedVerse            │
+                        │   detectedVerse            │
                         └─────────────┬─────────────┘
                                       │
                                       ▼
@@ -55,7 +57,7 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
 
 - **`src/app/`**:
   - Menginisialisasi aplikasi, mengaitkan adapter pengenalan tilawah dan perintah suara dengan layer UI serta audio capture.
-  - Menampung orkestrator koordinasi (`AnchorCoordinator`).
+  - Menampung state/control layer `ReadingState` dan orkestrator `AnchorCoordinator`. `selectedVerse` dan `expectedVerse` ditetapkan saat user memilih ayat, sedangkan event `verse_match` memperbarui `detectedVerse`; anchor discovery hanya berpindah jika tidak ada target atau pasangan surat/ayat terdeteksi sama persis dengan `expectedVerse`. Event `word_progress` hanya disimpan dan diteruskan ke UI bila pasangan surat/ayatnya sama persis dengan `expectedVerse`.
 - **`src/audio/`**:
   - Bertanggung jawab penuh atas penangkapan audio perangkat keras dan resample ke format standar 16 kHz Float32.
 - **`src/command/`**:
@@ -85,7 +87,7 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
 2. **Pemisahan Jalur Suara & Perintah**:
    - Pengenalan lantunan ayat Al-Qur'an (*recitation*) dilakukan oleh model Tilawa FastConformer.
    - Pengenalan perintah navigasi (*voice command*) diproses melalui layer `src/command/` dan validator `src/quran/`.
-   - Keduanya bermuara pada `AnchorCoordinator` yang menghasilkan state posisi awal seragam (`surah`, `ayah`).
+   - Perintah user memperbarui `selectedVerse` dan `expectedVerse`, sedangkan Tilawa memperbarui `detectedVerse` serta hasil `verseMatch`. Anchor discovery tidak berpindah ketika hasil deteksi tidak sama persis dengan target.
 3. **Desain Abstraksi Recognizer Offline**:
    - Antarmuka `VoiceCommandRecognizer` memungkinkan pergantian engine STT di masa depan (Web Speech API -> Vosk WASM -> Whisper On-Device -> Android Native SpeechRecognizer) tanpa mengubah parser atau UI.
 
