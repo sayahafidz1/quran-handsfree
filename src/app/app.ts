@@ -1,6 +1,7 @@
 import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
 import { TilawaAdapter } from "../recognition/tilawa/TilawaAdapter.ts";
 import type { RecognitionEvent } from "../recognition/types.ts";
+import { ReadingSession } from "./reading/ReadingSession.ts";
 import { getSurahInfo } from "../quran/index.ts";
 import {
   AnchorCoordinator,
@@ -17,6 +18,7 @@ export function initApp(): void {
 
   // Anchor Coordinator
   const anchorCoordinator = new AnchorCoordinator();
+  const readingSession = new ReadingSession();
 
   // Anchor UI Elements
   const anchorPositionEl = document.querySelector<HTMLParagraphElement>("#anchor-position")!;
@@ -58,6 +60,7 @@ export function initApp(): void {
     const result = parseNavigationCommand(text);
     if (result.success) {
       anchorCoordinator.setAnchorFromCommand(result);
+      readingSession.start({ surah: result.surah, ayah: result.ayah });
       commandFeedbackEl.className = "feedback-msg success";
       commandFeedbackEl.textContent = `✓ Berhasil dikunci ke Surat ${result.surahName} (${result.surah}) ayat ${result.ayah}.`;
     } else {
@@ -122,6 +125,7 @@ export function initApp(): void {
         } else if (event.type === "command_result") {
           if (event.result.success) {
             anchorCoordinator.setAnchorFromCommand(event.result);
+            readingSession.start({ surah: event.result.surah, ayah: event.result.ayah });
             commandFeedbackEl.className = "feedback-msg success";
             commandFeedbackEl.textContent = `✓ Berhasil dikunci ke Surat ${event.result.surahName} (${event.result.surah}) ayat ${event.result.ayah}.`;
           } else {
@@ -162,6 +166,7 @@ export function initApp(): void {
   start.addEventListener("click", async () => {
     try {
       await microphone.start((samples) => recognition.feed(samples));
+      readingSession.start(anchorCoordinator.getSelectedVerse() ?? undefined);
       recognition.reset();
       status.textContent = "Mendengarkan lantunan ayat…";
       start.disabled = true;
@@ -175,6 +180,7 @@ export function initApp(): void {
   stop.addEventListener("click", async () => {
     await microphone.stop();
     recognition.reset();
+    readingSession.reset();
     status.textContent = "Pengenalan dihentikan.";
     start.disabled = !ready;
     stop.disabled = true;
@@ -194,6 +200,7 @@ export function initApp(): void {
       prepare.disabled = false;
     }
     if (event.type === "verse_match") {
+      readingSession.handleEvent(event);
       verse.textContent = `Surah ${event.surah}, ayat ${event.ayah}: ${event.verse_text}`;
       confidence.textContent = `Keyakinan: ${Math.round(event.confidence * 100)}%`;
 
@@ -205,12 +212,7 @@ export function initApp(): void {
       }
     }
     if (event.type === "word_progress") {
-      const accepted = anchorCoordinator.setWordProgress(
-        event.surah,
-        event.ayah,
-        event.word_index,
-        event.total_words
-      );
+      const accepted = readingSession.handleEvent(event);
       if (accepted) {
         detail.textContent = `Kemajuan ayat ${event.surah}:${event.ayah} — kata ${event.word_index}/${event.total_words}`;
       }

@@ -4,13 +4,15 @@ Dokumen ini mencatat status terkini, batasan mutlak, serta panduan bagi engineer
 
 ---
 
-## 1. Status Terkini (Per 2026-08-28)
+## 1. Status Terkini (Per 2026-09-11)
 
 - **Struktur Folder Modular**: Telah diselaraskan menjadi `src/app/`, `src/app/reading/`, `src/audio/`, `src/recognition/tilawa/`, `src/workers/`, dan `src/ui/`.
 - **Batas Integrasi**: `src/recognition/tilawa/TilawaAdapter.ts` bertindak sebagai adapter isolasi ke `@tilawa/core`.
 - **Kompilasi & Build**: TypeScript checking (`tsc --noEmit`) dan Vite bundle build (`npm run build`) berjalan bersih tanpa error.
 - **Service Worker & PWA**: Scaffold dasar service worker cache-first dan Web Manifest sudah terkonfigurasi.
 - **Aset Model**: Aset biner dan dataset besar belum dimasukkan ke repo (dikelola via `public/tilawa/`).
+- **State Machine Sesi**: `ReadingSession` di `src/app/reading/` mengelola discovery, lock, tracking, expected next, mismatch, dan completed dari event `verse_match`/`word_progress`. Saat mismatch terjadi pada expected-next, target tersebut dipertahankan; pengulangan ayat aktif maupun ayat yang dilompati tidak dapat memajukan sesi, dan deteksi expected-next berikutnya memulihkan tracking.
+- **Navigasi Ayat**: `src/quran/navigation.ts` menyediakan `getNextVerse()` untuk perpindahan dalam surat, lintas batas surat, dan penanda selesai setelah ayat 114:6.
 
 ---
 

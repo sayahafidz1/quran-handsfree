@@ -19,7 +19,8 @@ Pihak ketiga yang digunakan, termasuk `@tilawa/core`, memiliki atribusi dan lise
 ```text
 quran-handsfree/
 ├── src/
-│   ├── app/                 # Bootstrapping & koordinasi aplikasi
+│   ├── app/                 # Bootstrapping, koordinasi, & state machine sesi
+│   │   └── reading/         # ReadingState dan ReadingSession
 │   ├── audio/               # Audio capture & resampler 16 kHz Mono Float32
 │   ├── recognition/         # Abstraksi & kontrak pengenalan suara
 │   │   └── tilawa/          # Adapter & boundary integrasi @tilawa/core
@@ -52,6 +53,8 @@ quran-handsfree/
 
 - **`src/recognition/tilawa/`**: Berfungsi sebagai boundary/adapter antara kontrak aplikasi dan paket publik `@tilawa/core`.
 - **Pemisahan Product Logic**: Alur logika produk di masa depan (seperti `discovery -> lock -> verify -> next ayah`) **tidak boleh dicampur** ke dalam adapter Tilawa. Adapter hanya bertugas memetakan stream audio ke session Tilawa dan meneruskan event pengenalan.
+- **Reading Session**: `src/app/reading/ReadingSession.ts` mengelola state `idle`, `discovering`, `locked`, `tracking`, `expecting_next`, `mismatch`, dan `completed` dari event publik `verse_match` serta `word_progress`.
+- **Direct Recitation Discovery**: `verse_match` dapat memulai sesi dan mengunci ayat yang ditemukan saat belum ada pilihan manual; pilihan manual tetap menjadi target yang harus dicocokkan.
 - **Isolasi Engine**: Jangan mengimpor source internal Tilawa atau menduplikasi kodenya jika API publik `@tilawa/core` mencukupi.
 - **Portabilitas**: Desain arsitektur ini memungkinkan aplikasi berjalan sebagai Web/PWA saat ini dan dapat diadopsi ke React Native/Android nanti dengan mengganti adapter platform tanpa merusak product logic inti.
 

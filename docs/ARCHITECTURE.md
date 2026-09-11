@@ -57,7 +57,8 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
 
 - **`src/app/`**:
   - Menginisialisasi aplikasi, mengaitkan adapter pengenalan tilawah dan perintah suara dengan layer UI serta audio capture.
-  - Menampung state/control layer `ReadingState` dan orkestrator `AnchorCoordinator`. `selectedVerse` dan `expectedVerse` ditetapkan saat user memilih ayat, sedangkan event `verse_match` memperbarui `detectedVerse`; anchor discovery hanya berpindah jika tidak ada target atau pasangan surat/ayat terdeteksi sama persis dengan `expectedVerse`. Event `word_progress` hanya disimpan dan diteruskan ke UI bila pasangan surat/ayatnya sama persis dengan `expectedVerse`.
+  - Menampung state/control layer `ReadingState`, `ReadingSession`, dan orkestrator `AnchorCoordinator`. `ReadingSession` mengelola state machine `idle -> discovering -> locked -> tracking -> expecting_next -> tracking`, serta state `mismatch` dan `completed`. Mismatch tidak pernah memajukan ayat aktif; setelah mismatch, ayat yang diharapkan tetap menjadi satu-satunya ayat yang dapat memajukan sesi sehingga pengulangan atau lompatan ayat dapat dipulihkan dengan aman. Event `verse_match` dapat memulai discovery dan mengunci ayat secara langsung ketika belum ada target manual; command manual tetap memasok target yang harus cocok.
+  - `selectedVerse` dan `expectedVerse` ditetapkan saat user memilih ayat, sedangkan event `verse_match` memperbarui `detectedVerse`; anchor discovery hanya berpindah jika tidak ada target atau pasangan surat/ayat terdeteksi sama persis dengan `expectedVerse`. Event `word_progress` hanya disimpan dan diteruskan ke UI bila pasangan surat/ayatnya sama persis dengan `expectedVerse`.
 - **`src/audio/`**:
   - Bertanggung jawab penuh atas penangkapan audio perangkat keras dan resample ke format standar 16 kHz Float32.
 - **`src/command/`**:
@@ -69,6 +70,7 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
 - **`src/quran/`**:
   - **`surahData.ts`**: Data 114 surat Al-Qur'an lengkap dengan nama latin, nama arab, batas jumlah ayat yang akurat, serta kamus alias/variasi pelafalan.
   - **`validator.ts`**: Logika pencarian alias dan validasi batas ayat Al-Qur'an murni *offline* tanpa ketergantungan luar.
+  - **`navigation.ts`**: Menghitung referensi ayat berikutnya, termasuk perpindahan ke awal surat berikutnya dan akhir Al-Qur'an.
 - **`src/recognition/` & `src/recognition/tilawa/` (Integration Boundary)**:
   - Adapter khusus yang mengimplementasikan `RecognitionAdapter` dengan membungkus Worker `@tilawa/core`.
   - Mengisolasi seluruh interaksi `@tilawa/core` dan format pesan internal worker.

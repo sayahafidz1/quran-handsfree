@@ -12,13 +12,10 @@ Dokumen ini memuat peta jalan dan urutan pengerjaan untuk tahap selanjutnya dari
 - Ganti implementasi `ScriptProcessorNode` di `src/audio/MicrophoneCapture.ts` dengan `AudioWorkletNode` standar modern agar penangkapan dan resampling audio tidak terganggu aktivitas thread utama.
 - Tetap pertahankan kontrak antarmuka luar `onSamples(Float32Array)`.
 
-## 3. Desain & Implementasi State Machine Logika Produk
-- Bangun modul alur hands-free di layer `src/app/`:
-  - **Discovery**: Mendengarkan ayat apa pun yang sedang dibaca pengguna.
-  - **Lock**: Mengunci konteks surat dan ayat yang terdeteksi.
-  - **Verify / Follow-along**: Memantau kemajuan kata demi kata (`word_progress`).
-  - **Next Ayah**: Secara otomatis berpindah ke ayat berikutnya ketika ayat saat ini selesai dilantunkan.
-- Pastikan logika ini tidak masuk ke dalam adapter `src/recognition/tilawa/`.
+## 3. State Machine Logika Produk (Stage 1 Selesai)
+- `src/app/reading/ReadingSession.ts` mengorkestrasi discovery, lock, follow-along melalui `word_progress`, mismatch, dan auto-advance ke ayat berikutnya.
+- Discovery langsung dapat memulai sesi ketika belum ada target manual; command manual tetap memasok target yang harus dicocokkan.
+- Logika ini berada di layer `src/app/`, terpisah dari adapter `src/recognition/tilawa/`.
 
 ## 4. Fitur Backlog (Tahap Lanjutan)
 1. **Fitur Verifier**: Evaluasi ketepatan makhraj/bacaan per kata.

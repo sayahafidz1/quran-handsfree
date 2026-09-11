@@ -31,8 +31,6 @@ Fitur-fitur berikut **belum diimplementasikan** pada tahap ini dan berada dalam 
    - Evaluasi makhraj dan harakat lanjutan.
 2. **On-Device Offline STT Model Engine (Vosk-WASM / Whisper-WASM)**:
    - Penggantian recognizer suara peramban (*browser SpeechRecognition*) dengan engine STT biner lokal/WASM untuk offline absolut tanpa ketergantungan kapabilitas browser.
-3. **State Machine Logika Produk Hands-Free Lanjutan**:
-   - Alur `discovery / command anchor -> locked position -> verify -> auto-advance next ayah` yang akan diorkestrasi di layer `src/app/` / domain logic.
 4. **Antarmuka Mushaf Penuh**:
    - Tampilan mushaf digital interaktif bergaya Madinah/Kemenag, bookmark, transliterasi Latin, dan terjemahan bahasa Indonesia.
 5. **Porting Android Native / React Native**:

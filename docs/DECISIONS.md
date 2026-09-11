@@ -54,3 +54,13 @@
 - **Konteks**: Event `word_progress` Tilawa dapat berasal dari ayat yang berbeda dari target bacaan.
 - **Keputusan**: `ReadingState` memvalidasi pasangan `surah`/`ayah` pada progress terhadap `expectedVerse`. Progress yang cocok disimpan untuk UI, sedangkan progress yang berbeda diabaikan tanpa mengubah target atau progress terakhir yang valid.
 - **Konsekuensi**: UI tidak menampilkan kemajuan dari ayat lain dan progress valid tetap tersedia melalui `AnchorCoordinator.getWordProgress()`.
+
+## 2026-09-11 — State Machine Reading Session di Product Layer
+- **Konteks**: Stage 1 membutuhkan alur eksplisit dari discovery hingga verifikasi ayat berikutnya tanpa menaruh logika produk di adapter Tilawa.
+- **Keputusan**: Menambahkan `src/app/reading/ReadingSession.ts` sebagai state machine yang menerima event publik `verse_match` dan `word_progress`. State mismatch mempertahankan ayat aktif, sedangkan progress kata terakhir menentukan `expected_next`; deteksi ayat berikutnya hanya memajukan sesi jika cocok persis.
+- **Konsekuensi**: Orkestrasi sesi dapat diuji tanpa model atau browser, dan adapter recognition tetap hanya meneruskan event.
+
+## 2026-09-11 — Navigasi Ayat Menggunakan Metadata Surat
+- **Konteks**: Stage 1 membutuhkan ayat berikutnya yang benar ketika ayat selesai, termasuk saat berpindah surat.
+- **Keputusan**: Menempatkan `getNextVerse()` di `src/quran/navigation.ts` dan menggunakan `SurahInfo.totalAyahs` sebagai sumber kebenaran. Fungsi mengembalikan awal surat berikutnya pada batas surat dan `null` setelah 114:6.
+- **Konsekuensi**: Aturan navigasi dapat digunakan ulang oleh domain lain dan `ReadingSession` tidak perlu menduplikasi logika metadata surat.
