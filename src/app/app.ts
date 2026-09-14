@@ -1,14 +1,12 @@
 import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
 import { TilawaAdapter } from "../recognition/tilawa/TilawaAdapter.ts";
 import type { RecognitionEvent } from "../recognition/types.ts";
-import { ReadingSession } from "./reading/ReadingSession.ts";
+import { ReadingSession, type ReadingSessionSnapshot } from "./reading/ReadingSession.ts";
 import { getSurahInfo } from "../quran/index.ts";
 import {
-  AnchorCoordinator,
   WebSpeechCommandRecognizer,
   parseNavigationCommand,
-  type CommandRecognitionEvent,
-  type SelectedVerse
+  type CommandRecognitionEvent
 } from "../command/index.ts";
 
 export function initApp(): void {
@@ -16,8 +14,6 @@ export function initApp(): void {
     window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
   }
 
-  // Anchor Coordinator
-  const anchorCoordinator = new AnchorCoordinator();
   const readingSession = new ReadingSession();
 
   // Anchor UI Elements
@@ -41,13 +37,25 @@ export function initApp(): void {
   const start = document.querySelector<HTMLButtonElement>("#start")!;
   const stop = document.querySelector<HTMLButtonElement>("#stop")!;
 
-  // Subscribe to Anchor changes
-  anchorCoordinator.subscribeToSelectedVerse((selectedVerse: SelectedVerse) => {
-    const surahInfo = getSurahInfo(selectedVerse.surah);
-    anchorPositionEl.textContent = `Surat ${surahInfo ? surahInfo.name : `Surat ${selectedVerse.surah}`} (${selectedVerse.surah}), Ayat ${selectedVerse.ayah}`;
-    anchorBadgeEl.textContent = "LOCKED POSITION";
-    anchorBadgeEl.className = "badge locked";
-    anchorDetailEl.textContent = "Posisi awal dipilih melalui perintah pengguna. Hasil deteksi Tilawa tidak mengubah pilihan ini.";
+  readingSession.subscribe((snapshot: ReadingSessionSnapshot) => {
+    const position = snapshot.currentVerse ?? snapshot.expectedVerse;
+    if (!position) {
+      anchorPositionEl.textContent = "Belum ada posisi bacaan.";
+      anchorBadgeEl.textContent = "NOT SET";
+      anchorBadgeEl.className = "badge";
+      anchorDetailEl.textContent = "Pilih posisi melalui perintah atau mulai melantunkan ayat.";
+      return;
+    }
+
+    const surahInfo = getSurahInfo(position.surah);
+    anchorPositionEl.textContent = `Surat ${surahInfo ? surahInfo.name : `Surat ${position.surah}`} (${position.surah}), Ayat ${position.ayah}`;
+    anchorBadgeEl.textContent = snapshot.state === "mismatch" ? "MISMATCH" : snapshot.currentVerse ? "LOCKED POSITION" : "TARGET POSITION";
+    anchorBadgeEl.className = snapshot.state === "mismatch" ? "badge" : "badge locked";
+    anchorDetailEl.textContent = snapshot.state === "mismatch"
+      ? "Hasil Tilawa tidak sesuai dengan ayat yang diharapkan. Posisi bacaan tetap dipertahankan."
+      : snapshot.currentVerse
+        ? "Posisi bacaan dikelola oleh ReadingSession berdasarkan event Tilawa."
+        : "Posisi awal dipilih melalui perintah pengguna dan menunggu verifikasi Tilawa.";
   });
 
   // Handle Command Submission
@@ -59,7 +67,6 @@ export function initApp(): void {
 
     const result = parseNavigationCommand(text);
     if (result.success) {
-      anchorCoordinator.setAnchorFromCommand(result);
       readingSession.start({ surah: result.surah, ayah: result.ayah });
       commandFeedbackEl.className = "feedback-msg success";
       commandFeedbackEl.textContent = `✓ Berhasil dikunci ke Surat ${result.surahName} (${result.surah}) ayat ${result.ayah}.`;
@@ -124,7 +131,6 @@ export function initApp(): void {
           commandFeedbackEl.textContent = `Mendengar: "${event.transcript}"…`;
         } else if (event.type === "command_result") {
           if (event.result.success) {
-            anchorCoordinator.setAnchorFromCommand(event.result);
             readingSession.start({ surah: event.result.surah, ayah: event.result.ayah });
             commandFeedbackEl.className = "feedback-msg success";
             commandFeedbackEl.textContent = `✓ Berhasil dikunci ke Surat ${event.result.surahName} (${event.result.surah}) ayat ${event.result.ayah}.`;
@@ -166,7 +172,7 @@ export function initApp(): void {
   start.addEventListener("click", async () => {
     try {
       await microphone.start((samples) => recognition.feed(samples));
-      readingSession.start(anchorCoordinator.getSelectedVerse() ?? undefined);
+      readingSession.start();
       recognition.reset();
       status.textContent = "Mendengarkan lantunan ayat…";
       start.disabled = true;
@@ -203,13 +209,6 @@ export function initApp(): void {
       readingSession.handleEvent(event);
       verse.textContent = `Surah ${event.surah}, ayat ${event.ayah}: ${event.verse_text}`;
       confidence.textContent = `Keyakinan: ${Math.round(event.confidence * 100)}%`;
-
-      // Also set anchor from recitation discovery
-      try {
-        anchorCoordinator.setAnchorFromRecitation(event.surah, event.ayah);
-      } catch (err) {
-        console.warn("Failed to anchor recitation match:", err);
-      }
     }
     if (event.type === "word_progress") {
       const accepted = readingSession.handleEvent(event);

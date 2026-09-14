@@ -17,11 +17,11 @@ Menyediakan pengalaman hands-free yang mulus dan intuitif bagi pengguna untuk me
 - Memisahkan boundary perintah suara navigasi di `src/command/` dan validasi Al-Qur'an di `src/quran/`.
 - Memastikan public API `@tilawa/core` digunakan secara bersih tanpa duplikasi kode source.
 - Merapikan struktur folder (`app`, `audio`, `command`, `quran`, `recognition/tilawa`, `workers`, `ui`).
-- Menyediakan abstraction layer `VoiceCommandRecognizer` & `AnchorCoordinator` untuk mendukung pengenalan offline on-device di masa depan.
+- Menyediakan abstraction layer `VoiceCommandRecognizer` untuk mendukung pengenalan offline on-device di masa depan.
 
 ## 4. Status Implementasi Navigasi Perintah Suara
 - Navigasi posisi awal melalui teks/perintah suara telah tersedia di `src/command/`: parser memetakan nama atau nomor 114 surat dan nomor ayat menjadi pasangan tervalidasi `{ surah, ayah }`.
-- `AnchorCoordinator` menyatukan hasil perintah dengan discovery bacaan Tilawa sebagai *locked position*, tanpa mengubah upstream Tilawa.
+- Hasil perintah teks/suara dan discovery bacaan Tilawa langsung dikelola oleh `ReadingSession`; upstream Tilawa tetap tidak diubah.
 - Implementasi `WebSpeechCommandRecognizer` saat ini adalah adapter browser yang dapat diganti. Parser, data surat, dan kontrak `VoiceCommandRecognizer` tetap lokal; engine STT offline penuh (misalnya Vosk/Whisper WASM atau native Android) masih merupakan backlog.
 
 ## 5. Backlog & Fitur yang Sengaja Belum Diimplementasikan (Non-Goals)

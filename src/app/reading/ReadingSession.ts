@@ -1,7 +1,12 @@
 import type { SelectedVerse } from "../../command/types.ts";
 import type { RecognitionEvent, VerseMatchEvent, WordProgressEvent } from "../../recognition/types.ts";
 import { getNextVerse } from "../../quran/index.ts";
-import type { WordProgress } from "./ReadingState.ts";
+export interface WordProgress {
+  surah: number;
+  ayah: number;
+  wordIndex: number;
+  totalWords: number;
+}
 
 export type ReadingSessionState =
   | "idle"

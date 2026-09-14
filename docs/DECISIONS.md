@@ -64,3 +64,18 @@
 - **Konteks**: Stage 1 membutuhkan ayat berikutnya yang benar ketika ayat selesai, termasuk saat berpindah surat.
 - **Keputusan**: Menempatkan `getNextVerse()` di `src/quran/navigation.ts` dan menggunakan `SurahInfo.totalAyahs` sebagai sumber kebenaran. Fungsi mengembalikan awal surat berikutnya pada batas surat dan `null` setelah 114:6.
 - **Konsekuensi**: Aturan navigasi dapat digunakan ulang oleh domain lain dan `ReadingSession` tidak perlu menduplikasi logika metadata surat.
+
+## 2026-09-14 — Command Navigation Starts ReadingSession Directly
+- **Konteks**: Jalur command sebelumnya meneruskan hasil parser ke `AnchorCoordinator` sebelum memulai sesi bacaan, sehingga navigation state dan recitation discovery tercampur.
+- **Keputusan**: Input teks dan voice yang berhasil diparse langsung memanggil `ReadingSession.start({ surah, ayah })`. `AnchorCoordinator` dipertahankan untuk state anchor dan discovery Tilawa, tetapi tidak lagi menjadi dependency jalur command.
+- **Konsekuensi**: Command navigation memiliki satu target sesi yang eksplisit dan valid; memulai audio setelah command mempertahankan target tersebut, sementara command invalid tetap tidak mengubah sesi.
+
+## 2026-09-14 — ReadingSession Owns Application Recognition Routing
+- **Konteks**: Event `verse_match` sebelumnya diteruskan ke `ReadingSession` dan `AnchorCoordinator`, sehingga dua state consumer dapat bereaksi terhadap hasil Tilawa.
+- **Keputusan**: `handleRecognitionEvent()` meneruskan `verse_match` dan `word_progress` hanya ke `ReadingSession.handleEvent()`. UI menampilkan posisi dari snapshot `ReadingSession`; `AnchorCoordinator` tidak lagi dipanggil oleh jalur recognition aktif.
+- **Konsekuensi**: Discovery langsung, mismatch protection, dan word progress memiliki satu sumber kebenaran tanpa mengubah adapter Tilawa atau integrasi ONNX.
+
+## 2026-09-14 — Remove AnchorCoordinator
+- **Konteks**: Setelah command navigation dan recognition routing dipindahkan ke `ReadingSession`, `AnchorCoordinator` tidak lagi memiliki consumer runtime maupun tanggung jawab yang tersisa.
+- **Keputusan**: Menghapus `AnchorCoordinator`, tipe anchor legacy, export coordinator, serta pengujian khususnya. `ReadingSession` menjadi satu-satunya pemilik state navigasi dan state reading aplikasi.
+- **Konsekuensi**: Arsitektur runtime tidak memiliki dependency anchor legacy; command parser dan recognizer tetap menjadi API command yang aktif, sedangkan discovery Tilawa tetap masuk melalui `ReadingSession`.
