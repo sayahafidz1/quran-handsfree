@@ -134,6 +134,31 @@ test("ReadingSession completes at the final ayah", () => {
   assert.equal(session.getState().expectedNextVerse, null);
 });
 
+test("ReadingSession keeps completion terminal when resuming", () => {
+  const session = new ReadingSession();
+  session.start({ surah: 114, ayah: 6 });
+  session.handleEvent(verseMatch(114, 6));
+  session.handleEvent(wordProgress(114, 6, 6, 6));
+  const completed = session.getState();
+
+  session.resumeListening();
+
+  assert.deepEqual(session.getState(), completed);
+});
+
+test("ReadingSession ignores recognition events after completion", () => {
+  const session = new ReadingSession();
+  session.start({ surah: 114, ayah: 6 });
+  session.handleEvent(verseMatch(114, 6));
+  session.handleEvent(wordProgress(114, 6, 6, 6));
+  const completed = session.getState();
+
+  session.handleEvent(verseMatch(1, 1));
+  assert.deepEqual(session.getState(), completed);
+  assert.equal(session.handleEvent(wordProgress(114, 6, 1, 6)), false);
+  assert.deepEqual(session.getState(), completed);
+});
+
 test("ReadingSession expects the first ayah of the next surah", () => {
   const session = new ReadingSession();
   session.start({ surah: 1, ayah: 7 });
@@ -152,4 +177,40 @@ test("ReadingSession rejects word progress from another verse", () => {
   assert.equal(session.handleWordProgress(wordProgress(36, 10, 1, 8)), false);
   assert.equal(session.getState().wordProgress, null);
   assert.equal(session.getState().state, "locked");
+});
+
+test("ReadingSession keeps the latest valid word progress for repeated events", () => {
+  const session = new ReadingSession();
+  session.handleEvent(verseMatch(36, 3));
+
+  assert.equal(session.handleEvent(wordProgress(36, 3, 2, 7)), true);
+  assert.deepEqual(session.getState().wordProgress, {
+    surah: 36,
+    ayah: 3,
+    wordIndex: 2,
+    totalWords: 7
+  });
+
+  test("ReadingSession controls preserve a resumable active position", () => {
+    const session = new ReadingSession();
+    session.start({ surah: 36, ayah: 3 });
+    session.handleEvent(verseMatch(36, 3));
+    session.stopListening();
+    assert.equal(session.getState().state, "idle");
+    assert.deepEqual(session.getState().currentVerse, { surah: 36, ayah: 3 });
+
+    session.resumeListening();
+    assert.equal(session.getState().state, "tracking");
+    session.moveToNextVerse();
+    assert.deepEqual(session.getState().expectedVerse, { surah: 36, ayah: 4 });
+    session.moveToPreviousVerse();
+    assert.deepEqual(session.getState().expectedVerse, { surah: 36, ayah: 3 });
+  });
+  assert.equal(session.handleEvent(wordProgress(36, 3, 2, 7)), true);
+  assert.deepEqual(session.getState().wordProgress, {
+    surah: 36,
+    ayah: 3,
+    wordIndex: 2,
+    totalWords: 7
+  });
 });

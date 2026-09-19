@@ -1,4 +1,4 @@
-import { parseNavigationCommand } from "../commandParser.ts";
+import { parseReaderCommand } from "../commandParser.ts";
 import type { CommandRecognitionEvent, VoiceCommandRecognizer } from "../types.ts";
 
 // Polyfill type declaration for Web Speech API
@@ -80,7 +80,7 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
           isFinal: true
         });
 
-        const parseResult = parseNavigationCommand(finalTranscript);
+        const parseResult = parseReaderCommand(finalTranscript);
         this.notify({
           type: "command_result",
           result: parseResult

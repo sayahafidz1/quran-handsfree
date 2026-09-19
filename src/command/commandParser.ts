@@ -1,8 +1,8 @@
 import { findSurahByNameOrAlias, getSurahInfo, normalizeText, validateSurahAndAyah } from "../quran/index.ts";
 import { parseNumberString } from "./numberParser.ts";
-import type { ParseCommandResult, ParseCommandSuccess, ParseCommandFailure } from "./types.ts";
+import type { ParseCommandResult, ParseCommandSuccess, ParseCommandFailure, ReaderControlCommand } from "./types.ts";
 
-export function parseNavigationCommand(rawInput: string): ParseCommandResult {
+export function parseReaderCommand(rawInput: string): ParseCommandResult {
   if (!rawInput || !rawInput.trim()) {
     return {
       success: false,
@@ -20,6 +20,9 @@ export function parseNavigationCommand(rawInput: string): ParseCommandResult {
     .replace(/^(tolong|mohon|coba|silakan)\s+/, "")
     .replace(/^(buka|pindah ke|loncat ke|pergi ke|baca|navigasi ke|ke)\s+/, "")
     .trim();
+
+  const controlCommand = parseControlCommand(cleanInput, rawText);
+  if (controlCommand) return controlCommand;
 
   // Pattern 1: Inverted "ayat [X] (di)? surat [Y]"
   const invertedMatch = cleanInput.match(/^ayat(?:\s+ke|-)?\s+(.+?)\s+(?:di\s+)?(?:surat|surah)\s+(.+)$/);
@@ -70,6 +73,7 @@ export function parseNavigationCommand(rawInput: string): ParseCommandResult {
         maxAyah: singleSurah.surahInfo.totalAyahs
       };
     }
+
   }
 
   // Pattern 4: Name + Number without explicit "ayat" keyword (e.g. "Al Baqarah 255", "Yasin 58")
@@ -107,6 +111,32 @@ export function parseNavigationCommand(rawInput: string): ParseCommandResult {
     message: `Perintah "${rawText}" tidak dikenali sebagai navigasi surat dan ayat. Format contoh: "Al-Baqarah ayat 255", "Surat Yasin ayat 58".`,
     rawText
   };
+}
+
+export function parseNavigationCommand(rawInput: string): ParseCommandSuccess | ParseCommandFailure {
+  const result = parseReaderCommand(rawInput);
+  if (result.success && result.command === "open") return result;
+  if (!result.success) return result;
+  return {
+    success: false,
+    reason: "unrecognized_command",
+    message: `Perintah "${rawInput.trim()}" bukan navigasi surat dan ayat.`,
+    rawText: rawInput.trim()
+  };
+}
+
+function parseControlCommand(input: string, rawText: string): ParseCommandResult | null {
+  const aliases: Array<[ReaderControlCommand, RegExp]> = [
+    ["start", /^(mulai|start|mulai membaca|mulai mendengarkan|baca)$/],
+    ["current", /^(kembali|kembali ke posisi|kembali ke posisi bacaan aktif|posisi aktif|posisi saat ini)$/],
+    ["repeat", /^(ulang|baca ulang|ulang ayat|baca ulang ayat|ulangi)$/],
+    ["next", /^(berikutnya|ayat berikutnya|next|next ayat|maju satu ayat)$/],
+    ["previous", /^(sebelumnya|ayat sebelumnya|previous|previous ayat|mundur satu ayat)$/],
+    ["stop", /^(berhenti|stop|berhenti mendengarkan|stop listening|berhenti listening)$/],
+    ["resume", /^(lanjut|lanjutkan|resume|resume listening|lanjut mendengarkan)$/]
+  ];
+  const match = aliases.find(([, pattern]) => pattern.test(input));
+  return match ? { success: true, command: match[0], rawText } : null;
 }
 
 interface SurahResolveResult {
@@ -192,6 +222,7 @@ function resolveSurahAndAyah(surahQuery: string, ayahQuery: string, rawText: str
 
   return {
     success: true,
+    command: "open",
     surah: validation.surah,
     ayah: validation.ayah,
     surahInfo: validation.surahInfo,

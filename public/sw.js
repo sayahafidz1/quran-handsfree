@@ -1,5 +1,5 @@
 const CACHE = "quran-handsfree-v1";
-const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest"];
+const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/quran/content.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(APP_SHELL)));

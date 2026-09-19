@@ -22,6 +22,7 @@ quran-handsfree/
 │   ├── app/                 # Bootstrapping, orkestrasi, & state machine sesi
 │   │   └── reading/         # ReadingSession dan state machine bacaan
 │   ├── audio/               # Audio capture & resampler 16 kHz Mono Float32
+│   ├── quran/               # Offline Quran content, metadata, and navigation
 │   ├── recognition/         # Abstraksi & kontrak pengenalan suara
 │   │   └── tilawa/          # Adapter & boundary integrasi @tilawa/core
 │   ├── workers/             # Web Worker untuk inferensi ONNX & Tilawa Session
@@ -31,6 +32,7 @@ quran-handsfree/
 ├── public/
 │   ├── manifest.webmanifest # Konfigurasi PWA Web Manifest
 │   ├── sw.js                # Service worker untuk caching offline
+│   ├── quran/content.json   # Asset teks Quran offline (114 surah)
 │   └── tilawa/              # Folder aset runtime Tilawa (dipin/checksum)
 ├── docs/
 │   ├── ARCHITECTURE.md      # Detail arsitektur & pemisahan layer
@@ -46,6 +48,12 @@ quran-handsfree/
 ├── vite.config.ts           # Konfigurasi Vite bundler & Worker
 └── README.md                # Dokumentasi utama proyek
 ```
+
+`src/quran/content/` menyediakan surah, juz, ayah, teks Arab, dan indeks kata
+stabil melalui `OfflineQuranContentProvider`. Provider ini tidak memiliki
+reading state dan tidak mengimpor internal recognition engine. Asset
+`public/quran/content.json` dicache oleh service worker untuk penggunaan
+offline.
 
 ---
 

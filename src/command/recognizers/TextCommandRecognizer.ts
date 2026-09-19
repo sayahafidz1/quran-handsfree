@@ -1,4 +1,4 @@
-import { parseNavigationCommand } from "../commandParser.ts";
+import { parseReaderCommand } from "../commandParser.ts";
 import type { CommandRecognitionEvent, VoiceCommandRecognizer } from "../types.ts";
 
 export class TextCommandRecognizer implements VoiceCommandRecognizer {
@@ -27,7 +27,7 @@ export class TextCommandRecognizer implements VoiceCommandRecognizer {
       isFinal: true
     });
 
-    const result = parseNavigationCommand(input);
+    const result = parseReaderCommand(input);
     this.onEventCallback({
       type: "command_result",
       result

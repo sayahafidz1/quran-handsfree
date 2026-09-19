@@ -9,11 +9,20 @@ export interface NavigationCommand {
 
 export interface ParseCommandSuccess {
   success: true;
+  command: "open";
   surah: number;
   ayah: number;
   surahInfo: SurahInfo;
   surahName: string;
   totalAyahs: number;
+  rawText: string;
+}
+
+export type ReaderControlCommand = "start" | "current" | "repeat" | "next" | "previous" | "stop" | "resume";
+
+export interface ReaderControlSuccess {
+  success: true;
+  command: ReaderControlCommand;
   rawText: string;
 }
 
@@ -28,7 +37,7 @@ export interface ParseCommandFailure {
   maxAyah?: number;
 }
 
-export type ParseCommandResult = ParseCommandSuccess | ParseCommandFailure;
+export type ParseCommandResult = ParseCommandSuccess | ReaderControlSuccess | ParseCommandFailure;
 
 export interface SelectedVerse {
   surah: number;

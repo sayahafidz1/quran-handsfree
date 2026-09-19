@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { parseNavigationCommand, parseNumberString } from "../src/command/index.ts";
+import { parseNavigationCommand, parseNumberString, parseReaderCommand } from "../src/command/index.ts";
 import { SURAH_DATA, getSurahInfo, validateSurahAndAyah } from "../src/quran/index.ts";
 
 test("Number Parser - Digits and Indonesian words", () => {
@@ -159,6 +159,27 @@ test("Command Parser - Invalid Surah Rejections", () => {
   if (!res2.success) {
     assert.equal(res2.reason, "invalid_surah");
   }
+});
+
+test("Reader command parser supports deterministic hands-free controls", () => {
+  const commands = new Map([
+    ["baca ulang ayat", "repeat"],
+    ["ayat berikutnya", "next"],
+    ["ayat sebelumnya", "previous"],
+    ["kembali ke posisi bacaan aktif", "current"],
+    ["stop listening", "stop"],
+    ["resume listening", "resume"],
+    ["mulai membaca", "start"]
+  ] as const);
+
+  for (const [input, command] of commands) {
+    const result = parseReaderCommand(input);
+    assert.equal(result.success, true);
+    if (result.success) assert.equal(result.command, command);
+  }
+
+  const invalid = parseReaderCommand("lompat ke ayat ajaib");
+  assert.equal(invalid.success, false);
 });
 
 test("Quran Metadata - 114 Surahs Coverage", () => {

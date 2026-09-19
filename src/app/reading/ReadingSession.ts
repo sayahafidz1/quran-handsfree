@@ -1,6 +1,6 @@
 import type { SelectedVerse } from "../../command/types.ts";
 import type { RecognitionEvent, VerseMatchEvent, WordProgressEvent } from "../../recognition/types.ts";
-import { getNextVerse } from "../../quran/index.ts";
+import { getNextVerse, getPreviousVerse } from "../../quran/index.ts";
 export interface WordProgress {
   surah: number;
   ayah: number;
@@ -72,6 +72,44 @@ export class ReadingSession {
     this.notify();
   }
 
+  public stopListening(): void {
+    if (this.state === "idle") return;
+    this.state = "idle";
+    this.notify();
+  }
+
+  public resumeListening(): void {
+    if (this.state === "completed") return;
+    if (!this.currentVerse && !this.expectedVerse) return;
+    this.state = this.currentVerse ? "tracking" : "discovering";
+    this.notify();
+  }
+
+  public returnToActivePosition(): void {
+    if (!this.currentVerse) return;
+    this.expectedVerse = { ...this.currentVerse };
+    this.state = "tracking";
+    this.notify();
+  }
+
+  public repeatActiveVerse(): void {
+    const active = this.currentVerse ?? this.expectedVerse;
+    if (!active) return;
+    this.start(active);
+  }
+
+  public moveToNextVerse(): void {
+    const active = this.currentVerse ?? this.expectedVerse;
+    const next = active ? getNextVerse(active) : null;
+    if (next) this.start(next);
+  }
+
+  public moveToPreviousVerse(): void {
+    const active = this.currentVerse ?? this.expectedVerse;
+    const previous = active ? getPreviousVerse(active) : null;
+    if (previous) this.start(previous);
+  }
+
   public handleEvent(event: RecognitionEvent): boolean {
     if (event.type === "verse_match") {
       this.handleVerseMatch(event);
@@ -83,6 +121,8 @@ export class ReadingSession {
   }
 
   public handleVerseMatch(event: VerseMatchEvent): void {
+    if (this.state === "completed") return;
+
     const detected = { surah: event.surah, ayah: event.ayah };
     this.detectedVerse = detected;
 
@@ -117,6 +157,8 @@ export class ReadingSession {
   }
 
   public handleWordProgress(event: WordProgressEvent): boolean {
+    if (this.state === "completed") return false;
+
     const progress = {
       surah: event.surah,
       ayah: event.ayah,

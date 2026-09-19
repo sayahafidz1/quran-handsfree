@@ -5,9 +5,14 @@ import { ReadingSession, type ReadingSessionSnapshot } from "./reading/ReadingSe
 import { getSurahInfo } from "../quran/index.ts";
 import {
   WebSpeechCommandRecognizer,
-  parseNavigationCommand,
+  parseReaderCommand,
   type CommandRecognitionEvent
 } from "../command/index.ts";
+import type { ParseCommandResult } from "../command/types.ts";
+import { loadOfflineQuranContent } from "../quran/content/index.ts";
+import { QuranReader } from "../ui/QuranReader.ts";
+import { QuranNavigation } from "../ui/QuranNavigation.ts";
+import { getReadingStatus } from "../ui/readingStatus.ts";
 
 export function initApp(): void {
   if ("serviceWorker" in navigator) {
@@ -36,44 +41,115 @@ export function initApp(): void {
   const prepare = document.querySelector<HTMLButtonElement>("#prepare")!;
   const start = document.querySelector<HTMLButtonElement>("#start")!;
   const stop = document.querySelector<HTMLButtonElement>("#stop")!;
+  const readerElement = document.querySelector<HTMLElement>("#quran-reader")!;
+  const readerStatusElement = document.querySelector<HTMLElement>("#reader-status")!;
+  const readerTitleElement = document.querySelector<HTMLElement>("#reader-title")!;
+  const readerStateElement = document.querySelector<HTMLElement>("#reader-state")!;
+  const navigationRoot = document.querySelector<HTMLElement>("#quran-navigation")!;
+
+  let reader: QuranReader | null = null;
+  void loadOfflineQuranContent().then((content) => {
+    reader = new QuranReader(
+      readerElement,
+      readerStatusElement,
+      readerTitleElement,
+      readerStateElement,
+      content
+    );
+    readingSession.subscribe((snapshot) => reader?.render(snapshot));
+    const navigation = new QuranNavigation(navigationRoot, content, (reference) => {
+      readingSession.start(reference);
+    });
+    readingSession.subscribe((snapshot) => {
+      navigation.setCurrentPosition(snapshot.currentVerse ?? snapshot.expectedVerse);
+    });
+  }).catch((error: unknown) => {
+    readerStatusElement.textContent = "Teks Quran tidak dapat dimuat.";
+    readerElement.replaceChildren();
+    console.error("Unable to initialize Quran reader", error);
+  });
 
   readingSession.subscribe((snapshot: ReadingSessionSnapshot) => {
+    const readingStatus = getReadingStatus(snapshot);
     const position = snapshot.currentVerse ?? snapshot.expectedVerse;
     if (!position) {
       anchorPositionEl.textContent = "Belum ada posisi bacaan.";
-      anchorBadgeEl.textContent = "NOT SET";
+      anchorBadgeEl.textContent = readingStatus.label;
       anchorBadgeEl.className = "badge";
-      anchorDetailEl.textContent = "Pilih posisi melalui perintah atau mulai melantunkan ayat.";
+      anchorBadgeEl.dataset.state = snapshot.state;
+      anchorDetailEl.textContent = readingStatus.message;
       return;
     }
 
     const surahInfo = getSurahInfo(position.surah);
     anchorPositionEl.textContent = `Surat ${surahInfo ? surahInfo.name : `Surat ${position.surah}`} (${position.surah}), Ayat ${position.ayah}`;
-    anchorBadgeEl.textContent = snapshot.state === "mismatch" ? "MISMATCH" : snapshot.currentVerse ? "LOCKED POSITION" : "TARGET POSITION";
+    anchorBadgeEl.textContent = readingStatus.label;
     anchorBadgeEl.className = snapshot.state === "mismatch" ? "badge" : "badge locked";
+    anchorBadgeEl.dataset.state = snapshot.state;
     anchorDetailEl.textContent = snapshot.state === "mismatch"
-      ? "Hasil Tilawa tidak sesuai dengan ayat yang diharapkan. Posisi bacaan tetap dipertahankan."
-      : snapshot.currentVerse
-        ? "Posisi bacaan dikelola oleh ReadingSession berdasarkan event Tilawa."
-        : "Posisi awal dipilih melalui perintah pengguna dan menunggu verifikasi Tilawa.";
+      ? readingStatus.message
+      : `${readingStatus.message} ${snapshot.currentVerse
+        ? "Posisi bacaan dikelola oleh ReadingSession."
+        : "Posisi awal menunggu verifikasi Tilawa."}`;
   });
 
   // Handle Command Submission
+  let listening = false;
+  let ready = false;
+  const microphone = new MicrophoneCapture();
+  const recognition = new TilawaAdapter(handleRecognitionEvent);
+
+  async function startListening(): Promise<void> {
+    if (listening || !ready) return;
+    await microphone.start((samples) => recognition.feed(samples));
+    readingSession.resumeListening();
+    recognition.reset();
+    listening = true;
+    status.textContent = "Mendengarkan lantunan ayat…";
+    start.disabled = true;
+    stop.disabled = false;
+  }
+
+  async function stopListening(): Promise<void> {
+    if (!listening) return;
+    await microphone.stop();
+    recognition.reset();
+    readingSession.stopListening();
+    listening = false;
+    status.textContent = "Pengenalan dihentikan.";
+    start.disabled = !ready;
+    stop.disabled = true;
+  }
+
+  async function applyCommand(result: ParseCommandResult): Promise<void> {
+    if (!result.success) {
+      commandFeedbackEl.className = "feedback-msg error";
+      commandFeedbackEl.textContent = `✗ ${result.message}`;
+      return;
+    }
+    if (result.command === "open") {
+      readingSession.start({ surah: result.surah, ayah: result.ayah });
+      commandFeedbackEl.className = "feedback-msg success";
+      commandFeedbackEl.textContent = `✓ Berhasil dikunci ke Surat ${result.surahName} (${result.surah}) ayat ${result.ayah}.`;
+      return;
+    }
+    if (result.command === "start" || result.command === "resume") await startListening();
+    if (result.command === "stop") await stopListening();
+    if (result.command === "current") readingSession.returnToActivePosition();
+    if (result.command === "repeat") readingSession.repeatActiveVerse();
+    if (result.command === "next") readingSession.moveToNextVerse();
+    if (result.command === "previous") readingSession.moveToPreviousVerse();
+    commandFeedbackEl.className = "feedback-msg success";
+    commandFeedbackEl.textContent = `✓ Perintah "${result.rawText}" dijalankan.`;
+  }
+
   function executeCommand(text: string): void {
     if (!text || !text.trim()) return;
 
     commandFeedbackEl.className = "feedback-msg info";
     commandFeedbackEl.textContent = `Memproses perintah: "${text}"…`;
 
-    const result = parseNavigationCommand(text);
-    if (result.success) {
-      readingSession.start({ surah: result.surah, ayah: result.ayah });
-      commandFeedbackEl.className = "feedback-msg success";
-      commandFeedbackEl.textContent = `✓ Berhasil dikunci ke Surat ${result.surahName} (${result.surah}) ayat ${result.ayah}.`;
-    } else {
-      commandFeedbackEl.className = "feedback-msg error";
-      commandFeedbackEl.textContent = `✗ ${result.message}`;
-    }
+    void applyCommand(parseReaderCommand(text));
   }
 
   commandSubmitBtn.addEventListener("click", () => {
@@ -130,14 +206,7 @@ export function initApp(): void {
           commandFeedbackEl.className = "feedback-msg info";
           commandFeedbackEl.textContent = `Mendengar: "${event.transcript}"…`;
         } else if (event.type === "command_result") {
-          if (event.result.success) {
-            readingSession.start({ surah: event.result.surah, ayah: event.result.ayah });
-            commandFeedbackEl.className = "feedback-msg success";
-            commandFeedbackEl.textContent = `✓ Berhasil dikunci ke Surat ${event.result.surahName} (${event.result.surah}) ayat ${event.result.ayah}.`;
-          } else {
-            commandFeedbackEl.className = "feedback-msg error";
-            commandFeedbackEl.textContent = `✗ ${event.result.message}`;
-          }
+          void applyCommand(event.result);
           isVoiceListening = false;
           commandVoiceBtn.textContent = "🎤 Bicara";
           commandVoiceBtn.classList.remove("listening");
@@ -159,10 +228,6 @@ export function initApp(): void {
   });
 
   // Recitation Engine (Tilawa)
-  let ready = false;
-  const microphone = new MicrophoneCapture();
-  const recognition = new TilawaAdapter(handleRecognitionEvent);
-
   prepare.addEventListener("click", () => {
     prepare.disabled = true;
     status.textContent = "Menyiapkan pengenalan Tilawa…";
@@ -171,12 +236,10 @@ export function initApp(): void {
 
   start.addEventListener("click", async () => {
     try {
-      await microphone.start((samples) => recognition.feed(samples));
-      readingSession.start();
-      recognition.reset();
-      status.textContent = "Mendengarkan lantunan ayat…";
-      start.disabled = true;
-      stop.disabled = false;
+      if (!readingSession.getState().currentVerse && !readingSession.getState().expectedVerse) {
+        readingSession.start();
+      }
+      await startListening();
     } catch (error) {
       status.textContent = "Mikrofon tidak dapat digunakan.";
       detail.textContent = error instanceof Error ? error.message : String(error);
@@ -184,12 +247,7 @@ export function initApp(): void {
   });
 
   stop.addEventListener("click", async () => {
-    await microphone.stop();
-    recognition.reset();
-    readingSession.reset();
-    status.textContent = "Pengenalan dihentikan.";
-    start.disabled = !ready;
-    stop.disabled = true;
+    await stopListening();
   });
 
   function handleRecognitionEvent(event: RecognitionEvent): void {
@@ -219,6 +277,7 @@ export function initApp(): void {
   }
 
   window.addEventListener("beforeunload", () => {
+    reader?.dispose();
     recognition.dispose();
     voiceRecognizer.dispose();
   });

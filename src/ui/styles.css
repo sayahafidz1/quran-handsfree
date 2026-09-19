@@ -12,6 +12,19 @@ h1 { font-family: Georgia, serif; font-size: clamp(2.2rem, 7vw, 3.8rem); line-he
 .anchor-text { font-size: 1.35rem; font-weight: 700; color: #0b3b32; margin: 6px 0; }
 .badge { background: #e0ece7; color: #0b3b32; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
 .badge.locked { background: #0b3b32; color: #fff; }
+.badge[data-state="mismatch"] { background: #fbe5e5; color: #9b2c2c; }
+.badge[data-state="completed"] { background: #dbe9c8; color: #315c28; }
+.reader-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.reader-heading h2 { color: #0b3b32; font-family: Georgia, serif; font-size: clamp(1.35rem, 4vw, 2rem); margin: 4px 0 0; }
+.quran-reader { display: grid; gap: 10px; margin-top: 18px; }
+.reader-ayah { align-items: center; background: #f8f4e9; border: 1px solid #e5dccb; border-radius: 14px; display: flex; gap: 16px; justify-content: space-between; padding: 16px 18px; scroll-margin-block: 35vh; }
+.reader-ayah.current { background: #e6f0ea; border-color: #0b3b32; box-shadow: 0 0 0 2px #0b3b3220; }
+.arabic-text { color: #173b34; direction: rtl; flex: 1; font-family: "Amiri", Georgia, serif; font-size: clamp(1.7rem, 5vw, 2.6rem); line-height: 1.8; margin: 0; text-align: right; }
+.quran-word { border-radius: 6px; padding: 0 2px; scroll-margin-block: 35vh; transition: background-color 0.2s ease, color 0.2s ease; }
+.quran-word-passed { color: #526863; }
+.quran-word-current { background: #f2c66d; box-shadow: 0 0 0 2px #ad702140; color: #173b34; }
+.quran-word-upcoming { color: #173b34; }
+.ayah-number { align-items: center; background: #d5e5dc; border-radius: 50%; color: #0b3b32; display: inline-flex; flex: 0 0 34px; font-weight: 800; height: 34px; justify-content: center; width: 34px; }
 #status, #verse { font-size: 1.25rem; font-weight: 700; margin: 8px 0; }
 .muted { color: #64736e; line-height: 1.5; min-height: 1.5em; margin: 4px 0; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
@@ -38,5 +51,15 @@ button:disabled { background: #a9b7b2; cursor: not-allowed; opacity: 0.8; }
 .feedback-msg.success { color: #1a6b4c; }
 .feedback-msg.error { color: #b83232; }
 .feedback-msg.info { color: #8c6018; }
+.navigation-search { display: grid; gap: 6px; margin-bottom: 12px; }
+.navigation-search label, .navigation-controls label { color: #526863; font-size: .85rem; font-weight: 700; }
+.navigation-search input, .navigation-controls select { border: 1px solid #c9c1af; border-radius: 10px; font: inherit; padding: 9px 10px; background: #fff; color: #173b34; }
+.navigation-controls { align-items: end; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.navigation-controls label { display: grid; gap: 6px; min-width: 130px; }
 
 footer { color: #64736e; font-size: .85rem; margin: 32px 0 0; }
+@media (max-width: 520px) {
+  .shell { padding: 28px 14px; }
+  .card { padding: 18px; }
+  .reader-ayah { gap: 10px; padding: 12px; }
+}

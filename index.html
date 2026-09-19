@@ -25,6 +25,44 @@
         <p id="anchor-detail" class="muted">Gunakan perintah suara (misal: "Al-Baqarah ayat 255") atau baca langsung.</p>
       </section>
 
+      <section class="card reader-card" aria-live="polite">
+        <div class="reader-heading">
+          <div>
+            <p class="label">Quran Reader</p>
+            <h2 id="reader-title">Belum ada posisi bacaan</h2>
+          </div>
+          <span id="reader-state" class="badge">IDLE</span>
+        </div>
+        <p id="reader-status" class="muted">Pilih ayat atau mulai melantunkan bacaan untuk membuka mushaf.</p>
+        <div id="quran-reader" class="quran-reader" aria-label="Teks ayat Al-Qur'an"></div>
+      </section>
+
+      <section id="quran-navigation" class="card" aria-live="polite">
+        <p class="label">Navigasi Quran</p>
+        <p class="section-desc">Cari surat, pilih ayat langsung, atau buka awal juz.</p>
+        <div class="navigation-search">
+          <label for="navigation-search">Cari nama surat</label>
+          <input id="navigation-search" type="search" placeholder="Al-Baqarah atau nomor surat" />
+        </div>
+        <div class="navigation-controls">
+          <label>Surat
+            <select id="navigation-surah" aria-label="Pilih surat"></select>
+          </label>
+          <label>Ayat
+            <select id="navigation-ayah" aria-label="Pilih ayat"></select>
+          </label>
+          <button id="navigation-open" type="button">Buka ayat</button>
+        </div>
+        <div class="navigation-controls">
+          <label>Juz
+            <select id="navigation-juz" aria-label="Pilih juz"></select>
+          </label>
+          <button id="navigation-juz-open" type="button">Buka juz</button>
+          <button id="navigation-current" type="button" disabled>Kembali ke posisi saat ini</button>
+        </div>
+        <p id="navigation-feedback" class="feedback-msg"></p>
+      </section>
+
       <!-- VOICE COMMAND NAVIGATION SECTION -->
       <section class="card" aria-live="polite">
         <p class="label">Navigasi Perintah Suara (Voice Command)</p>

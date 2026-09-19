@@ -79,3 +79,13 @@
 - **Konteks**: Setelah command navigation dan recognition routing dipindahkan ke `ReadingSession`, `AnchorCoordinator` tidak lagi memiliki consumer runtime maupun tanggung jawab yang tersisa.
 - **Keputusan**: Menghapus `AnchorCoordinator`, tipe anchor legacy, export coordinator, serta pengujian khususnya. `ReadingSession` menjadi satu-satunya pemilik state navigasi dan state reading aplikasi.
 - **Konsekuensi**: Arsitektur runtime tidak memiliki dependency anchor legacy; command parser dan recognizer tetap menjadi API command yang aktif, sedangkan discovery Tilawa tetap masuk melalui `ReadingSession`.
+
+## 2026-09-19 — Reading Status Presentation Uses Session Snapshots
+- **Konteks**: Pengguna perlu membedakan seluruh state sesi serta memahami mismatch, repeat, dan skip tanpa posisi bacaan berpindah.
+- **Keputusan**: `src/ui/readingStatus.ts` menjadi mapping presentasi terpusat dari `ReadingSessionSnapshot` ke label dan pesan. `QuranReader` dan anchor memakai mapping yang sama; UI tidak menambahkan state machine atau recovery logic.
+- **Konsekuensi**: State `idle`, `discovering`, `locked`, `tracking`, `expecting_next`, `mismatch`, dan `completed` memiliki feedback yang konsisten. Pesan mismatch menjelaskan expected/detected, sementara transisi recovery tetap ditentukan oleh `ReadingSession`.
+
+## 2026-09-19 — Basic Reader Controls Use One Command Path
+- **Konteks**: Reader membutuhkan kontrol hands-free dasar tanpa mencampur pengenalan command dengan pengenalan Tilawa.
+- **Keputusan**: Parser command menghasilkan command navigasi ayat atau kontrol deterministik. Teks dan voice memakai handler aplikasi yang sama, sementara transisi posisi dan sesi tetap dimiliki `ReadingSession`.
+- **Konsekuensi**: `start`, `current`, `repeat`, `next`, `previous`, `stop`, dan `resume` konsisten dengan UI manual; command invalid tidak mengubah snapshot sesi.
