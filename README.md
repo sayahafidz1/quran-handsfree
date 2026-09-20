@@ -101,6 +101,20 @@ npm run dev
 npm run build
 ```
 
+### 5. Deploy ke Cloudflare
+Konfigurasi Wrangler tersedia di `wrangler.jsonc`. Gunakan perintah berikut untuk
+build sekaligus menjalankan preview atau deploy ke Cloudflare:
+
+```bash
+npm run preview
+npm run deploy
+```
+
+Catatan: Cloudflare Workers Static Assets membatasi satu berkas hingga 25 MiB.
+Model Tilawa `fastconformer_full_mixed.onnx` berukuran sekitar 84 MiB, sehingga
+deploy penuh memerlukan hosting model terpisah (misalnya R2) sebelum fitur
+recognition dapat dipublikasikan melalui Cloudflare.
+
 ---
 
 ## Dokumentasi Lengkap
