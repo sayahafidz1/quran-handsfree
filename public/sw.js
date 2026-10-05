@@ -1,4 +1,4 @@
-const CACHE = "quran-handsfree-v1";
+const CACHE = "quran-handsfree-v2";
 const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/quran/content.json"];
 
 self.addEventListener("install", (event) => {
@@ -7,11 +7,20 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys
+        .filter((key) => key.startsWith("quran-handsfree-") && key !== CACHE)
+        .map((key) => caches.delete(key))))
+      .then(() => self.clients.claim()),
+  );
 });
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  const { pathname } = new URL(event.request.url);
+  if (pathname.startsWith("/@") || pathname.startsWith("/src/") ||
+      pathname.startsWith("/node_modules/") || pathname.includes("/.vite/")) return;
   event.respondWith(caches.match(event.request).then(async (cached) => {
     if (cached) return cached;
     const response = await fetch(event.request);

@@ -13,7 +13,7 @@
     "test": "node --experimental-strip-types --test test/**/*.test.ts"
   },
   "dependencies": {
-    "@tilawa/core": "^0.1.0",
+    "@tilawa/core": "^0.4.0",
     "onnxruntime-web": "^1.24.2"
   },
   "devDependencies": {

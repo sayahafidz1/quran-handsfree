@@ -2,7 +2,7 @@
 
 Dokumen ini memuat urutan pengembangan `quran-handsfree`. Prioritas saat ini
 adalah menstabilkan pengalaman membaca Al-Qur'an; recognition engine Tilawa
-tetap dibekukan sebagai baseline dan diisolasi melalui `TilawaAdapter`.
+tetap diisolasi melalui `TilawaAdapter`.
 
 ## 1. Quran Reader UI
 
@@ -13,7 +13,7 @@ tetap dibekukan sebagai baseline dan diisolasi melalui `TilawaAdapter`.
 - Tampilkan status listening saat Hands-Free Mode aktif.
 - Tampilkan mismatch/recovery tanpa mengganggu pembacaan.
 
-UI tidak boleh bergantung langsung pada FastConformer atau model recognition
+UI tidak boleh bergantung langsung pada Zipformer atau model recognition
 tertentu. Kontrak adapter yang harus tetap stabil adalah `verse_match`,
 `word_progress`, `loading_status`, `ready`, dan `error`.
 
@@ -38,7 +38,7 @@ perpindahan ke ayat berikutnya.
 
 ## 3. Validasi Hands-Free Reading
 
-Uji baseline FastConformer dengan skenario membaca satu atau beberapa ayat,
+Uji baseline Zipformer dengan skenario membaca satu atau beberapa ayat,
 jeda, waqaf, pengulangan kata/ayat, koreksi bacaan, tempo lambat/cepat,
 perpindahan ayat, dan mismatch terhadap ayat yang dipilih manual. Fokus tahap
 ini adalah kestabilan follow-along, bukan evaluasi tajwid.

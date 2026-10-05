@@ -1,11 +1,13 @@
 ﻿/// <reference lib="webworker" />
 import * as ort from "onnxruntime-web/wasm";
-import { createTilawaSession, type CtcTokenTable, type TilawaSession } from "@tilawa/core";
+import wasmUrl from "../../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.wasm?url";
+import { createRecognitionSession, type RecognitionSession, type ZipformerIo } from "@tilawa/core";
 import type { RecognitionEvent } from "../recognition/types";
-import type { TilawaWorkerCommand } from "../recognition/tilawa/types";
+import { toRecognitionEvent, type TilawaWorkerCommand } from "../recognition/tilawa/types";
+import { recognitionDebugEnabled } from "../recognition/debug";
 
 const ASSET_BASE = "/tilawa";
-let tilawa: TilawaSession | null = null;
+let recognition: RecognitionSession | null = null;
 
 const post = (event: RecognitionEvent) => self.postMessage(event);
 
@@ -16,45 +18,78 @@ async function loadJson<T>(file: string): Promise<T> {
 }
 
 async function initialize(): Promise<void> {
+  if (recognitionDebugEnabled) {
+    console.debug("[ZIPFORMER]", { engineState: "initializing", event: "initialization_started" });
+  }
   post({ type: "loading_status", message: "Memuat aset Tilawa…" });
-  const [vocab, quranCtcTokens, quran, model] = await Promise.all([
-    loadJson<Record<string, string>>("vocab.json"),
-    loadJson<CtcTokenTable>("quran_ctc_tokens.json"),
+  const [corpus, quran, io, model] = await Promise.all([
+    loadJson<unknown>("zipformer_quran.json"),
     loadJson<unknown[]>("quran.json"),
-    fetch(`${ASSET_BASE}/fastconformer_full_mixed.onnx`).then(async (response) => {
-      if (!response.ok) throw new Error("Model ONNX belum tersedia. Lihat public/tilawa/README.md.");
+    loadJson<ZipformerIo>("zipformer_a0w_ep1_a05.io.json"),
+    fetch(`${ASSET_BASE}/zipformer_a0w_ep1_a05.int8.onnx`).then(async (response) => {
+      if (!response.ok) throw new Error("Model Zipformer ONNX belum tersedia. Lihat public/tilawa/README.md.");
       return response.arrayBuffer();
     }),
   ]);
 
+  if (recognitionDebugEnabled) {
+    console.debug("[ZIPFORMER]", { event: "assets_loaded" });
+  }
   post({ type: "loading_status", message: "Menyiapkan mesin pengenalan…" });
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.simd = true;
-  const session = await ort.InferenceSession.create(model, { executionProviders: ["wasm"] });
-  tilawa = createTilawaSession({
-    async run(audio) {
-      const audioSignal = new ort.Tensor("float32", audio, [1, audio.length]);
-      const length = new ort.Tensor("int64", BigInt64Array.from([BigInt(audio.length)]), [1]);
-      const result = await session.run({ audio_signal: audioSignal, length });
-      const output = result[session.outputNames[0]];
-      const [, timeSteps, vocabSize] = output.dims as number[];
-      return { logprobs: output.data as Float32Array, timeSteps, vocabSize };
-    },
-  }, { vocab, quranCtcTokens, quran }, {
-    onOutput(message) {
-      if (message.type === "verse_match") post(message);
-      if (message.type === "word_progress") post(message);
+  ort.env.wasm.wasmPaths = { wasm: wasmUrl };
+
+  recognition = await createRecognitionSession({
+    engine: "zipformer",
+    stayOnSurah: true,
+    ort,
+    model,
+    corpus,
+    quran,
+    io,
+    executionProviders: ["wasm"],
+    onEvent(message) {
+      const event = toRecognitionEvent(message);
+      if (!event) return;
+      if (recognitionDebugEnabled) {
+        console.debug("[ZIPFORMER]", event.type === "verse_match"
+          ? {
+              event: event.type,
+              surah: event.surah,
+              ayah: event.ayah,
+              confidence: event.confidence
+            }
+          : {
+              event: event.type,
+              surah: event.surah,
+              ayah: event.ayah,
+              wordIndex: event.word_index,
+              totalWords: event.total_words
+            });
+      }
+      post(event);
     },
   });
+  if (recognitionDebugEnabled) {
+    console.debug("[ZIPFORMER]", { engineState: "ready", event: "initialized" });
+  }
   post({ type: "ready" });
 }
 
 self.onmessage = async ({ data }: MessageEvent<TilawaWorkerCommand>) => {
   try {
     if (data.type === "init") await initialize();
-    if (data.type === "reset") tilawa?.reset();
-    if (data.type === "audio") await tilawa?.feed(data.samples);
+    if (data.type === "reset") recognition?.reset();
+    if (data.type === "audio") await recognition?.feed(data.samples);
   } catch (error) {
+    if (recognitionDebugEnabled) {
+      console.debug("[ZIPFORMER]", {
+        event: "worker_error",
+        command: data.type,
+        message: error instanceof Error ? error.message : String(error)
+      });
+    }
     post({ type: "error", message: error instanceof Error ? error.message : String(error) });
   }
 };

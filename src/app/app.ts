@@ -13,6 +13,7 @@ import { loadOfflineQuranContent } from "../quran/content/index.ts";
 import { QuranReader } from "../ui/QuranReader.ts";
 import { QuranNavigation } from "../ui/QuranNavigation.ts";
 import { getReadingStatus } from "../ui/readingStatus.ts";
+import { recognitionDebugEnabled } from "../recognition/debug.ts";
 
 export function initApp(): void {
   if ("serviceWorker" in navigator) {
@@ -69,7 +70,20 @@ export function initApp(): void {
     console.error("Unable to initialize Quran reader", error);
   });
 
+  let lastLoggedReadingState: ReadingSessionSnapshot["state"] | null = null;
   readingSession.subscribe((snapshot: ReadingSessionSnapshot) => {
+    if (recognitionDebugEnabled && snapshot.state !== lastLoggedReadingState) {
+      console.debug("[READING_SESSION]", {
+        state: snapshot.state,
+        currentVerse: snapshot.currentVerse,
+        expectedVerse: snapshot.expectedVerse,
+        expectedNextVerse: snapshot.expectedNextVerse,
+        detectedVerse: snapshot.detectedVerse,
+        wordProgress: snapshot.wordProgress
+      });
+    }
+    lastLoggedReadingState = snapshot.state;
+
     const readingStatus = getReadingStatus(snapshot);
     const position = snapshot.currentVerse ?? snapshot.expectedVerse;
     if (!position) {

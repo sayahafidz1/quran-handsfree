@@ -82,19 +82,29 @@ Jalankan setup otomatis yang mengambil aset dari Tilawa release resmi ke `public
 npm run setup
 ```
 
-Script setup akan memeriksa dan mengunduh ulang aset yang belum ada atau tidak valid:
-- `fastconformer_full_mixed.onnx`
-- `vocab.json`
-- `quran_ctc_tokens.json`
-- `quran.json`
-- `export_metadata.json`
+Script setup akan memeriksa ukuran dan SHA-256, lalu mengunduh ulang aset
+Zipformer yang belum ada atau tidak valid:
+- `zipformer_a0w_ep1_a05.int8.onnx` dan `zipformer_a0w_ep1_a05.io.json`
+- `zipformer_quran.json`
+- `quran.json` (opsional untuk teks pada event Tilawa)
+- `NPL-1.2.txt`
 
-Aset yang digunakan dipin ke Tilawa release `v0.2.0`. Untuk fresh clone, jalankan `npm run setup` setelah `npm install`; setup dapat dijalankan ulang dengan aman.
+Model dipin ke Tilawa `zipformer-a0w-ep1-a0.5`, korpus fonem ke `v0.3.0`, dan
+teks display ke `v0.2.0`. Untuk fresh clone, jalankan `npm run setup` setelah
+`npm install`; setup dapat dijalankan ulang dengan aman. Model dan korpus
+Zipformer berlisensi NPL-1.2 (non-komersial/share-alike), bukan MIT.
 
 ### 3. Menjalankan Server Development
 ```bash
 npm run dev
 ```
+
+Untuk diagnostik migrasi Zipformer, buat `.env.local` di root proyek dengan
+`VITE_DEBUG_RECOGNITION=true`, lalu mulai ulang server. Log `[ZIPFORMER]` dan
+`[READING_SESSION]` menampilkan status inisialisasi, ayat/confidence, progress
+kata, dan snapshot transisi sesi tanpa teks lantunan. Diagnostik hanya aktif
+saat development; hapus variabel tersebut atau set ke `false` untuk
+menonaktifkannya. Build produksi selalu menonaktifkan log ini.
 
 ### 4. Membangun untuk Produksi
 ```bash
@@ -111,7 +121,7 @@ npm run deploy
 ```
 
 Catatan: Cloudflare Workers Static Assets membatasi satu berkas hingga 25 MiB.
-Model Tilawa `fastconformer_full_mixed.onnx` berukuran sekitar 84 MiB, sehingga
+Model Tilawa Zipformer berukuran sekitar 66 MiB, sehingga
 deploy penuh memerlukan hosting model terpisah (misalnya R2) sebelum fitur
 recognition dapat dipublikasikan melalui Cloudflare.
 

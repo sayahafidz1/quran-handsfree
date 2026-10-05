@@ -37,10 +37,21 @@ SOFTWARE.
 
 ---
 
-## 2. Model, Bobot Neural Network, & Dataset Quran
+## 2. Model dan Korpus Fonem Zipformer
 
-- File model ONNX (`fastconformer_full_mixed.onnx`), token CTC (`quran_ctc_tokens.json`), vocabulary (`vocab.json`), serta metadata Quran yang diunduh ke `public/tilawa/` mungkin tunduk pada ketentuan lisensi atau atribusi data terpisah dari source code pustaka.
-- Setiap pengembang dan distributor wajib mempertahankan atribusi asal, dokumentasi lisensi, serta memverifikasi kesesuaian hak distribusi dari rilis model terkait.
+`public/tilawa/zipformer_a0w_ep1_a05.int8.onnx` dan
+`public/tilawa/zipformer_quran.json` berasal dari rilis resmi Tilawa dan
+merupakan derivative dari pekerjaan Quran-Lab. Keduanya dilisensikan di bawah
+**Quran-Lab No-Profit License 1.2 (NPL-1.2)**, bukan MIT. Lisensi tersebut
+melarang penggunaan komersial dan mensyaratkan distribusi share-alike. File
+lisensi resmi `NPL-1.2.txt` disediakan oleh script setup bersama aset.
+
+I/O manifest model (`zipformer_a0w_ep1_a05.io.json`) berasal dari rilis model
+yang sama. `quran.json` adalah data teks display opsional dari rilis Tilawa
+v0.2.0; aset UI utama tetap `public/quran/content.json`. Pertahankan atribusi
+upstream dan verifikasi ketentuan lisensi sebelum mendistribusikan aplikasi.
+Versi sumber, ukuran, dan SHA-256 aset tercatat di
+[`public/tilawa/README.md`](../public/tilawa/README.md).
 
 ---
 
