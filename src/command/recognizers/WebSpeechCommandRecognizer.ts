@@ -1,5 +1,10 @@
 import { parseReaderCommand } from "../commandParser.ts";
+import { recognitionDebugEnabled } from "../../recognition/debug.ts";
 import type { CommandRecognitionEvent, VoiceCommandRecognizer } from "../types.ts";
+
+function debugVoiceCommand(event: string, details: Record<string, unknown> = {}): void {
+  if (recognitionDebugEnabled) console.debug("[VOICE_COMMAND]", { event, ...details });
+}
 
 // Polyfill type declaration for Web Speech API
 interface IWindowSpeech extends Window {
@@ -45,6 +50,7 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
 
     this.recognition.onstart = () => {
       this.isRunning = true;
+      debugVoiceCommand("listening", { language: this.recognition.lang });
       this.notify({
         type: "status",
         message: "Mendengarkan perintah suara navigasi (contoh: 'Al-Baqarah ayat 255')…"
@@ -65,6 +71,12 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
         }
       }
 
+      debugVoiceCommand("result", {
+        resultIndex: event.resultIndex,
+        finalTranscript,
+        interimTranscript
+      });
+
       if (interimTranscript) {
         this.notify({
           type: "transcript",
@@ -81,6 +93,14 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
         });
 
         const parseResult = parseReaderCommand(finalTranscript);
+        debugVoiceCommand("parsed", {
+          success: parseResult.success,
+          command: parseResult.success ? parseResult.command : undefined,
+          reason: parseResult.success ? undefined : parseResult.reason,
+          surah: parseResult.success && parseResult.command === "open" ? parseResult.surah : undefined,
+          ayah: parseResult.success && parseResult.command === "open" ? parseResult.ayah : undefined,
+          message: parseResult.success ? undefined : parseResult.message
+        });
         this.notify({
           type: "command_result",
           result: parseResult
@@ -88,7 +108,14 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
       }
     };
 
+    this.recognition.onaudiostart = () => debugVoiceCommand("audio_started");
+    this.recognition.onsoundstart = () => debugVoiceCommand("sound_detected");
+    this.recognition.onspeechstart = () => debugVoiceCommand("speech_detected");
+    this.recognition.onspeechend = () => debugVoiceCommand("speech_ended");
+    this.recognition.onnomatch = () => debugVoiceCommand("no_match");
+
     this.recognition.onerror = (event: any) => {
+      debugVoiceCommand("error", { code: event.error, message: event.message });
       this.notify({
         type: "error",
         message: `Pengenalan suara gagal: ${event.error || "Unknown error"}`
@@ -97,6 +124,7 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
 
     this.recognition.onend = () => {
       this.isRunning = false;
+      debugVoiceCommand("ended");
       this.notify({
         type: "status",
         message: "Pengenalan suara perintah berhenti."
@@ -104,8 +132,10 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
     };
 
     try {
+      debugVoiceCommand("start_requested", { supported: true, language: this.recognition.lang });
       this.recognition.start();
     } catch (err) {
+      debugVoiceCommand("start_failed", { message: err instanceof Error ? err.message : String(err) });
       this.notify({
         type: "error",
         message: err instanceof Error ? err.message : String(err)

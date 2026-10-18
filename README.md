@@ -99,12 +99,15 @@ Zipformer berlisensi NPL-1.2 (non-komersial/share-alike), bukan MIT.
 npm run dev
 ```
 
-Untuk diagnostik migrasi Zipformer, buat `.env.local` di root proyek dengan
-`VITE_DEBUG_RECOGNITION=true`, lalu mulai ulang server. Log `[ZIPFORMER]` dan
-`[READING_SESSION]` menampilkan status inisialisasi, ayat/confidence, progress
-kata, dan snapshot transisi sesi tanpa teks lantunan. Diagnostik hanya aktif
-saat development; hapus variabel tersebut atau set ke `false` untuk
-menonaktifkannya. Build produksi selalu menonaktifkan log ini.
+Untuk diagnostik pengenalan, buat `.env.local` di root proyek dengan
+`VITE_DEBUG_RECOGNITION=true`, mulai ulang server, lalu buka Developer Tools >
+Console dan coba perintah suara. Log `[VOICE_COMMAND]` melacak permintaan
+mulai, audio/suara/bicara terdeteksi, hasil transkrip, hasil parsing, error
+browser, serta penerimaan hasil oleh aplikasi. Log transkrip berisi ucapan Anda;
+aktifkan hanya saat debug dan hapus/nonaktifkan flag setelah selesai. Log
+`[ZIPFORMER]` dan `[READING_SESSION]` menunjukkan status model serta hasil
+deteksi ayat dan progress kata (tanpa teks lantunan). Diagnostik hanya aktif
+saat development; build produksi selalu menonaktifkannya.
 
 ### 4. Membangun untuk Produksi
 ```bash

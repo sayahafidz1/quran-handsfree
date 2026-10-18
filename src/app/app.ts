@@ -220,6 +220,9 @@ export function initApp(): void {
           commandFeedbackEl.className = "feedback-msg info";
           commandFeedbackEl.textContent = `Mendengar: "${event.transcript}"…`;
         } else if (event.type === "command_result") {
+          if (recognitionDebugEnabled) {
+            console.debug("[VOICE_COMMAND]", { event: "command_result_received", result: event.result });
+          }
           void applyCommand(event.result);
           isVoiceListening = false;
           commandVoiceBtn.textContent = "🎤 Bicara";
