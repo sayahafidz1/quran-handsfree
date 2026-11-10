@@ -105,9 +105,15 @@ Console dan coba perintah suara. Log `[VOICE_COMMAND]` melacak permintaan
 mulai, audio/suara/bicara terdeteksi, hasil transkrip, hasil parsing, error
 browser, serta penerimaan hasil oleh aplikasi. Log transkrip berisi ucapan Anda;
 aktifkan hanya saat debug dan hapus/nonaktifkan flag setelah selesai. Log
-`[ZIPFORMER]` dan `[READING_SESSION]` menunjukkan status model serta hasil
-deteksi ayat dan progress kata (tanpa teks lantunan). Diagnostik hanya aktif
-saat development; build produksi selalu menonaktifkannya.
+`[ZIPFORMER_IO]` mencatat setiap balikan Zipformer beserta indeks chunk yang
+memicunya dan hasil normalisasi. Teks `raw_transcript` dicatat lengkap;
+`transcriptDelta` menunjukkan perubahan sejak balikan sebelumnya dan
+`transcriptRevised` menandai koreksi. Audio tetap diproses apa adanya,
+termasuk saat hening.
+`[READING_SESSION]` mencatat perubahan state setelah event diterima. Log dapat
+berisi teks lantunan; aktifkan hanya saat debug dan nonaktifkan flag setelah
+selesai. Diagnostik hanya aktif saat development; build produksi selalu
+menonaktifkannya.
 
 ### 4. Membangun untuk Produksi
 ```bash

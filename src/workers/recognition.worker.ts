@@ -4,10 +4,14 @@ import wasmUrl from "../../node_modules/onnxruntime-web/dist/ort-wasm-simd-threa
 import { createRecognitionSession, type RecognitionSession, type ZipformerIo } from "@tilawa/core";
 import type { RecognitionEvent } from "../recognition/types";
 import { toRecognitionEvent, type TilawaWorkerCommand } from "../recognition/tilawa/types";
+import { getTranscriptDelta, summarizeAudioChunk } from "../recognition/tilawa/diagnostics";
 import { recognitionDebugEnabled } from "../recognition/debug";
 
 const ASSET_BASE = "/tilawa";
 let recognition: RecognitionSession | null = null;
+let audioChunkIndex = 0;
+let activeAudioChunkIndex: number | null = null;
+let previousTranscript = "";
 
 const post = (event: RecognitionEvent) => self.postMessage(event);
 
@@ -18,9 +22,6 @@ async function loadJson<T>(file: string): Promise<T> {
 }
 
 async function initialize(): Promise<void> {
-  if (recognitionDebugEnabled) {
-    console.debug("[ZIPFORMER]", { engineState: "initializing", event: "initialization_started" });
-  }
   post({ type: "loading_status", message: "Memuat aset Tilawa…" });
   const [corpus, quran, io, model] = await Promise.all([
     loadJson<unknown>("zipformer_quran.json"),
@@ -32,9 +33,6 @@ async function initialize(): Promise<void> {
     }),
   ]);
 
-  if (recognitionDebugEnabled) {
-    console.debug("[ZIPFORMER]", { event: "assets_loaded" });
-  }
   post({ type: "loading_status", message: "Menyiapkan mesin pengenalan…" });
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.simd = true;
@@ -51,37 +49,54 @@ async function initialize(): Promise<void> {
     executionProviders: ["wasm"],
     onEvent(message) {
       const event = toRecognitionEvent(message);
-      if (!event) return;
       if (recognitionDebugEnabled) {
-        console.debug("[ZIPFORMER]", event.type === "verse_match"
-          ? {
-              event: event.type,
-              surah: event.surah,
-              ayah: event.ayah,
-              confidence: event.confidence
-            }
-          : {
-              event: event.type,
-              surah: event.surah,
-              ayah: event.ayah,
-              wordIndex: event.word_index,
-              totalWords: event.total_words
-            });
+        let output: unknown = message;
+        if (message.type === "raw_transcript") {
+          const delta = getTranscriptDelta(previousTranscript, message.text);
+          previousTranscript = message.text;
+          output = { ...message, transcriptDelta: delta.text, transcriptRevised: delta.revised };
+        }
+        console.debug("[ZIPFORMER_IO]", {
+          audioChunkIndex: activeAudioChunkIndex,
+          zipformerOutput: output,
+          recognitionEvent: event
+        });
       }
+      if (!event) return;
       post(event);
     },
   });
-  if (recognitionDebugEnabled) {
-    console.debug("[ZIPFORMER]", { engineState: "ready", event: "initialized" });
-  }
   post({ type: "ready" });
 }
 
-self.onmessage = async ({ data }: MessageEvent<TilawaWorkerCommand>) => {
+let commandQueue = Promise.resolve();
+
+async function handleCommand(data: TilawaWorkerCommand): Promise<void> {
   try {
     if (data.type === "init") await initialize();
-    if (data.type === "reset") recognition?.reset();
-    if (data.type === "audio") await recognition?.feed(data.samples);
+    if (data.type === "reset") {
+      recognition?.reset();
+      audioChunkIndex = 0;
+      activeAudioChunkIndex = null;
+      previousTranscript = "";
+    }
+    if (data.type === "audio") {
+      if (recognition) {
+        const index = ++audioChunkIndex;
+        activeAudioChunkIndex = index;
+        // if (recognitionDebugEnabled) {
+        //   console.debug("[ZIPFORMER_AUDIO]", {
+        //     index,
+        //     ...summarizeAudioChunk(data.samples)
+        //   });
+        // }
+        try {
+          await recognition.feed(data.samples);
+        } finally {
+          activeAudioChunkIndex = null;
+        }
+      }
+    }
   } catch (error) {
     if (recognitionDebugEnabled) {
       console.debug("[ZIPFORMER]", {
@@ -92,4 +107,8 @@ self.onmessage = async ({ data }: MessageEvent<TilawaWorkerCommand>) => {
     }
     post({ type: "error", message: error instanceof Error ? error.message : String(error) });
   }
+}
+
+self.onmessage = ({ data }: MessageEvent<TilawaWorkerCommand>) => {
+  commandQueue = commandQueue.then(() => handleCommand(data));
 };
