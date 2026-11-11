@@ -124,6 +124,12 @@ export function initApp(): void {
     stop.disabled = false;
   }
 
+  // The session decides when discovery must restart (end of a surah, basmalah
+  // before the next one); only the app talks to the recognition engine.
+  readingSession.onDiscoveryRestart(() => {
+    if (listening) recognition.reset();
+  });
+
   async function stopListening(): Promise<void> {
     if (!listening) return;
     await microphone.stop();
