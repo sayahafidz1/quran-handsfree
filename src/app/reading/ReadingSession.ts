@@ -4,8 +4,20 @@ import { getNextVerse, getPreviousVerse } from "../../quran/index.ts";
 export interface WordProgress {
   surah: number;
   ayah: number;
+  /** Zero-based alignment cursor inside the ayah (Tilawa `word_index`). */
   wordIndex: number;
   totalWords: number;
+  /** Sorted, unique zero-based indices of words recognized as `ok` or `unsure`. */
+  matchedIndices: number[];
+}
+
+/**
+ * The reader has reached the end of an ayah once its last word has an
+ * `ok`/`unsure` verdict. `wordIndex` is a cursor, so it can never be used for
+ * this: Tilawa keeps it below `totalWords`.
+ */
+export function hasReachedVerseEnd(progress: Pick<WordProgress, "totalWords" | "matchedIndices">): boolean {
+  return progress.totalWords > 0 && progress.matchedIndices.includes(progress.totalWords - 1);
 }
 
 export type ReadingSessionState =
@@ -142,6 +154,15 @@ export class ReadingSession {
       return;
     }
 
+    // Tilawa moves its cursor into the next ayah on its own, without waiting
+    // for every word of the previous one to be confirmed. The ayah directly
+    // after the current one is a normal transition, not a mismatch.
+    if (this.currentVerse && this.isDirectlyAfterCurrent(detected)) {
+      this.advanceTo(detected);
+      this.notify();
+      return;
+    }
+
     // A verse match can begin a session without a command-selected target.
     // Once discovered, the verse becomes the session's locked target.
     if (this.expectedVerse && !this.matches(detected, this.expectedVerse)) {
@@ -150,37 +171,52 @@ export class ReadingSession {
       return;
     }
 
+    // Repeated matches of the verse already being tracked must not demote
+    // "tracking" back to "locked".
+    const keepTracking = this.state === "tracking"
+      && this.currentVerse !== null
+      && this.matches(detected, this.currentVerse);
     this.currentVerse = detected;
     this.expectedVerse = detected;
-    this.state = "locked";
+    this.state = keepTracking ? "tracking" : "locked";
     this.notify();
   }
 
   public handleWordProgress(event: WordProgressEvent): boolean {
     if (this.state === "completed") return false;
 
-    const progress = {
+    const progress: WordProgress = {
       surah: event.surah,
       ayah: event.ayah,
       wordIndex: event.word_index,
-      totalWords: event.total_words
+      totalWords: event.total_words,
+      matchedIndices: this.normalizeMatchedIndices(event.matched_indices, event.total_words)
     };
 
-    if (!this.currentVerse || !this.matches(progress, this.currentVerse)) {
-      return false;
+    if (!this.currentVerse) return false;
+
+    // Progress for the ayah right after the current one means the engine's
+    // cursor moved on, so follow it. Anything else is another verse: ignore.
+    if (!this.matches(progress, this.currentVerse)) {
+      const next = this.expectedNextVerse ?? getNextVerse(this.currentVerse);
+      if (!next || !this.matches(progress, next)) return false;
+      this.advanceTo(next);
     }
 
     this.wordProgress = progress;
-    if (progress.wordIndex >= progress.totalWords) {
+    if (hasReachedVerseEnd(progress)) {
       const nextVerse = getNextVerse(progress);
       if (nextVerse) {
         this.expectedNextVerse = nextVerse;
-        this.expectedVerse = this.expectedNextVerse;
+        this.expectedVerse = nextVerse;
         this.state = "expecting_next";
       } else {
         this.state = "completed";
       }
     } else {
+      // The ayah is (again) in progress, e.g. the reader repeated it.
+      this.expectedNextVerse = null;
+      this.expectedVerse = this.currentVerse;
       this.state = "tracking";
     }
     this.notify();
@@ -200,12 +236,32 @@ export class ReadingSession {
     return verse.surah === expected.surah && verse.ayah === expected.ayah;
   }
 
+  private isDirectlyAfterCurrent(verse: Pick<SelectedVerse, "surah" | "ayah">): boolean {
+    const next = this.currentVerse ? getNextVerse(this.currentVerse) : null;
+    return next !== null && this.matches(verse, next);
+  }
+
+  private advanceTo(verse: Pick<SelectedVerse, "surah" | "ayah">): void {
+    const next = { surah: verse.surah, ayah: verse.ayah };
+    this.currentVerse = next;
+    this.expectedVerse = { ...next };
+    this.detectedVerse = { ...next };
+    this.expectedNextVerse = null;
+    this.wordProgress = null;
+    this.state = "tracking";
+  }
+
+  private normalizeMatchedIndices(indices: readonly number[], totalWords: number): number[] {
+    const valid = indices.filter((index) => Number.isInteger(index) && index >= 0 && index < totalWords);
+    return [...new Set(valid)].sort((a, b) => a - b);
+  }
+
   private copyVerse(verse: SelectedVerse | null): SelectedVerse | null {
     return verse ? { ...verse } : null;
   }
 
   private copyWordProgress(progress: WordProgress | null): WordProgress | null {
-    return progress ? { ...progress } : null;
+    return progress ? { ...progress, matchedIndices: [...progress.matchedIndices] } : null;
   }
 
   private notify(): void {

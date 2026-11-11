@@ -26,7 +26,8 @@ export function toRecognitionEvent(
         surah: message.surah,
         ayah: message.ayah,
         word_index: message.word_index,
-        total_words: message.total_words
+        total_words: message.total_words,
+        matched_indices: [...message.matched_indices]
       };
     default:
       return null;

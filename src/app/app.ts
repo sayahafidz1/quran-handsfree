@@ -288,7 +288,7 @@ export function initApp(): void {
     if (event.type === "word_progress") {
       const accepted = readingSession.handleEvent(event);
       if (accepted) {
-        detail.textContent = `Kemajuan ayat ${event.surah}:${event.ayah} — kata ${event.word_index}/${event.total_words}`;
+        detail.textContent = `Kemajuan ayat ${event.surah}:${event.ayah} — kata ${event.word_index + 1}/${event.total_words} (cocok ${event.matched_indices.length})`;
       }
     }
   }
