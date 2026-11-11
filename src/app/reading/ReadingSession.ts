@@ -154,15 +154,6 @@ export class ReadingSession {
       return;
     }
 
-    // Tilawa moves its cursor into the next ayah on its own, without waiting
-    // for every word of the previous one to be confirmed. The ayah directly
-    // after the current one is a normal transition, not a mismatch.
-    if (this.currentVerse && this.isDirectlyAfterCurrent(detected)) {
-      this.advanceTo(detected);
-      this.notify();
-      return;
-    }
-
     // A verse match can begin a session without a command-selected target.
     // Once discovered, the verse becomes the session's locked target.
     if (this.expectedVerse && !this.matches(detected, this.expectedVerse)) {
@@ -195,12 +186,13 @@ export class ReadingSession {
 
     if (!this.currentVerse) return false;
 
-    // Progress for the ayah right after the current one means the engine's
-    // cursor moved on, so follow it. Anything else is another verse: ignore.
+    // Tilawa's cursor may enter the next ayah before the current one is
+    // confirmed, so the cursor alone never advances the session. Only an ayah
+    // that was completed (expectedNextVerse is set) may be followed; progress
+    // for any other verse is ignored.
     if (!this.matches(progress, this.currentVerse)) {
-      const next = this.expectedNextVerse ?? getNextVerse(this.currentVerse);
-      if (!next || !this.matches(progress, next)) return false;
-      this.advanceTo(next);
+      if (!this.expectedNextVerse || !this.matches(progress, this.expectedNextVerse)) return false;
+      this.advanceTo(this.expectedNextVerse);
     }
 
     this.wordProgress = progress;
@@ -214,9 +206,10 @@ export class ReadingSession {
         this.state = "completed";
       }
     } else {
-      // The ayah is (again) in progress, e.g. the reader repeated it.
-      this.expectedNextVerse = null;
-      this.expectedVerse = this.currentVerse;
+      // Completion sticks: `matched_indices` is a snapshot of the latest
+      // alignment, not a history, so the last word can drop out of it (verdict
+      // revisions, a repeated passage). An already completed ayah keeps its
+      // expectedNextVerse; only the live word progress goes back to tracking.
       this.state = "tracking";
     }
     this.notify();
@@ -234,11 +227,6 @@ export class ReadingSession {
     expected: Pick<SelectedVerse, "surah" | "ayah">
   ): boolean {
     return verse.surah === expected.surah && verse.ayah === expected.ayah;
-  }
-
-  private isDirectlyAfterCurrent(verse: Pick<SelectedVerse, "surah" | "ayah">): boolean {
-    const next = this.currentVerse ? getNextVerse(this.currentVerse) : null;
-    return next !== null && this.matches(verse, next);
   }
 
   private advanceTo(verse: Pick<SelectedVerse, "surah" | "ayah">): void {

@@ -229,7 +229,7 @@ test("ReadingSession keeps the latest valid word progress for repeated events", 
   });
 });
 
-test("ReadingSession accepts the ayah directly after the current one even if the last word was not confirmed", () => {
+test("ReadingSession does not advance to the next ayah before the current one is finished", () => {
   const session = new ReadingSession();
   session.start({ surah: 36, ayah: 3 });
   session.handleEvent(verseMatch(36, 3));
@@ -237,9 +237,44 @@ test("ReadingSession accepts the ayah directly after the current one even if the
 
   session.handleEvent(verseMatch(36, 4));
 
+  assert.equal(session.getState().state, "mismatch");
+  assert.deepEqual(session.getState().currentVerse, { surah: 36, ayah: 3 });
+  assert.equal(session.getState().wordProgress?.wordIndex, 3);
+  assert.equal(session.handleEvent(wordProgress(36, 4, 0, 8, [])), false);
+  assert.deepEqual(session.getState().currentVerse, { surah: 36, ayah: 3 });
+});
+
+test("ReadingSession blocks a long ayah from being cut short by the next ayah (Al-Bayyinah style)", () => {
+  const session = new ReadingSession();
+  session.handleEvent(verseMatch(98, 2));
+  session.handleEvent(wordProgress(98, 2, 1, 6, [0, 1]));
+
+  session.handleEvent(verseMatch(98, 3));
+  assert.equal(session.getState().state, "mismatch");
+  assert.equal(session.handleEvent(wordProgress(98, 3, 0, 4, [])), false);
+  assert.deepEqual(session.getState().currentVerse, { surah: 98, ayah: 2 });
+
+  // The reader goes back and finishes the ayah, which unlocks the next one.
+  session.handleEvent(wordProgress(98, 2, 5, 6, [0, 1, 2, 3, 4, 5]));
+  assert.equal(session.getState().state, "expecting_next");
+  assert.deepEqual(session.getState().expectedNextVerse, { surah: 98, ayah: 3 });
+
+  assert.equal(session.handleEvent(wordProgress(98, 3, 0, 4, [])), true);
   assert.equal(session.getState().state, "tracking");
-  assert.deepEqual(session.getState().currentVerse, { surah: 36, ayah: 4 });
-  assert.equal(session.getState().wordProgress, null);
+  assert.deepEqual(session.getState().currentVerse, { surah: 98, ayah: 3 });
+});
+
+test("ReadingSession lets the reader re-read earlier words of the same ayah after a mismatch", () => {
+  const session = new ReadingSession();
+  session.handleEvent(verseMatch(98, 2));
+  session.handleEvent(wordProgress(98, 2, 5, 6, [0, 1, 2, 3, 4]));
+  session.handleEvent(verseMatch(98, 4));
+  assert.equal(session.getState().state, "mismatch");
+
+  assert.equal(session.handleEvent(wordProgress(98, 2, 2, 6, [0, 1])), true);
+
+  assert.equal(session.getState().state, "tracking");
+  assert.equal(session.getState().wordProgress?.wordIndex, 2);
 });
 
 test("ReadingSession follows word progress that moves into the next ayah", () => {
@@ -285,17 +320,37 @@ test("ReadingSession finishes an ayah when the last word is matched, even with g
   assert.deepEqual(session.getState().expectedNextVerse, { surah: 36, ayah: 4 });
 });
 
-test("ReadingSession returns to tracking when a finished ayah is repeated", () => {
+test("ReadingSession keeps a finished ayah completed while its words are repeated", () => {
   const session = new ReadingSession();
   session.handleEvent(verseMatch(36, 3));
   session.handleEvent(finishedProgress(36, 3, 7));
   assert.equal(session.getState().state, "expecting_next");
 
+  // matched_indices is a snapshot: the last word dropped out while repeating.
   session.handleEvent(wordProgress(36, 3, 1, 7, [0]));
 
   assert.equal(session.getState().state, "tracking");
+  assert.deepEqual(session.getState().expectedNextVerse, { surah: 36, ayah: 4 });
+  assert.equal(session.getState().wordProgress?.wordIndex, 1);
+
+  // Completion stuck, so the next ayah is still accepted.
+  assert.equal(session.handleEvent(wordProgress(36, 4, 0, 8, [])), true);
+  assert.equal(session.getState().state, "tracking");
+  assert.deepEqual(session.getState().currentVerse, { surah: 36, ayah: 4 });
   assert.equal(session.getState().expectedNextVerse, null);
-  assert.deepEqual(session.getState().expectedVerse, { surah: 36, ayah: 3 });
+});
+
+test("ReadingSession still rejects a skipped ayah after the current one finished", () => {
+  const session = new ReadingSession();
+  session.handleEvent(verseMatch(36, 3));
+  session.handleEvent(finishedProgress(36, 3, 7));
+
+  assert.equal(session.handleEvent(wordProgress(36, 5, 0, 12, [])), false);
+  session.handleEvent(verseMatch(36, 5));
+
+  assert.equal(session.getState().state, "mismatch");
+  assert.deepEqual(session.getState().expectedNextVerse, { surah: 36, ayah: 4 });
+  assert.deepEqual(session.getState().currentVerse, { surah: 36, ayah: 3 });
 });
 
 test("ReadingSession keeps tracking when the tracked ayah is matched again", () => {

@@ -56,6 +56,7 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
   - Hasil `parseNavigationCommand()` dari input teks maupun voice recognizer langsung dipetakan ke `ReadingSession.start({ surah, ayah })`.
   - `ReadingSession` juga menjadi pemilik transisi kontrol hands-free (ulang, next,
     previous, stop, dan resume), tanpa coordinator baru.
+  - Ayat dianggap selesai (`hasReachedVerseEnd`) saat kata terakhirnya ada di `matched_indices`; hanya setelah itu `expectedNextVerse` terisi dan ayat berikutnya dapat diikuti. Status selesai menempel meski snapshot `matched_indices` berubah, sedangkan sorotan kata mengikuti snapshot terbaru. Cursor Tilawa yang lebih dulu masuk ayat berikutnya tidak memajukan sesi (`verse_match` menjadi `mismatch`, `word_progress` diabaikan).
   - `handleRecognitionEvent()` meneruskan `verse_match` dan `word_progress` hanya ke `ReadingSession.handleEvent()`. UI membaca snapshot sesi.
 - **`src/audio/`**:
   - Bertanggung jawab penuh atas penangkapan audio perangkat keras dan resample ke format standar 16 kHz Float32.

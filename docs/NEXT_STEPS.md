@@ -43,6 +43,15 @@ jeda, waqaf, pengulangan kata/ayat, koreksi bacaan, tempo lambat/cepat,
 perpindahan ayat, dan mismatch terhadap ayat yang dipilih manual. Fokus tahap
 ini adalah kestabilan follow-along, bukan evaluasi tajwid.
 
+Skenario yang wajib dicatat hasilnya (log `VITE_DEBUG_RECOGNITION=true`) pada tes nyata:
+
+- Membaca lurus Al-Ikhlas 112:1-2: sorotan harus mencapai "Ahad" lalu pindah ke ayat 2 tanpa `mismatch`.
+- Ayat panjang (misalnya Al-Bayyinah 98:2): membaca beberapa kata lalu langsung ayat berikutnya harus `mismatch` dan sorotan tetap di ayat aktif; menyelesaikan ayat aktif membuka ayat berikutnya.
+- Melewati satu ayat penuh: harus `mismatch`, lalu pulih saat ayat yang diharapkan dibaca.
+- Membaca ulang kata sebelumnya di ayat yang sama setelah sorotan macet: sorotan harus kembali mengikuti.
+- Kata terakhir ayat yang dibaca benar tetapi tidak masuk `matched_indices`: catat seberapa sering sesi tertahan; hasilnya menentukan perlu tidaknya toleransi atau kontrol manual.
+- Kata kembar di ayat berurutan ("Allahu" di 112:1 dan 112:2): catat bila sorotan pindah terlalu cepat.
+
 Acceptance suite `test/readerAcceptance.test.ts` kini memverifikasi alur
 produk tanpa model/browser: discovery, seleksi manual, mismatch dan recovery,
 repeat/skip, batas surat, ayat terakhir, serta proyeksi status dan kata aktif
