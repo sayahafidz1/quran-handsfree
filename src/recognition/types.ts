@@ -10,8 +10,17 @@ export interface WordProgressEvent {
   type: "word_progress";
   surah: number;
   ayah: number;
+  /**
+   * Zero-based position of the engine's alignment cursor inside the ayah. It is
+   * not a count of finished words and does not imply the word at the cursor is done.
+   */
   word_index: number;
   total_words: number;
+  /**
+   * Zero-based indices of words with an `ok` or `unsure` verdict, sorted
+   * ascending. It is computed independently of `word_index` and may have gaps.
+   */
+  matched_indices: number[];
 }
 
 export interface LoadingStatusEvent {

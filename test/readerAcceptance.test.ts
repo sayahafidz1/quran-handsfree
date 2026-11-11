@@ -12,17 +12,29 @@ const verseMatch = (surah: number, ayah: number) => ({
   confidence: 1
 });
 
-const wordProgress = (surah: number, ayah: number, wordIndex: number, totalWords: number) => ({
+// `wordIndex` is Tilawa's zero-based cursor; by default every word before it is matched.
+const wordProgress = (
+  surah: number,
+  ayah: number,
+  wordIndex: number,
+  totalWords: number,
+  matchedIndices: number[] = Array.from({ length: wordIndex }, (_, index) => index)
+) => ({
   type: "word_progress" as const,
   surah,
   ayah,
   word_index: wordIndex,
-  total_words: totalWords
+  total_words: totalWords,
+  matched_indices: matchedIndices
 });
+
+// The reader finished the ayah: cursor on the last word and every word matched.
+const finishedProgress = (surah: number, ayah: number, totalWords: number) =>
+  wordProgress(surah, ayah, totalWords - 1, totalWords, Array.from({ length: totalWords }, (_, index) => index));
 
 function finishVerse(session: ReadingSession, surah: number, ayah: number, totalWords = 3): void {
   session.handleEvent(verseMatch(surah, ayah));
-  session.handleEvent(wordProgress(surah, ayah, totalWords, totalWords));
+  session.handleEvent(finishedProgress(surah, ayah, totalWords));
 }
 
 test("direct discovery follows discovering -> locked -> tracking", () => {
@@ -119,8 +131,8 @@ test("UI projections follow the session target and word progress", () => {
   const words = [0, 1, 2, 3].map((index) => ({ index, text: `word-${index}` }));
   assert.deepEqual(words.map((word) => getWordHighlight(word, snapshot.wordProgress)), [
     "passed",
+    "passed",
     "current",
-    "upcoming",
     "upcoming"
   ]);
 

@@ -89,3 +89,9 @@
 - **Konteks**: Reader membutuhkan kontrol hands-free dasar tanpa mencampur pengenalan command dengan pengenalan Tilawa.
 - **Keputusan**: Parser command menghasilkan command navigasi ayat atau kontrol deterministik. Teks dan voice memakai handler aplikasi yang sama, sementara transisi posisi dan sesi tetap dimiliki `ReadingSession`.
 - **Konsekuensi**: `start`, `current`, `repeat`, `next`, `previous`, `stop`, dan `resume` konsisten dengan UI manual; command invalid tidak mengubah snapshot sesi.
+
+## 2026-11-11 — word_index Adalah Cursor Zero-Based; Akhir Ayat Ditentukan dari matched_indices
+- **Konteks**: Log nyata Al-Ikhlas 112:1-2 menunjukkan sorotan berhenti sebelum kata "Ahad" dan sesi masuk `mismatch` saat Zipformer berpindah ke 112:2. Aplikasi menganggap `word_index` one-based (jumlah kata selesai) dan menyatakan ayat selesai saat `wordIndex >= totalWords`. Audit source `@tilawa/core` 0.4.0 menunjukkan `word_index` adalah posisi cursor alignment zero-based yang selalu lebih kecil dari `total_words`, sedangkan `matched_indices` (kata dengan verdict `ok`/`unsure`) dihitung terpisah.
+- **Keputusan**: `TilawaAdapter` meneruskan `matched_indices`. `WordProgress` menyimpan `matchedIndices`. Sorotan kata memakai cursor zero-based tanpa `- 1`. Ayat dianggap selesai (`hasReachedVerseEnd`) ketika kata terakhirnya ada di `matched_indices`. `ReadingSession` memperlakukan `verse_match` atau `word_progress` untuk ayat tepat setelah ayat aktif sebagai transisi normal, bukan `mismatch`; ayat yang dilompati, diulang pada target expected-next, atau berasal dari ayat lain tetap tidak memajukan sesi.
+- **Konsekuensi**: "Ahad" tersorot dan sesi berpindah ke ayat berikutnya tanpa mismatch pada log Al-Ikhlas. Aplikasi tidak lagi bergantung pada asumsi `word_index >= total_words`, yang tidak pernah dihasilkan upstream. Definisi `word_index` berasal dari pembacaan source upstream dan perlu diuji ulang saat memperbarui versi `@tilawa/core`.
+

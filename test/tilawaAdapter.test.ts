@@ -23,7 +23,7 @@ test("normalizes Zipformer verse matches to the application contract", () => {
   });
 });
 
-test("normalizes Zipformer word progress without changing its one-based index", () => {
+test("normalizes Zipformer word progress, keeping the cursor index and matched indices", () => {
   const event: WorkerOutbound = {
     type: "word_progress",
     surah: 36,
@@ -38,8 +38,27 @@ test("normalizes Zipformer word progress without changing its one-based index", 
     surah: 36,
     ayah: 3,
     word_index: 2,
-    total_words: 7
+    total_words: 7,
+    matched_indices: [0, 1]
   });
+});
+
+test("keeps gaps in matched indices and does not alias the engine's array", () => {
+  const matched = [0, 1, 3];
+  const event: WorkerOutbound = {
+    type: "word_progress",
+    surah: 112,
+    ayah: 1,
+    word_index: 3,
+    total_words: 4,
+    matched_indices: matched
+  };
+
+  const normalized = toRecognitionEvent(event);
+
+  assert.ok(normalized && normalized.type === "word_progress");
+  assert.deepEqual(normalized.matched_indices, [0, 1, 3]);
+  assert.notEqual(normalized.matched_indices, matched);
 });
 
 test("does not expose unrelated Zipformer events to the application", () => {

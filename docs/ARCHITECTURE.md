@@ -79,7 +79,7 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
   - Menjalankan inferensi ONNX Zipformer2-CTC melalui public API `@tilawa/core` di background thread.
 - **`src/ui/`**:
   - Mengelola visual antarmuka, status anchor, Quran Reader, navigasi surat/juz/ayat, umpan balik validasi perintah suara, dan kontrol audio.
-  - `QuranReader` hanya menerima `ReadingSessionSnapshot` dan `QuranContentProvider`; posisi aktif dan progress kata selalu berasal dari snapshot, bukan state UI lokal. Mapping kata dilakukan dari indeks one-based event recognition ke indeks zero-based provider, dengan status visual `passed`/`current`/`upcoming`.
+  - `QuranReader` hanya menerima `ReadingSessionSnapshot` dan `QuranContentProvider`; posisi aktif dan progress kata selalu berasal dari snapshot, bukan state UI lokal. `word_index` Tilawa (cursor zero-based) dibandingkan langsung dengan indeks kata provider yang juga zero-based, tanpa konversi: kata di cursor berstatus `current`, kata sebelum cursor atau yang ada di `matched_indices` berstatus `passed`, sisanya `upcoming`. Jika kata terakhir ayat sudah ada di `matched_indices`, seluruh ayat berstatus `passed`.
   - Auto-follow adalah perilaku presentasi di `QuranReader`: ayat aktif di-scroll halus hanya ketika posisi ayat berubah, lalu ditangguhkan sementara setelah wheel, touch, atau navigasi keyboard manual. Resume otomatis hanya meng-scroll ulang elemen ayat yang sedang dirender dan tidak pernah mengubah `ReadingSession`.
   - `QuranNavigation` hanya meneruskan referensi tervalidasi ke callback aplikasi; target tetap dimulai melalui `ReadingSession`.
 
