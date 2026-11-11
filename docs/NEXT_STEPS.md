@@ -51,6 +51,8 @@ Skenario yang wajib dicatat hasilnya (log `VITE_DEBUG_RECOGNITION=true`) pada te
 - Membaca ulang kata sebelumnya di ayat yang sama setelah sorotan macet: sorotan harus kembali mengikuti.
 - Kata terakhir ayat yang dibaca benar tetapi tidak masuk `matched_indices`: catat seberapa sering sesi tertahan; hasilnya menentukan perlu tidaknya toleransi atau kontrol manual.
 - Kata kembar di ayat berurutan ("Allahu" di 112:1 dan 112:2): catat bila sorotan pindah terlalu cepat.
+- Selesai satu surat lalu langsung membaca surat berikutnya (Al-Ikhlas ke Al-Falaq), sekali tanpa bismillah dan sekali dengan bismillah: sesi harus berpindah ke 113:1 tanpa `mismatch`. Catat log bila macet; belum diketahui apakah engine mengirim basmalah sebagai `verse_match` 1:1 dan berapa kali `reset()` terpicu.
+- Surat berawalan huruf ambigu ("Alif Lam Mim", surat 2, 3, 29-32): catat apakah engine mengunci terlalu dini ke surat yang salah.
 
 Acceptance suite `test/readerAcceptance.test.ts` kini memverifikasi alur
 produk tanpa model/browser: discovery, seleksi manual, mismatch dan recovery,

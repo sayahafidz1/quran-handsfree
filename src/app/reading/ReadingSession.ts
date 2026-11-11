@@ -52,6 +52,7 @@ export class ReadingSession {
   private expectedNextVerse: SelectedVerse | null = null;
   private wordProgress: WordProgress | null = null;
   private readonly listeners = new Set<ReadingSessionListener>();
+  private readonly restartListeners = new Set<() => void>();
 
   public getState(): ReadingSessionSnapshot {
     return {
@@ -136,6 +137,15 @@ export class ReadingSession {
     if (this.state === "completed") return;
 
     const detected = { surah: event.surah, ayah: event.ayah };
+
+    // The basmalah recited before the next surah is detected as Al-Fatihah 1:1.
+    // That is not a mismatch, but the engine may now be locked onto Al-Fatihah
+    // (stayOnSurah), so restart discovery to let it find the surah that follows.
+    if (this.isBasmalahBeforeNextSurah(detected)) {
+      this.requestDiscoveryRestart();
+      return;
+    }
+
     this.detectedVerse = detected;
 
     // Keep the expected-next target authoritative while recovering from a
@@ -196,9 +206,15 @@ export class ReadingSession {
     }
 
     this.wordProgress = progress;
+    let restartDiscovery = false;
     if (hasReachedVerseEnd(progress)) {
       const nextVerse = getNextVerse(progress);
       if (nextVerse) {
+        // Finishing the last ayah of a surah: the engine stays on that surah
+        // (stayOnSurah), so ask for a fresh discovery, once per surah end.
+        const alreadyExpected = this.expectedNextVerse !== null
+          && this.matches(this.expectedNextVerse, nextVerse);
+        restartDiscovery = nextVerse.surah !== progress.surah && !alreadyExpected;
         this.expectedNextVerse = nextVerse;
         this.expectedVerse = nextVerse;
         this.state = "expecting_next";
@@ -213,6 +229,7 @@ export class ReadingSession {
       this.state = "tracking";
     }
     this.notify();
+    if (restartDiscovery) this.requestDiscoveryRestart();
     return true;
   }
 
@@ -220,6 +237,28 @@ export class ReadingSession {
     this.listeners.add(listener);
     listener(this.getState());
     return () => this.listeners.delete(listener);
+  }
+
+  /**
+   * The session never talks to the engine itself. It asks, through this
+   * listener, for the recognition engine to restart its discovery.
+   */
+  public onDiscoveryRestart(listener: () => void): () => void {
+    this.restartListeners.add(listener);
+    return () => this.restartListeners.delete(listener);
+  }
+
+  private requestDiscoveryRestart(): void {
+    for (const listener of this.restartListeners) listener();
+  }
+
+  private isBasmalahBeforeNextSurah(detected: Pick<SelectedVerse, "surah" | "ayah">): boolean {
+    const next = this.expectedNextVerse;
+    return next !== null
+      && next.ayah === 1
+      && next.surah !== 1
+      && detected.surah === 1
+      && detected.ayah === 1;
   }
 
   private matches(

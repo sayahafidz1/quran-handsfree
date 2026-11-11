@@ -371,3 +371,107 @@ test("ReadingSession normalizes matched indices", () => {
 
   assert.deepEqual(session.getState().wordProgress?.matchedIndices, [0, 1, 3]);
 });
+
+const withRestartCounter = (session: ReadingSession) => {
+  const counter = { count: 0 };
+  session.onDiscoveryRestart(() => { counter.count += 1; });
+  return counter;
+};
+
+test("ReadingSession requests one discovery restart when the last ayah of a surah is finished", () => {
+  const session = new ReadingSession();
+  const restarts = withRestartCounter(session);
+  session.handleEvent(verseMatch(112, 4));
+
+  session.handleEvent(wordProgress(112, 4, 3, 5, [0, 1, 2]));
+  assert.equal(restarts.count, 0);
+
+  session.handleEvent(finishedProgress(112, 4, 5));
+  assert.equal(restarts.count, 1);
+  assert.equal(session.getState().state, "expecting_next");
+  assert.deepEqual(session.getState().expectedNextVerse, { surah: 113, ayah: 1 });
+
+  // Repeated snapshots of the same finished ayah must not restart again.
+  session.handleEvent(finishedProgress(112, 4, 5));
+  session.handleEvent(wordProgress(112, 4, 1, 5, [0]));
+  session.handleEvent(finishedProgress(112, 4, 5));
+  assert.equal(restarts.count, 1);
+});
+
+test("ReadingSession does not restart discovery at the end of an ayah inside a surah", () => {
+  const session = new ReadingSession();
+  const restarts = withRestartCounter(session);
+  session.handleEvent(verseMatch(112, 1));
+
+  session.handleEvent(finishedProgress(112, 1, 4));
+
+  assert.equal(session.getState().state, "expecting_next");
+  assert.equal(restarts.count, 0);
+});
+
+test("ReadingSession does not restart discovery after the final ayah of the Quran", () => {
+  const session = new ReadingSession();
+  const restarts = withRestartCounter(session);
+  session.handleEvent(verseMatch(114, 6));
+
+  session.handleEvent(finishedProgress(114, 6, 4));
+
+  assert.equal(session.getState().state, "completed");
+  assert.equal(restarts.count, 0);
+});
+
+test("ReadingSession continues into the next surah once discovery finds its first ayah", () => {
+  const session = new ReadingSession();
+  session.handleEvent(verseMatch(112, 4));
+  session.handleEvent(finishedProgress(112, 4, 5));
+
+  session.handleEvent(verseMatch(113, 1));
+
+  assert.equal(session.getState().state, "tracking");
+  assert.deepEqual(session.getState().currentVerse, { surah: 113, ayah: 1 });
+  assert.equal(session.getState().expectedNextVerse, null);
+});
+
+test("ReadingSession treats a basmalah before the next surah as a restart request, not a mismatch", () => {
+  const session = new ReadingSession();
+  const restarts = withRestartCounter(session);
+  session.handleEvent(verseMatch(112, 4));
+  session.handleEvent(finishedProgress(112, 4, 5));
+  const afterFinish = restarts.count;
+
+  session.handleEvent(verseMatch(1, 1));
+
+  assert.equal(restarts.count, afterFinish + 1);
+  assert.equal(session.getState().state, "expecting_next");
+  assert.deepEqual(session.getState().expectedNextVerse, { surah: 113, ayah: 1 });
+  assert.deepEqual(session.getState().currentVerse, { surah: 112, ayah: 4 });
+  assert.notDeepEqual(session.getState().detectedVerse, { surah: 1, ayah: 1 });
+
+  session.handleEvent(verseMatch(113, 1));
+  assert.equal(session.getState().state, "tracking");
+  assert.deepEqual(session.getState().currentVerse, { surah: 113, ayah: 1 });
+});
+
+test("ReadingSession only tolerates the basmalah when the next ayah starts another surah", () => {
+  const session = new ReadingSession();
+  const restarts = withRestartCounter(session);
+  session.handleEvent(verseMatch(36, 3));
+  session.handleEvent(finishedProgress(36, 3, 7));
+
+  session.handleEvent(verseMatch(1, 1));
+
+  assert.equal(session.getState().state, "mismatch");
+  assert.equal(restarts.count, 0);
+});
+
+test("ReadingSession discovery restart listeners can be removed", () => {
+  const session = new ReadingSession();
+  let calls = 0;
+  const unsubscribe = session.onDiscoveryRestart(() => { calls += 1; });
+  unsubscribe();
+  session.handleEvent(verseMatch(112, 4));
+
+  session.handleEvent(finishedProgress(112, 4, 5));
+
+  assert.equal(calls, 0);
+});
