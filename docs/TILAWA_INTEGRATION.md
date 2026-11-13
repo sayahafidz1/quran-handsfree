@@ -69,3 +69,18 @@ Zipformer tunduk pada NPL-1.2, bukan MIT; lihat
    aset di `public/tilawa/README.md`.
 4. Jalankan `npm run setup`, `npm run build`, dan uji event recognition.
 5. Tinjau lisensi aset serta perbarui `docs/THIRD_PARTY_NOTICES.md` bila berubah.
+
+---
+
+## 6. Jalur Evaluasi Tilawa 1.0 (branch `eval/tilawa-1.0`)
+
+Jalur ini hanya untuk **evaluasi**; default aplikasi tetap `@tilawa/core` 0.4.0 Zipformer. Pilih engine saat dev/build lewat `VITE_TILAWA_ENGINE=v1` (tanpa nilai itu, 0.4.0 yang jalan).
+
+- **Dependensi**: `tilawa-v1` = alias npm ke `@tilawa/core@1.0.0-rc.0` (Preview, tag npm `next`), berdampingan dengan `@tilawa/core` 0.4.0. Versi `1.0.0-rc.0` dipin dari tag upstream `v1.0.0-rc.0`; **ketersediaannya di registry npm belum diverifikasi dari lingkungan pengembangan ini**.
+- **File baru**: `src/workers/recognition.v1.worker.ts` (worker 1.0), `src/recognition/tilawa/v1Mapper.ts` (pemetaan event murni, tanpa import paket, diuji di `test/tilawaV1Mapper.test.ts`), `src/recognition/tilawa/TilawaV1Adapter.ts`, `src/recognition/createAdapter.ts` (pemilih engine). `TilawaAdapter` menerima pembuat worker opsional; worker 0.4.0 dan `ReadingSession` tidak diubah.
+- **Perbedaan API 1.0**: sesi sekali pakai (`startFreeRecitation()`, `pushAudio(samples, 16000)`), event `position` (state `acquiring`/`locked`/`ambiguous`/`lost`, `observed[].word` dengan indeks kata **1-based**, `span`, `confidence`) dan `checker`. Tidak ada `stayOnSurah`, `raw_transcript`, maupun `verse_text`. Basmalah dan frasa (takbir, ruku', sujud, taslim, isti'adzah) ditangani tracker engine.
+- **Pemetaan ke kontrak aplikasi** (`V1PositionMapper`): hanya event `locked` dengan kandidat teratas yang diteruskan. `verse_match` dikirim saat (surat, ayat) kandidat teratas berubah; `verse_text` disusun dari kata ayat di referensi `ref-v2` milik 1.0. `word_progress`: `word_index = word - 1` (zero-based), `total_words` dari referensi, `matched_indices` = kata ayat itu yang tercakup `span` sampai kata terakhir yang dibaca. Event yang tidak mengubah apa pun tidak dikirim ulang. `ambiguous`/`lost`/`acquiring` diabaikan. Event `checker` (deteksi kesalahan) belum dipakai.
+- **`reset()`**: karena sesi 1.0 sekali pakai, `reset` di worker 1.0 = `dispose()` sesi lama + `startFreeRecitation()` baru + reset mapper. Model tidak dimuat ulang.
+- **Aset**: model (full 68 MB / lite 25 MB, `VITE_TILAWA_V1_TIER=auto|full|lite`) diunduh dari `https://tilawa.dev/v1/` lalu disimpan di Cache API; referensi `ref-v2.json` (4,7 MB) dibundel dari paket. File WASM onnxruntime-web dimuat dari jsDelivr sesuai versi `onnxruntime-web` terpasang (default tilawa.dev hanya menyediakan satu versi). Jalur ini **butuh internet** dan memakai CDN pihak ketiga; self-hosting/offline belum dikerjakan. Provider ONNX: default Tilawa (`webgpu` lalu `wasm`), dapat dipaksa dengan `VITE_TILAWA_V1_PROVIDERS=wasm`.
+- **Lisensi**: bobot model 1.0 berlisensi CC BY 4.0 (menurut model card upstream), bukan NPL-1.2; lihat `THIRD_PARTY_NOTICES.md`.
+- **Belum diverifikasi** (tidak ada `npm install`/build di lingkungan pembuatan): kompilasi TypeScript dan build Vite, perilaku WebGPU/WASM di dalam worker, kecocokan segmentasi kata `ref-v2` dengan indeks kata `public/quran/content.json` (sorotan kata bisa bergeser), serta pemetaan "ayat selesai" dari `span`. Semuanya harus dicek lewat tes nyata.

@@ -59,3 +59,10 @@ Versi sumber, ukuran, dan SHA-256 aset tercatat di
 
 - `onnxruntime-web` digunakan untuk menjalankan inferensi model ONNX di sisi klien/browser.
 - Dilisensikan di bawah **MIT License** oleh Microsoft Corporation.
+
+---
+
+## 4. Tilawa 1.0 (hanya branch evaluasi `eval/tilawa-1.0`)
+
+- `@tilawa/core` 1.0.0-rc.0 (kode: MIT) dipasang sebagai alias `tilawa-v1`. Menurut model card upstream, bobot model 1.0 berlisensi **CC BY 4.0** (perlu atribusi), berbeda dari NPL-1.2 untuk Zipformer. Verifikasi teks lisensi dan atribusi dari `NOTICE.md` paket sebelum branch ini didistribusikan atau di-merge.
+- Model diunduh dari `tilawa.dev` dan file WASM onnxruntime-web dari jsDelivr saat runtime.

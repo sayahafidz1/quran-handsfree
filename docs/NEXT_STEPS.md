@@ -76,6 +76,17 @@ mengunci roadmap pada Zipformer v0.3.0. Engine baru, bila diperlukan, harus
 berada di belakang kontrak `RecognitionAdapter`, sehingga UI dan
 `ReadingSession` tidak berubah.
 
+Evaluasi Tilawa 1.0 berjalan di branch `eval/tilawa-1.0` (`VITE_TILAWA_ENGINE=v1`; 0.4.0 tetap default). Skenario uji, bandingkan dengan 0.4.0 dan catat log (`VITE_DEBUG_RECOGNITION=true`, tag log `[TILAWA_V1]`):
+
+- Waktu sampai terkunci di awal bacaan dan jumlah lompatan ayat/surat yang salah.
+- Isti'adzah di awal dan di tengah sesi (apakah tetap mengunci ke 16:98?).
+- Jeda panjang (>8 detik) lalu lanjut membaca; dan setelah `mismatch`.
+- Shalat sunnah: takbir, ruku', sujud, bangkit, Al-Fatihah rakaat berikutnya, surat belum selesai lalu surat baru.
+- Al-Ikhlas ke Al-Falaq dengan dan tanpa bismillah; surat berawalan huruf ambigu.
+- Sorotan kata selaras dengan teks di layar (segmentasi `ref-v2` vs `content.json`), dan ayat terakhir terdeteksi selesai.
+- Berisik dapur/suara bayi; mikrofon (1.0 menonaktifkan echo cancellation/noise suppression, aplikasi saat ini mengaktifkannya).
+- Waktu muat model (full vs lite) dan kelancaran di ponsel; kebutuhan internet/CDN.
+
 Sebelum mengganti default, lakukan A/B test untuk deteksi ayat, pelacakan kata,
 jeda, waqaf, pengulangan, koreksi, recovery mismatch, bacaan multi-ayat,
 latensi, penggunaan memori, dan stabilitas perangkat.

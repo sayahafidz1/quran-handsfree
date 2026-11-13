@@ -1,5 +1,5 @@
 import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
-import { TilawaAdapter } from "../recognition/tilawa/TilawaAdapter.ts";
+import { createRecognitionAdapter } from "../recognition/createAdapter.ts";
 import type { RecognitionEvent } from "../recognition/types.ts";
 import { ReadingSession, type ReadingSessionSnapshot } from "./reading/ReadingSession.ts";
 import { getSurahInfo } from "../quran/index.ts";
@@ -111,7 +111,7 @@ export function initApp(): void {
   let listening = false;
   let ready = false;
   const microphone = new MicrophoneCapture();
-  const recognition = new TilawaAdapter(handleRecognitionEvent);
+  const recognition = createRecognitionAdapter(handleRecognitionEvent);
 
   async function startListening(): Promise<void> {
     if (listening || !ready) return;
