@@ -57,6 +57,14 @@ export class ReadingSession {
    * is, instead of having to equal `expectedNextVerse`.
    */
   private discoveryOpen = false;
+  /**
+   * True while the current lock came from discovery and its ayah is not yet
+   * finished. Parallel ayahs share their opening words (3:142 vs 2:214), so the
+   * engine may correct its first guess; until the ayah is finished a correction
+   * to an ayah of another surah re-locks instead of being a mismatch. Jumps
+   * inside the same surah and manual targets stay strict.
+   */
+  private provisional = false;
   private readonly listeners = new Set<ReadingSessionListener>();
   private readonly restartListeners = new Set<() => void>();
 
@@ -78,6 +86,7 @@ export class ReadingSession {
     this.expectedNextVerse = null;
     this.wordProgress = null;
     this.discoveryOpen = false;
+    this.provisional = false;
     this.state = "discovering";
     this.notify();
   }
@@ -90,6 +99,7 @@ export class ReadingSession {
     this.expectedNextVerse = null;
     this.wordProgress = null;
     this.discoveryOpen = false;
+    this.provisional = false;
     this.notify();
   }
 
@@ -122,6 +132,7 @@ export class ReadingSession {
   public returnToActivePosition(): void {
     if (!this.currentVerse) return;
     this.expectedVerse = { ...this.currentVerse };
+    this.provisional = false;
     this.state = "tracking";
     this.notify();
   }
@@ -189,6 +200,7 @@ export class ReadingSession {
         this.expectedVerse = detected;
         this.expectedNextVerse = null;
         this.wordProgress = null;
+        this.provisional = false;
         this.state = "tracking";
       } else {
         this.state = "mismatch";
@@ -200,10 +212,23 @@ export class ReadingSession {
     // A verse match can begin a session without a command-selected target.
     // Once discovered, the verse becomes the session's locked target.
     if (this.expectedVerse && !this.matches(detected, this.expectedVerse)) {
-      this.state = "mismatch";
+      if (this.provisional && detected.surah !== this.expectedVerse.surah) {
+        // The engine corrected its first guess to a parallel ayah of another
+        // surah: re-lock. Jumps inside the same surah stay strict.
+        this.currentVerse = detected;
+        this.expectedVerse = { ...detected };
+        this.wordProgress = null;
+        this.state = "locked";
+      } else {
+        this.state = "mismatch";
+      }
       this.notify();
       return;
     }
+
+    // A lock that did not come from a manual target or a previous lock is a
+    // discovery guess and stays provisional until its ayah is finished.
+    if (this.expectedVerse === null) this.provisional = true;
 
     // Repeated matches of the verse already being tracked must not demote
     // "tracking" back to "locked".
@@ -241,6 +266,7 @@ export class ReadingSession {
     this.wordProgress = progress;
     let restartDiscovery = false;
     if (hasReachedVerseEnd(progress)) {
+      this.provisional = false;
       const nextVerse = getNextVerse(progress);
       if (nextVerse) {
         // Finishing the last ayah of a surah: the engine stays on that surah
@@ -309,6 +335,7 @@ export class ReadingSession {
     this.detectedVerse = { ...next };
     this.expectedNextVerse = null;
     this.wordProgress = null;
+    this.provisional = false;
     this.state = "tracking";
   }
 

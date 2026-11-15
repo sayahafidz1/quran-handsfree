@@ -80,6 +80,7 @@ Evaluasi Tilawa 1.0 berjalan di branch `eval/tilawa-1.0` (`VITE_TILAWA_ENGINE=v1
 
 - Waktu sampai terkunci di awal bacaan dan jumlah lompatan ayat/surat yang salah.
 - Aturan baru (lihat `DECISIONS.md` 2026-11-15): setelah surat selesai/jeda 20 detik/basmalah, ayat mana pun boleh terkunci; uji Al-Fatihah lalu An-Naba 78:31 tanpa bismillah, jeda >20 detik sesudah surat belum selesai, dan apakah derau mengunci ayat yang salah.
+- Ayat kembar: mulai Al-Baqarah 2:214 dan berhenti di "walamma"; kunci sementara harus pindah dari 3:142 ke 2:214. Kata terlewat di tengah ayat (mis. "min qablihim" di 29:3): sorotan mengikuti; pewarnaan kata terlewat ditunda. Belum terbukti: berhenti sebelum kata terakhir tanpa membaca ayat berikutnya lalu ayat maju sendiri (butuh log run 29:4).
 - Isti'adzah di awal dan di tengah sesi (apakah tetap mengunci ke 16:98?).
 - Jeda panjang (>8 detik) lalu lanjut membaca; dan setelah `mismatch`.
 - Shalat sunnah: takbir, ruku', sujud, bangkit, Al-Fatihah rakaat berikutnya, surat belum selesai lalu surat baru.

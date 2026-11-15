@@ -77,8 +77,8 @@ test("a long pause opens one new search; the shown position is kept until a new 
   session.handleEvent(verseMatch(1, 2));
   assert.equal(session.getState().state, "locked");
   assert.deepEqual(session.getState().currentVerse, { surah: 1, ayah: 2 });
-  // The permission is used up: a following unrelated match is strict again.
-  session.handleEvent(verseMatch(9, 9));
+  // The permission is used up: a jump inside the surah is strict again.
+  session.handleEvent(verseMatch(1, 5));
   assert.equal(session.getState().state, "mismatch");
 });
 
@@ -115,6 +115,78 @@ test("a basmalah flag on a later ayah does not open anything", () => {
   session.handleEvent(verseMatch(2, 5));
   session.handleEvent(finished(2, 5, 8));
   session.handleEvent(verseMatch(3, 4, true));
+  assert.equal(session.getState().state, "mismatch");
+});
+
+test("a discovery lock is provisional: the engine may correct parallel ayahs (3:142 -> 2:214)", () => {
+  const session = new ReadingSession();
+  session.start();
+  session.handleEvent(verseMatch(3, 142));
+  session.handleEvent(verseMatch(2, 214));
+  assert.equal(session.getState().state, "locked");
+  assert.deepEqual(session.getState().currentVerse, { surah: 2, ayah: 214 });
+  assert.deepEqual(session.getState().expectedVerse, { surah: 2, ayah: 214 });
+  assert.equal(session.getState().wordProgress, null);
+});
+
+test("a provisional lock does not relock to another ayah of the same surah", () => {
+  const session = new ReadingSession();
+  session.start();
+  session.handleEvent(verseMatch(98, 2));
+  session.handleEvent(verseMatch(98, 4));
+  assert.equal(session.getState().state, "mismatch");
+  assert.deepEqual(session.getState().currentVerse, { surah: 98, ayah: 2 });
+});
+
+test("once the ayah is finished the lock is permanent and a different verse is a mismatch", () => {
+  const session = new ReadingSession();
+  session.start();
+  session.handleEvent(verseMatch(2, 214));
+  session.handleEvent(finished(2, 214, 30));
+  session.handleEvent(verseMatch(3, 142));
+  assert.equal(session.getState().state, "mismatch");
+  assert.deepEqual(session.getState().currentVerse, { surah: 2, ayah: 214 });
+});
+
+test("a provisional lock stays strict after advancing to the expected next ayah", () => {
+  const session = new ReadingSession();
+  session.start();
+  session.handleEvent(verseMatch(2, 5));
+  session.handleEvent(finished(2, 5, 8));
+  session.handleEvent(verseMatch(2, 6));
+  assert.equal(session.getState().state, "tracking");
+  session.handleEvent(verseMatch(9, 9));
+  assert.equal(session.getState().state, "mismatch");
+  assert.deepEqual(session.getState().currentVerse, { surah: 2, ayah: 6 });
+});
+
+test("a manually chosen target is never provisional", () => {
+  const session = new ReadingSession();
+  session.start({ surah: 2, ayah: 255 });
+  session.handleEvent(verseMatch(2, 255));
+  session.handleEvent(verseMatch(3, 142));
+  assert.equal(session.getState().state, "mismatch");
+  assert.deepEqual(session.getState().currentVerse, { surah: 2, ayah: 255 });
+});
+
+test("a lock found after a long pause is provisional too", () => {
+  const session = new ReadingSession();
+  session.start();
+  session.handleEvent(verseMatch(78, 30));
+  session.handleEvent(finished(78, 30, 6));
+  session.handlePause();
+  session.handleEvent(verseMatch(3, 142));
+  session.handleEvent(verseMatch(2, 214));
+  assert.equal(session.getState().state, "locked");
+  assert.deepEqual(session.getState().currentVerse, { surah: 2, ayah: 214 });
+});
+
+test("the 'current position' command makes the lock permanent", () => {
+  const session = new ReadingSession();
+  session.start();
+  session.handleEvent(verseMatch(3, 142));
+  session.returnToActivePosition();
+  session.handleEvent(verseMatch(2, 214));
   assert.equal(session.getState().state, "mismatch");
 });
 
