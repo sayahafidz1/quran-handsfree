@@ -113,9 +113,11 @@ export function initApp(): void {
   let ready = false;
   const microphone = new MicrophoneCapture();
   const recognition = createRecognitionAdapter(handleRecognitionEvent);
-  // 10 s without accepted reading progress means "a new search is allowed"
-  // (rest between ruku'/sujud/rak'ahs). One-shot until the next progress.
-  const PAUSE_MS = 10_000;
+  // 20 s with no recognition event at all (real silence) means "a new search is
+  // allowed" (rest between ruku'/sujud/rak'ahs). Reading the wrong verse still
+  // produces events, so a mismatch is NOT a pause and never loosens the rules.
+  // One-shot until the next event.
+  const PAUSE_MS = 20_000;
   const pauseTimer = new InactivityTimer(PAUSE_MS, () => {
     if (listening) readingSession.handlePause();
   });
@@ -297,14 +299,14 @@ export function initApp(): void {
     }
     if (event.type === "verse_match") {
       readingSession.handleEvent(event);
-      if (listening && readingSession.getState().state !== "mismatch") pauseTimer.touch();
+      if (listening) pauseTimer.touch();
       verse.textContent = `Surah ${event.surah}, ayat ${event.ayah}: ${event.verse_text}`;
       confidence.textContent = `Keyakinan: ${Math.round(event.confidence * 100)}%`;
     }
     if (event.type === "word_progress") {
       const accepted = readingSession.handleEvent(event);
+      if (listening) pauseTimer.touch();
       if (accepted) {
-        if (listening) pauseTimer.touch();
         detail.textContent = `Kemajuan ayat ${event.surah}:${event.ayah} — kata ${event.word_index + 1}/${event.total_words} (cocok ${event.matched_indices.length})`;
       }
     }

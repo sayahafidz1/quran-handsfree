@@ -79,7 +79,7 @@ berada di belakang kontrak `RecognitionAdapter`, sehingga UI dan
 Evaluasi Tilawa 1.0 berjalan di branch `eval/tilawa-1.0` (`VITE_TILAWA_ENGINE=v1`; 0.4.0 tetap default). Skenario uji, bandingkan dengan 0.4.0 dan catat log (`VITE_DEBUG_RECOGNITION=true`, tag log `[TILAWA_V1]`):
 
 - Waktu sampai terkunci di awal bacaan dan jumlah lompatan ayat/surat yang salah.
-- Aturan baru (lihat `DECISIONS.md` 2026-11-15): setelah surat selesai/jeda 10 detik/basmalah, ayat mana pun boleh terkunci; uji Al-Fatihah lalu An-Naba 78:31 tanpa bismillah, jeda >10 detik sesudah surat belum selesai, dan apakah derau mengunci ayat yang salah.
+- Aturan baru (lihat `DECISIONS.md` 2026-11-15): setelah surat selesai/jeda 20 detik/basmalah, ayat mana pun boleh terkunci; uji Al-Fatihah lalu An-Naba 78:31 tanpa bismillah, jeda >20 detik sesudah surat belum selesai, dan apakah derau mengunci ayat yang salah.
 - Isti'adzah di awal dan di tengah sesi (apakah tetap mengunci ke 16:98?).
 - Jeda panjang (>8 detik) lalu lanjut membaca; dan setelah `mismatch`.
 - Shalat sunnah: takbir, ruku', sujud, bangkit, Al-Fatihah rakaat berikutnya, surat belum selesai lalu surat baru.
