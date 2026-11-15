@@ -1,4 +1,5 @@
 import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
+import { InactivityTimer } from "./reading/InactivityTimer.ts";
 import { createRecognitionAdapter } from "../recognition/createAdapter.ts";
 import type { RecognitionEvent } from "../recognition/types.ts";
 import { ReadingSession, type ReadingSessionSnapshot } from "./reading/ReadingSession.ts";
@@ -112,6 +113,12 @@ export function initApp(): void {
   let ready = false;
   const microphone = new MicrophoneCapture();
   const recognition = createRecognitionAdapter(handleRecognitionEvent);
+  // 10 s without accepted reading progress means "a new search is allowed"
+  // (rest between ruku'/sujud/rak'ahs). One-shot until the next progress.
+  const PAUSE_MS = 10_000;
+  const pauseTimer = new InactivityTimer(PAUSE_MS, () => {
+    if (listening) readingSession.handlePause();
+  });
 
   async function startListening(): Promise<void> {
     if (listening || !ready) return;
@@ -119,6 +126,7 @@ export function initApp(): void {
     readingSession.resumeListening();
     recognition.reset();
     listening = true;
+    pauseTimer.touch();
     status.textContent = "Mendengarkan lantunan ayat…";
     start.disabled = true;
     stop.disabled = false;
@@ -133,6 +141,7 @@ export function initApp(): void {
   async function stopListening(): Promise<void> {
     if (!listening) return;
     await microphone.stop();
+    pauseTimer.stop();
     recognition.reset();
     readingSession.stopListening();
     listening = false;
@@ -288,12 +297,14 @@ export function initApp(): void {
     }
     if (event.type === "verse_match") {
       readingSession.handleEvent(event);
+      if (listening && readingSession.getState().state !== "mismatch") pauseTimer.touch();
       verse.textContent = `Surah ${event.surah}, ayat ${event.ayah}: ${event.verse_text}`;
       confidence.textContent = `Keyakinan: ${Math.round(event.confidence * 100)}%`;
     }
     if (event.type === "word_progress") {
       const accepted = readingSession.handleEvent(event);
       if (accepted) {
+        if (listening) pauseTimer.touch();
         detail.textContent = `Kemajuan ayat ${event.surah}:${event.ayah} — kata ${event.word_index + 1}/${event.total_words} (cocok ${event.matched_indices.length})`;
       }
     }

@@ -72,7 +72,8 @@ export class V1PositionMapper {
         surah,
         ayah,
         verse_text: ayahWords.join(" "),
-        confidence: top.confidence
+        confidence: top.confidence,
+        ...(top.prefix === "basmala" ? { basmala: true } : {})
       });
     }
 

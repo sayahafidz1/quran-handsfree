@@ -71,3 +71,13 @@ test("unknown ayah produces no event, and reset forgets the current ayah", () =>
   const out = mapper.map(position("locked", [112, 1, 1]));
   assert.equal(out[0].type, "verse_match");
 });
+
+test("a basmalah prefix marks verse_match with basmala: true", () => {
+  const mapper = new V1PositionMapper(lookup);
+  const event = position("locked", [112, 1, 1]);
+  event.observed[0].prefix = "basmala";
+  const out = mapper.map(event);
+  assert.deepEqual(out[0], {
+    type: "verse_match", surah: 112, ayah: 1, verse_text: AYAHS["112:1"].join(" "), confidence: 0.9, basmala: true
+  });
+});
