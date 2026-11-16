@@ -10,6 +10,8 @@
     "preview": "npm run build && wrangler dev",
     "deploy": "npm run build && wrangler deploy",
     "setup": "node scripts/setup-tilawa.mjs",
+    "setup:v1": "node scripts/setup-tilawa-v1.mjs",
+    "preview:local": "npm run build && vite preview",
     "test": "node --experimental-strip-types --test test/**/*.test.ts"
   },
   "dependencies": {

@@ -1,0 +1,24 @@
+Tilawa 1.0 (tilawa.dev) — attribution
+
+The Tilawa 1.0 listener models ("spliced-clean" and "spliced-clean-lite") used by this app are
+released by the Tilawa project (https://tilawa.dev, https://github.com/yazinsai/tilawa) under the
+Creative Commons Attribution 4.0 International licence (CC BY 4.0):
+https://creativecommons.org/licenses/by/4.0/
+
+Credit: Tilawa (tilawa.dev). The app uses the models unmodified.
+
+According to the Tilawa model card, the models and the reference data are built from these works,
+whose attribution terms also apply to redistribution of the models and assets:
+
+- tlog (tarteel-ai/tlog), by Tarteel, CC-BY: training and evaluation audio.
+- Quranic Universal Ayahs and the QUD alignment benchmark (QUD-Technologies/quranic-universal-ayahs),
+  by QUD Technologies, CC-BY: training and evaluation audio and alignments.
+- muaalem (obadx/muaalem-model-v3_2), MIT: the teacher model the listener is distilled from.
+- quran-transcript (obadx/quran-transcript), MIT: phonemization of the reference.
+- k2-fsa icefall (k2-fsa/icefall), Apache-2.0: streaming Zipformer architecture and export.
+- Tanzil (https://tanzil.net): the Uthmani Quran text the reference is derived from. Tanzil asks
+  that the text be reproduced verbatim and credited to Tanzil, with a link to https://tanzil.net.
+- ONNX Runtime (microsoft/onnxruntime), MIT: inference engine (WebAssembly files).
+
+The Tilawa code (@tilawa/core) is MIT-licensed. When the files are self-hosted with
+`npm run setup:v1`, the package's own NOTICE.md and LICENSE.txt are copied next to this file.

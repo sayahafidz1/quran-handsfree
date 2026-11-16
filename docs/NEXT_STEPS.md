@@ -76,7 +76,7 @@ mengunci roadmap pada Zipformer v0.3.0. Engine baru, bila diperlukan, harus
 berada di belakang kontrak `RecognitionAdapter`, sehingga UI dan
 `ReadingSession` tidak berubah.
 
-Evaluasi Tilawa 1.0 berjalan di branch `eval/tilawa-1.0` (`VITE_TILAWA_ENGINE=v1`; 0.4.0 tetap default). Skenario uji, bandingkan dengan 0.4.0 dan catat log (`VITE_DEBUG_RECOGNITION=true`, tag log `[TILAWA_V1]`):
+Evaluasi Tilawa 1.0 berjalan di `main` (`VITE_TILAWA_ENGINE=v1`; 0.4.0 tetap default). Mode tanpa internet: `VITE_TILAWA_V1_ASSETS=local` setelah `npm run setup:v1` (lihat `TILAWA_INTEGRATION.md` bagian 7); uji dengan internet diputus dan jendela incognito, pastikan tab Network tidak memuat dari domain lain. Pilihan model full vs lite untuk APK menunggu pengukuran di ponsel. Skenario uji, bandingkan dengan 0.4.0 dan catat log (`VITE_DEBUG_RECOGNITION=true`, tag log `[TILAWA_V1]`):
 
 - Waktu sampai terkunci di awal bacaan dan jumlah lompatan ayat/surat yang salah.
 - Aturan baru (lihat `DECISIONS.md` 2026-11-15): setelah surat selesai/jeda 20 detik/basmalah, ayat mana pun boleh terkunci; uji Al-Fatihah lalu An-Naba 78:31 tanpa bismillah, jeda >20 detik sesudah surat belum selesai, dan apakah derau mengunci ayat yang salah.
