@@ -9,3 +9,7 @@ public/tilawa/NPL-1.2.txt
 public/tilawa/quran_ctc_tokens.json
 public/tilawa/vocab.json
 public/tilawa/export_metadata.json
+
+# Local env overrides (e.g. VITE_TILAWA_ENGINE=v1)
+.env.local
+*.local

@@ -58,6 +58,8 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
     previous, stop, dan resume), tanpa coordinator baru.
   - Ayat dianggap selesai (`hasReachedVerseEnd`) saat kata terakhirnya ada di `matched_indices`; hanya setelah itu `expectedNextVerse` terisi dan ayat berikutnya dapat diikuti. Status selesai menempel meski snapshot `matched_indices` berubah, sedangkan sorotan kata mengikuti snapshot terbaru. Cursor Tilawa yang lebih dulu masuk ayat berikutnya tidak memajukan sesi (`verse_match` menjadi `mismatch`, `word_progress` diabaikan).
   - `ReadingSession` tidak pernah memanggil engine. Ia hanya *meminta* restart discovery lewat `onDiscoveryRestart()`: sekali saat ayat terakhir sebuah surat selesai (ayat berikutnya adalah ayat 1 surat lain), dan saat basmalah (`verse_match` 1:1) terdeteksi sementara sesi menunggu ayat 1 surat berikutnya (basmalah itu bukan `mismatch`). `src/app/app.ts` menjalankan permintaan itu dengan `recognition.reset()` hanya saat sedang mendengarkan.
+  - Penanda `discoveryOpen` (lihat `DECISIONS.md` 2026-11-15): setelah surat selesai, setelah `handlePause()` (20 detik tanpa event pengenalan sama sekali, dipicu `InactivityTimer` di `app.ts`), atau saat `verse_match` ber-`basmala` ayat 1, deteksi berikutnya mengunci di mana pun tanpa `mismatch`. Di dalam satu surat aturan tetap ketat.
+  - Kunci hasil discovery bersifat sementara (`provisional`) sampai ayatnya selesai: koreksi engine ke ayat di surat lain (ayat kembar seperti 3:142 vs 2:214) mengunci ulang tanpa `mismatch`; lompatan dalam surat yang sama tetap `mismatch`. Setelah ayat selesai, aturan ketat berlaku. Target manual tidak pernah sementara.
   - `handleRecognitionEvent()` meneruskan `verse_match` dan `word_progress` hanya ke `ReadingSession.handleEvent()`. UI membaca snapshot sesi.
 - **`src/audio/`**:
   - Bertanggung jawab penuh atas penangkapan audio perangkat keras dan resample ke format standar 16 kHz Float32.
@@ -77,6 +79,7 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
 - **`src/recognition/` & `src/recognition/tilawa/` (Integration Boundary)**:
   - Adapter khusus yang mengimplementasikan `RecognitionAdapter` dengan membungkus Worker `@tilawa/core`.
   - Mengisolasi seluruh interaksi `@tilawa/core` dan format pesan internal worker.
+  - Pemilihan engine ada di `src/recognition/createAdapter.ts`: default 0.4.0 Zipformer; `VITE_TILAWA_ENGINE=v1` memakai jalur evaluasi Tilawa 1.0 (`recognition.v1.worker.ts` + `v1Mapper.ts`) yang menghasilkan kontrak event yang sama, sehingga `ReadingSession` dan UI tidak berubah. Lihat `TILAWA_INTEGRATION.md` bagian 6.
 - **`src/workers/`**:
   - Menjalankan inferensi ONNX Zipformer2-CTC melalui public API `@tilawa/core` di background thread.
 - **`src/ui/`**:

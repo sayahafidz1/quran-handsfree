@@ -12,8 +12,15 @@ import type { TilawaWorkerCommand } from "./types";
 export class TilawaAdapter implements RecognitionAdapter {
   private readonly worker: Worker;
 
-  constructor(private readonly onEvent: (event: RecognitionEvent) => void) {
-    this.worker = new RecognitionWorker();
+  /**
+   * `createWorker` lets another engine path (e.g. the Tilawa 1.0 evaluation worker)
+   * reuse this exact worker plumbing; the default is the 0.4.0 Zipformer worker.
+   */
+  constructor(
+    private readonly onEvent: (event: RecognitionEvent) => void,
+    createWorker: () => Worker = () => new RecognitionWorker()
+  ) {
+    this.worker = createWorker();
     this.worker.onmessage = ({ data }: MessageEvent<RecognitionEvent>) => {
       this.onEvent(data);
     };

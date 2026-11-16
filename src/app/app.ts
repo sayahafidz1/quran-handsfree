@@ -1,5 +1,6 @@
 import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
-import { TilawaAdapter } from "../recognition/tilawa/TilawaAdapter.ts";
+import { InactivityTimer } from "./reading/InactivityTimer.ts";
+import { createRecognitionAdapter } from "../recognition/createAdapter.ts";
 import type { RecognitionEvent } from "../recognition/types.ts";
 import { ReadingSession, type ReadingSessionSnapshot } from "./reading/ReadingSession.ts";
 import { getSurahInfo } from "../quran/index.ts";
@@ -111,7 +112,15 @@ export function initApp(): void {
   let listening = false;
   let ready = false;
   const microphone = new MicrophoneCapture();
-  const recognition = new TilawaAdapter(handleRecognitionEvent);
+  const recognition = createRecognitionAdapter(handleRecognitionEvent);
+  // 20 s with no recognition event at all (real silence) means "a new search is
+  // allowed" (rest between ruku'/sujud/rak'ahs). Reading the wrong verse still
+  // produces events, so a mismatch is NOT a pause and never loosens the rules.
+  // One-shot until the next event.
+  const PAUSE_MS = 20_000;
+  const pauseTimer = new InactivityTimer(PAUSE_MS, () => {
+    if (listening) readingSession.handlePause();
+  });
 
   async function startListening(): Promise<void> {
     if (listening || !ready) return;
@@ -119,6 +128,7 @@ export function initApp(): void {
     readingSession.resumeListening();
     recognition.reset();
     listening = true;
+    pauseTimer.touch();
     status.textContent = "Mendengarkan lantunan ayat…";
     start.disabled = true;
     stop.disabled = false;
@@ -133,6 +143,7 @@ export function initApp(): void {
   async function stopListening(): Promise<void> {
     if (!listening) return;
     await microphone.stop();
+    pauseTimer.stop();
     recognition.reset();
     readingSession.stopListening();
     listening = false;
@@ -288,11 +299,13 @@ export function initApp(): void {
     }
     if (event.type === "verse_match") {
       readingSession.handleEvent(event);
+      if (listening) pauseTimer.touch();
       verse.textContent = `Surah ${event.surah}, ayat ${event.ayah}: ${event.verse_text}`;
       confidence.textContent = `Keyakinan: ${Math.round(event.confidence * 100)}%`;
     }
     if (event.type === "word_progress") {
       const accepted = readingSession.handleEvent(event);
+      if (listening) pauseTimer.touch();
       if (accepted) {
         detail.textContent = `Kemajuan ayat ${event.surah}:${event.ayah} — kata ${event.word_index + 1}/${event.total_words} (cocok ${event.matched_indices.length})`;
       }

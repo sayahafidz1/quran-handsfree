@@ -4,6 +4,8 @@
   ayah: number;
   verse_text: string;
   confidence: number;
+  /** Set only when the engine heard a basmalah right before this ayah (Tilawa 1.0). */
+  basmala?: boolean;
 }
 
 export interface WordProgressEvent {

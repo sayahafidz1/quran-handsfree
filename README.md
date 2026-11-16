@@ -94,6 +94,13 @@ teks display ke `v0.2.0`. Untuk fresh clone, jalankan `npm run setup` setelah
 `npm install`; setup dapat dijalankan ulang dengan aman. Model dan korpus
 Zipformer berlisensi NPL-1.2 (non-komersial/share-alike), bukan MIT.
 
+### 2b. (Opsional) Evaluasi Tilawa 1.0
+Hanya di branch `eval/tilawa-1.0`. Jalankan `npm install`, buat file `.env.local` di folder proyek (tidak ikut Git) berisi:
+```text
+VITE_TILAWA_ENGINE=v1
+```
+lalu `npm run dev`. Hapus file itu (atau isinya) untuk kembali ke engine 0.4.0, yang menjadi default. Jalur 1.0 mengunduh model dari internet (lihat `docs/TILAWA_INTEGRATION.md` bagian 6).
+
 ### 3. Menjalankan Server Development
 ```bash
 npm run dev
