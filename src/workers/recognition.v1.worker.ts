@@ -11,10 +11,12 @@ import { V1PositionMapper, type V1Event } from "../recognition/tilawa/v1Mapper";
 import { recognitionDebugEnabled } from "../recognition/debug";
 import {
   createMemoryStorage,
+  fallbackTier,
   localAssetBase,
   parseAssetMode,
   parseProviders,
-  resolveTier
+  resolveTier,
+  type V1Tier
 } from "../recognition/tilawa/v1Assets";
 
 const SAMPLE_RATE = 16000;
@@ -65,7 +67,29 @@ async function initialize(): Promise<void> {
       const ortVersion = (ort.env as { versions?: { web?: string } }).versions?.web;
       const wasmPaths = ortVersion ? `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ortVersion}/dist/` : undefined;
       post({ type: "loading_status", message: "Memuat model Tilawa 1.0 (unduhan pertama bisa besar)…" });
-      tilawa = await createTilawa({ tier, reference, providers, wasmPaths, onProgress: reportProgress });
+      const load = (useTier: V1Tier) =>
+        createTilawa({ tier: useTier, reference, providers, wasmPaths, onProgress: reportProgress });
+      try {
+        tilawa = await load(tier);
+      } catch (firstError) {
+        // A weak phone may not have the memory for the full model; try the smaller one automatically.
+        const fallback = fallbackTier(mode, tier);
+        if (!fallback) throw firstError;
+        const firstDetail = firstError instanceof Error ? firstError.message : String(firstError);
+        if (recognitionDebugEnabled) {
+          console.debug("[TILAWA_V1]", { event: "tier_fallback", from: tier, to: fallback, message: firstDetail });
+        }
+        post({
+          type: "loading_status",
+          message: "Model penuh gagal dimuat (kemungkinan memori perangkat kurang). Memakai model ringan; ketepatan bisa lebih rendah…"
+        });
+        try {
+          tilawa = await load(fallback);
+        } catch (secondError) {
+          const secondDetail = secondError instanceof Error ? secondError.message : String(secondError);
+          throw new Error(`${firstDetail} | Model ringan juga gagal: ${secondDetail}`);
+        }
+      }
     }
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);

@@ -87,7 +87,7 @@ Evaluasi Tilawa 1.0 berjalan di `main` (`VITE_TILAWA_ENGINE=v1`; 0.4.0 tetap def
 - Al-Ikhlas ke Al-Falaq dengan dan tanpa bismillah; surat berawalan huruf ambigu.
 - Sorotan kata selaras dengan teks di layar (segmentasi `ref-v2` vs `content.json`), dan ayat terakhir terdeteksi selesai.
 - Berisik dapur/suara bayi; mikrofon (1.0 menonaktifkan echo cancellation/noise suppression, aplikasi saat ini mengaktifkannya).
-- Waktu muat model (full vs lite) dan kelancaran di ponsel; kebutuhan internet/CDN.
+- Waktu muat model (full vs lite) dan kelancaran di ponsel; kebutuhan internet/CDN. Sudah ada cadangan otomatis ke `lite` bila `full` gagal dimuat (2026-11-17, `DECISIONS.md`); perlu dites di ponsel yang tadinya gagal, dan ketepatan `lite` perlu diukur.
 
 Sebelum mengganti default, lakukan A/B test untuk deteksi ayat, pelacakan kata,
 jeda, waqaf, pengulangan, koreksi, recovery mismatch, bacaan multi-ayat,

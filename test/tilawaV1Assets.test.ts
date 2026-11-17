@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   createMemoryStorage,
+  fallbackTier,
   localAssetBase,
   parseAssetMode,
   parseProviders,
@@ -23,6 +24,14 @@ test("tier: explicit full/lite wins; otherwise local means full and remote means
   assert.equal(resolveTier("remote", "auto"), "auto");
   assert.equal(resolveTier("local", "lite"), "lite");
   assert.equal(resolveTier("remote", "full"), "full");
+});
+
+test("fallback tier: remote retries with lite unless already lite; local has no fallback", () => {
+  assert.equal(fallbackTier("remote", "full"), "lite");
+  assert.equal(fallbackTier("remote", "auto"), "lite");
+  assert.equal(fallbackTier("remote", "lite"), null);
+  assert.equal(fallbackTier("local", "full"), null);
+  assert.equal(fallbackTier("local", "lite"), null);
 });
 
 test("providers keep only known values in order, or fall back to the SDK default", () => {

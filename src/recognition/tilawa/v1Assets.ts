@@ -21,6 +21,16 @@ export function resolveTier(mode: V1AssetMode, value: string | undefined): V1Tie
   return mode === "local" ? "full" : "auto";
 }
 
+/**
+ * Tier to retry with when loading the model failed (for example, not enough memory on a weak phone for the
+ * 68 MB "full" model). Only remote mode has a fallback: local mode ships just the tier `setup:v1` downloaded.
+ * Returns null when there is nothing lighter to try.
+ */
+export function fallbackTier(mode: V1AssetMode, tier: V1Tier): V1Tier | null {
+  if (mode !== "remote") return null;
+  return tier === "lite" ? null : "lite";
+}
+
 export function parseProviders(value: string | undefined): V1Provider[] | undefined {
   if (!value) return undefined;
   const list = value
