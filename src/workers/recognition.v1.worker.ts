@@ -10,6 +10,7 @@ import type { TilawaWorkerCommand } from "../recognition/tilawa/types";
 import { V1PositionMapper, type V1Event } from "../recognition/tilawa/v1Mapper";
 import { recognitionDebugEnabled } from "../recognition/debug";
 import {
+  chooseStartTier,
   createMemoryStorage,
   fallbackTier,
   localAssetBase,
@@ -26,6 +27,31 @@ let session: TilawaSession | null = null;
 let mapper: V1PositionMapper | null = null;
 
 const post = (event: RecognitionEvent) => self.postMessage(event);
+
+// "This device needs the lite model" marker, kept in the Cache API (a separate cache from the model files, and
+// not touched by the service worker). Clearing the site data in the browser removes it.
+const PREFERENCE_CACHE = "tilawa-v1-prefs";
+const PREFER_LITE_KEY = "/__tilawa-v1/prefer-lite";
+
+async function readLitePreference(): Promise<boolean> {
+  try {
+    if (typeof caches === "undefined") return false;
+    const cache = await caches.open(PREFERENCE_CACHE);
+    return Boolean(await cache.match(PREFER_LITE_KEY));
+  } catch {
+    return false;
+  }
+}
+
+async function saveLitePreference(): Promise<void> {
+  try {
+    if (typeof caches === "undefined") return;
+    const cache = await caches.open(PREFERENCE_CACHE);
+    await cache.put(PREFER_LITE_KEY, new Response("lite"));
+  } catch {
+    // The preference is only an optimization; ignore storage failures.
+  }
+}
 
 function reportProgress(progress: { stage: string; fraction: number; fromCache: boolean }): void {
   if (progress.stage !== "model") return;
@@ -69,15 +95,17 @@ async function initialize(): Promise<void> {
       post({ type: "loading_status", message: "Memuat model Tilawa 1.0 (unduhan pertama bisa besar)…" });
       const load = (useTier: V1Tier) =>
         createTilawa({ tier: useTier, reference, providers, wasmPaths, onProgress: reportProgress });
+      // A device that already fell back to the lite model keeps using it (no failing full attempt at every launch).
+      const startTier = chooseStartTier(mode, tier, await readLitePreference());
       try {
-        tilawa = await load(tier);
+        tilawa = await load(startTier);
       } catch (firstError) {
         // A weak phone may not have the memory for the full model; try the smaller one automatically.
-        const fallback = fallbackTier(mode, tier);
+        const fallback = fallbackTier(mode, startTier);
         if (!fallback) throw firstError;
         const firstDetail = firstError instanceof Error ? firstError.message : String(firstError);
         if (recognitionDebugEnabled) {
-          console.debug("[TILAWA_V1]", { event: "tier_fallback", from: tier, to: fallback, message: firstDetail });
+          console.debug("[TILAWA_V1]", { event: "tier_fallback", from: startTier, to: fallback, message: firstDetail });
         }
         post({
           type: "loading_status",
@@ -85,6 +113,7 @@ async function initialize(): Promise<void> {
         });
         try {
           tilawa = await load(fallback);
+          await saveLitePreference();
         } catch (secondError) {
           const secondDetail = secondError instanceof Error ? secondError.message : String(secondError);
           throw new Error(`${firstDetail} | Model ringan juga gagal: ${secondDetail}`);

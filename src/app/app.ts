@@ -1,5 +1,6 @@
 import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
 import { InactivityTimer } from "./reading/InactivityTimer.ts";
+import { createListenGate } from "./listenGate.ts";
 import { createRecognitionAdapter } from "../recognition/createAdapter.ts";
 import type { RecognitionEvent } from "../recognition/types.ts";
 import { ReadingSession, type ReadingSessionSnapshot } from "./reading/ReadingSession.ts";
@@ -40,6 +41,7 @@ export function initApp(): void {
   const detail = document.querySelector<HTMLParagraphElement>("#detail")!;
   const verse = document.querySelector<HTMLParagraphElement>("#verse")!;
   const confidence = document.querySelector<HTMLParagraphElement>("#confidence")!;
+  const loadingBar = document.querySelector<HTMLElement>("#loading-bar")!;
   const prepare = document.querySelector<HTMLButtonElement>("#prepare")!;
   const start = document.querySelector<HTMLButtonElement>("#start")!;
   const stop = document.querySelector<HTMLButtonElement>("#stop")!;
@@ -61,6 +63,9 @@ export function initApp(): void {
     readingSession.subscribe((snapshot) => reader?.render(snapshot));
     const navigation = new QuranNavigation(navigationRoot, content, (reference) => {
       readingSession.start(reference);
+      void requestListening();
+    }, () => {
+      void requestListening();
     });
     readingSession.subscribe((snapshot) => {
       navigation.setCurrentPosition(snapshot.currentVerse ?? snapshot.expectedVerse);
@@ -111,6 +116,8 @@ export function initApp(): void {
   // Handle Command Submission
   let listening = false;
   let ready = false;
+  // Opening a verse (or a command) should switch the microphone on by itself, even while the model still loads.
+  const listenGate = createListenGate();
   const microphone = new MicrophoneCapture();
   const recognition = createRecognitionAdapter(handleRecognitionEvent);
   // 10 s with no recognition event at all (real silence) means "a new search is
@@ -128,6 +135,7 @@ export function initApp(): void {
     readingSession.resumeListening();
     recognition.reset();
     listening = true;
+    listenGate.setListening(true);
     pauseTimer.touch();
     status.textContent = "Mendengarkan lantunan ayat…";
     start.disabled = true;
@@ -140,6 +148,34 @@ export function initApp(): void {
     if (listening) recognition.reset();
   });
 
+  /** Starts loading the recognition model (once). Shows the loading bar until it is ready or fails. */
+  function beginPreparing(): void {
+    if (!listenGate.shouldPrepare()) return;
+    listenGate.setPreparing(true);
+    prepare.disabled = true;
+    prepare.textContent = "Siapkan pengenalan";
+    loadingBar.hidden = false;
+    status.textContent = "Menyiapkan pengenalan Tilawa…";
+    detail.textContent = "";
+    recognition.initialize();
+  }
+
+  async function tryStartListening(): Promise<void> {
+    try {
+      await startListening();
+    } catch (error) {
+      status.textContent = "Mikrofon tidak dapat digunakan.";
+      detail.textContent = error instanceof Error ? error.message : String(error);
+    }
+  }
+
+  /** Turn the microphone on now if the model is ready, otherwise as soon as it is (loading it first if needed). */
+  async function requestListening(): Promise<void> {
+    const action = listenGate.request();
+    if (action === "prepare") beginPreparing();
+    if (action === "start") await tryStartListening();
+  }
+
   async function stopListening(): Promise<void> {
     if (!listening) return;
     await microphone.stop();
@@ -147,6 +183,7 @@ export function initApp(): void {
     recognition.reset();
     readingSession.stopListening();
     listening = false;
+    listenGate.setListening(false);
     status.textContent = "Pengenalan dihentikan.";
     start.disabled = !ready;
     stop.disabled = true;
@@ -160,11 +197,12 @@ export function initApp(): void {
     }
     if (result.command === "open") {
       readingSession.start({ surah: result.surah, ayah: result.ayah });
+      void requestListening();
       commandFeedbackEl.className = "feedback-msg success";
       commandFeedbackEl.textContent = `✓ Berhasil dikunci ke Surat ${result.surahName} (${result.surah}) ayat ${result.ayah}.`;
       return;
     }
-    if (result.command === "start" || result.command === "resume") await startListening();
+    if (result.command === "start" || result.command === "resume") await requestListening();
     if (result.command === "stop") await stopListening();
     if (result.command === "current") readingSession.returnToActivePosition();
     if (result.command === "repeat") readingSession.repeatActiveVerse();
@@ -262,10 +300,9 @@ export function initApp(): void {
   });
 
   // Recitation Engine (Tilawa)
+  // The button is only needed to try again after a failure; loading starts by itself (see the end of initApp).
   prepare.addEventListener("click", () => {
-    prepare.disabled = true;
-    status.textContent = "Menyiapkan pengenalan Tilawa…";
-    recognition.initialize();
+    beginPreparing();
   });
 
   start.addEventListener("click", async () => {
@@ -288,13 +325,18 @@ export function initApp(): void {
     if (event.type === "loading_status") status.textContent = event.message;
     if (event.type === "ready") {
       ready = true;
+      loadingBar.hidden = true;
       status.textContent = "Siap mendengarkan.";
       detail.textContent = "Model Tilawa berjalan di perangkat ini.";
       start.disabled = false;
+      if (listenGate.onReady() === "start") void tryStartListening();
     }
     if (event.type === "error") {
+      listenGate.onError();
+      loadingBar.hidden = true;
       status.textContent = "Pengenalan belum siap.";
       detail.textContent = event.message;
+      prepare.textContent = "Coba lagi";
       prepare.disabled = false;
     }
     if (event.type === "verse_match") {
@@ -311,6 +353,9 @@ export function initApp(): void {
       }
     }
   }
+
+  // Load the model as soon as the page opens; the status line and the loading bar show the progress.
+  beginPreparing();
 
   window.addEventListener("beforeunload", () => {
     reader?.dispose();

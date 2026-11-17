@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  chooseStartTier,
   createMemoryStorage,
   fallbackTier,
   localAssetBase,
@@ -32,6 +33,14 @@ test("fallback tier: remote retries with lite unless already lite; local has no 
   assert.equal(fallbackTier("remote", "lite"), null);
   assert.equal(fallbackTier("local", "full"), null);
   assert.equal(fallbackTier("local", "lite"), null);
+});
+
+test("start tier: a remembered lite preference wins in remote mode only", () => {
+  assert.equal(chooseStartTier("remote", "full", true), "lite");
+  assert.equal(chooseStartTier("remote", "auto", true), "lite");
+  assert.equal(chooseStartTier("remote", "full", false), "full");
+  assert.equal(chooseStartTier("remote", "lite", false), "lite");
+  assert.equal(chooseStartTier("local", "full", true), "full");
 });
 
 test("providers keep only known values in order, or fall back to the SDK default", () => {

@@ -31,6 +31,14 @@ export function fallbackTier(mode: V1AssetMode, tier: V1Tier): V1Tier | null {
   return tier === "lite" ? null : "lite";
 }
 
+/**
+ * Tier to try first. In remote mode, a device that already had to fall back to "lite" starts with "lite"
+ * from then on, so it does not retry the full model (and fail again) at every launch. Local mode is unchanged.
+ */
+export function chooseStartTier(mode: V1AssetMode, tier: V1Tier, preferLite: boolean): V1Tier {
+  return mode === "remote" && preferLite ? "lite" : tier;
+}
+
 export function parseProviders(value: string | undefined): V1Provider[] | undefined {
   if (!value) return undefined;
   const list = value

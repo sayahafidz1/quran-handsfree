@@ -61,6 +61,7 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
   - Penanda `discoveryOpen` (lihat `DECISIONS.md` 2026-11-15): setelah surat selesai, setelah `handlePause()` (10 detik tanpa event pengenalan sama sekali, dipicu `InactivityTimer` di `app.ts`), atau saat `verse_match` ber-`basmala` ayat 1, deteksi berikutnya mengunci di mana pun tanpa `mismatch`. Di dalam satu surat aturan tetap ketat.
   - Kunci hasil discovery bersifat sementara (`provisional`) sampai ayatnya selesai: koreksi engine ke ayat di surat lain (ayat kembar seperti 3:142 vs 2:214) mengunci ulang tanpa `mismatch`; lompatan dalam surat yang sama tetap `mismatch`. Setelah ayat selesai, aturan ketat berlaku. Target manual tidak pernah sementara.
   - `handleRecognitionEvent()` meneruskan `verse_match` dan `word_progress` hanya ke `ReadingSession.handleEvent()`. UI membaca snapshot sesi.
+  - Persiapan dan mikrofon otomatis (lihat `DECISIONS.md` 2026-11-17): `app.ts` memuat model begitu halaman dibuka (`beginPreparing()`, dengan bar loading), dan `requestListening()` menyalakan mikrofon dari Buka ayat, Buka juz, Kembali ke posisi, perintah `open`, dan `start`/`resume`. Bila model belum siap, permintaan menunggu sampai siap. Keadaan tunggu/siap/mendengarkan ada di `src/app/listenGate.ts` (murni, diuji di `test/listenGate.test.ts`). Tombol "Siapkan pengenalan" hanya dipakai sebagai "Coba lagi" setelah gagal.
 - **`src/audio/`**:
   - Bertanggung jawab penuh atas penangkapan audio perangkat keras dan resample ke format standar 16 kHz Float32.
 - **`src/command/`**:

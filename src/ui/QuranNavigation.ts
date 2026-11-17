@@ -14,7 +14,8 @@ export class QuranNavigation {
   public constructor(
     root: HTMLElement,
     private readonly content: QuranContentProvider,
-    private readonly onSelect: QuranNavigationSelect
+    private readonly onSelect: QuranNavigationSelect,
+    private readonly onReturn?: () => void
   ) {
     this.searchInput = root.querySelector<HTMLInputElement>("#navigation-search")!;
     this.surahSelect = root.querySelector<HTMLSelectElement>("#navigation-surah")!;
@@ -36,7 +37,9 @@ export class QuranNavigation {
       if (juz) this.select(juz.start);
     });
     this.currentButton.addEventListener("click", () => {
+      const hadPosition = this.currentPosition !== null;
       this.returnToCurrentPosition();
+      if (hadPosition) this.onReturn?.();
     });
   }
 
