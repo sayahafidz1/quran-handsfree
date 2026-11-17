@@ -113,11 +113,11 @@ export function initApp(): void {
   let ready = false;
   const microphone = new MicrophoneCapture();
   const recognition = createRecognitionAdapter(handleRecognitionEvent);
-  // 20 s with no recognition event at all (real silence) means "a new search is
+  // 10 s with no recognition event at all (real silence) means "a new search is
   // allowed" (rest between ruku'/sujud/rak'ahs). Reading the wrong verse still
   // produces events, so a mismatch is NOT a pause and never loosens the rules.
   // One-shot until the next event.
-  const PAUSE_MS = 20_000;
+  const PAUSE_MS = 10_000;
   const pauseTimer = new InactivityTimer(PAUSE_MS, () => {
     if (listening) readingSession.handlePause();
   });
