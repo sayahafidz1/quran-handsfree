@@ -15,14 +15,22 @@
         <p class="intro">Tentukan posisi awal ayat dengan perintah suara atau mulai melantunkan bacaan langsung di perangkat Anda tanpa server.</p>
       </header>
 
-      <!-- LOCKED POSITION / ANCHOR -->
-      <section class="card anchor-card" aria-live="polite">
-        <p class="label">Posisi Terkunci (Anchor Position)</p>
-        <div class="anchor-display">
-          <p id="anchor-position" class="anchor-text">Belum ada posisi yang dikunci</p>
-          <span id="anchor-badge" class="badge">Siap</span>
+      <!-- RECITATION RECOGNITION (TILAWA) SECTION -->
+      <section class="card" aria-live="polite">
+        <p class="label">Pengenalan Bacaan (Recitation Recognition)</p>
+        <p id="status">Memeriksa kesiapan aset Tilawa…</p>
+        <p id="detail" class="muted"></p>
+        <div class="actions">
+          <button id="prepare" type="button">Siapkan pengenalan</button>
+          <button id="start" type="button" disabled>Mulai mendengarkan</button>
+          <button id="stop" type="button" disabled>Berhenti</button>
         </div>
-        <p id="anchor-detail" class="muted">Gunakan perintah suara (misal: "Al-Baqarah ayat 255") atau baca langsung.</p>
+      </section>
+
+      <section class="card result" aria-live="polite">
+        <p class="label">Bacaan Tilawa terdeteksi</p>
+        <p id="verse">Belum ada ayat yang terdeteksi.</p>
+        <p id="confidence" class="muted"></p>
       </section>
 
       <section class="card reader-card" aria-live="polite">
@@ -91,23 +99,14 @@
         <p id="command-feedback" class="feedback-msg"></p>
       </section>
 
-      <!-- RECITATION RECOGNITION (TILAWA) SECTION -->
-      <section class="card" aria-live="polite">
-        <p class="label">Pengenalan Bacaan (Recitation Recognition)</p>
-        <p id="status">Memeriksa kesiapan aset Tilawa…</p>
-        <p id="detail" class="muted"></p>
-        <div id="loading-bar" class="loading-bar" role="progressbar" aria-label="Memuat model pengenalan" hidden></div>
-        <div class="actions">
-          <button id="prepare" type="button">Siapkan pengenalan</button>
-          <button id="start" type="button" disabled>Mulai mendengarkan</button>
-          <button id="stop" type="button" disabled>Berhenti</button>
+      <!-- LOCKED POSITION / ANCHOR -->
+      <section class="card anchor-card" aria-live="polite">
+        <p class="label">Posisi Terkunci (Anchor Position)</p>
+        <div class="anchor-display">
+          <p id="anchor-position" class="anchor-text">Belum ada posisi yang dikunci</p>
+          <span id="anchor-badge" class="badge">Siap</span>
         </div>
-      </section>
-
-      <section class="card result" aria-live="polite">
-        <p class="label">Bacaan Tilawa terdeteksi</p>
-        <p id="verse">Belum ada ayat yang terdeteksi.</p>
-        <p id="confidence" class="muted"></p>
+        <p id="anchor-detail" class="muted">Gunakan perintah suara (misal: "Al-Baqarah ayat 255") atau baca langsung.</p>
       </section>
 
       <details class="card about" id="about">
@@ -124,6 +123,13 @@
 
       <footer>Quran recognition powered by Tilawa & Quran Hands-Free Navigation.</footer>
     </main>
+    <!-- Blocks the whole page while the recognition model loads; closes when it is ready or failed. -->
+    <dialog id="loading-dialog" class="loading-dialog" aria-labelledby="loading-dialog-title">
+      <h2 id="loading-dialog-title">Menyiapkan pengenalan…</h2>
+      <p id="loading-dialog-text" class="muted">Mohon tunggu, model pengenalan sedang dimuat.</p>
+      <div id="loading-bar" class="loading-bar" role="progressbar" aria-label="Memuat model pengenalan"></div>
+      <button id="loading-dialog-close" type="button" hidden>Tutup</button>
+    </dialog>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

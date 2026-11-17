@@ -72,3 +72,10 @@ footer { color: #64736e; font-size: .85rem; margin: 32px 0 0; }
 .loading-bar::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 35%; border-radius: 999px; background: #0b3b32; animation: loading-slide 1.2s ease-in-out infinite; }
 @keyframes loading-slide { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
 @media (prefers-reduced-motion: reduce) { .loading-bar::after { animation: none; width: 100%; opacity: .5; } }
+
+/* Popup that blocks the page while the recognition model loads. */
+.loading-dialog { width: min(90vw, 420px); padding: 22px; border: 1px solid #dfd5c2; border-radius: 18px; background: #fffdf8; color: inherit; box-shadow: 0 12px 40px #173b3440; }
+.loading-dialog::backdrop { background: #0b3b328c; }
+.loading-dialog h2 { margin: 0 0 8px; font-family: Georgia, serif; font-size: 1.3rem; color: #0b3b32; }
+.loading-dialog .muted { margin: 0; }
+.loading-dialog button { margin-top: 16px; }

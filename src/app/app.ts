@@ -42,6 +42,9 @@ export function initApp(): void {
   const verse = document.querySelector<HTMLParagraphElement>("#verse")!;
   const confidence = document.querySelector<HTMLParagraphElement>("#confidence")!;
   const loadingBar = document.querySelector<HTMLElement>("#loading-bar")!;
+  const loadingDialog = document.querySelector<HTMLDialogElement>("#loading-dialog")!;
+  const loadingDialogText = document.querySelector<HTMLParagraphElement>("#loading-dialog-text")!;
+  const loadingDialogClose = document.querySelector<HTMLButtonElement>("#loading-dialog-close")!;
   const prepare = document.querySelector<HTMLButtonElement>("#prepare")!;
   const start = document.querySelector<HTMLButtonElement>("#start")!;
   const stop = document.querySelector<HTMLButtonElement>("#stop")!;
@@ -148,12 +151,43 @@ export function initApp(): void {
     if (listening) recognition.reset();
   });
 
-  /** Starts loading the recognition model (once). Shows the loading bar until it is ready or fails. */
+  // Popup that blocks the page while the model loads. It closes when the model is ready or loading failed.
+  // Safety valve: if neither happens within LOADING_ESCAPE_MS (stalled download), a "Tutup" button appears.
+  const LOADING_ESCAPE_MS = 60_000;
+  let loadingEscapeTimer: number | undefined;
+  let loadingDialogWanted = false;
+
+  function openLoadingDialog(): void {
+    loadingDialogWanted = true;
+    loadingDialogClose.hidden = true;
+    loadingDialogText.textContent = "Mohon tunggu, model pengenalan sedang dimuat.";
+    if (!loadingDialog.open) loadingDialog.showModal();
+    window.clearTimeout(loadingEscapeTimer);
+    loadingEscapeTimer = window.setTimeout(() => {
+      loadingDialogClose.hidden = false;
+    }, LOADING_ESCAPE_MS);
+  }
+
+  function closeLoadingDialog(): void {
+    loadingDialogWanted = false;
+    window.clearTimeout(loadingEscapeTimer);
+    if (loadingDialog.open) loadingDialog.close();
+  }
+
+  // Esc must not dismiss the popup; if a browser closes it anyway (for example a second Esc), reopen it while loading.
+  loadingDialog.addEventListener("cancel", (event) => event.preventDefault());
+  loadingDialog.addEventListener("close", () => {
+    if (loadingDialogWanted) loadingDialog.showModal();
+  });
+  loadingDialogClose.addEventListener("click", closeLoadingDialog);
+
+  /** Starts loading the recognition model (once). Shows the loading popup until it is ready or fails. */
   function beginPreparing(): void {
     if (!listenGate.shouldPrepare()) return;
     listenGate.setPreparing(true);
     prepare.disabled = true;
     prepare.textContent = "Siapkan pengenalan";
+    openLoadingDialog();
     loadingBar.hidden = false;
     status.textContent = "Menyiapkan pengenalan Tilawa…";
     detail.textContent = "";
@@ -322,10 +356,14 @@ export function initApp(): void {
   });
 
   function handleRecognitionEvent(event: RecognitionEvent): void {
-    if (event.type === "loading_status") status.textContent = event.message;
+    if (event.type === "loading_status") {
+      status.textContent = event.message;
+      loadingDialogText.textContent = event.message;
+    }
     if (event.type === "ready") {
       ready = true;
       loadingBar.hidden = true;
+      closeLoadingDialog();
       status.textContent = "Siap mendengarkan.";
       detail.textContent = "Model Tilawa berjalan di perangkat ini.";
       start.disabled = false;
@@ -334,6 +372,7 @@ export function initApp(): void {
     if (event.type === "error") {
       listenGate.onError();
       loadingBar.hidden = true;
+      closeLoadingDialog();
       status.textContent = "Pengenalan belum siap.";
       detail.textContent = event.message;
       prepare.textContent = "Coba lagi";
