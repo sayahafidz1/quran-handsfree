@@ -1,4 +1,4 @@
-const CACHE = "quran-handsfree-v2";
+const CACHE = "quran-handsfree-v3";
 const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/quran/content.json"];
 
 self.addEventListener("install", (event) => {
@@ -19,6 +19,8 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const { pathname } = new URL(event.request.url);
+  // Self-hosted Tilawa 1.0 files (large model, wasm) are never stored in the service worker cache.
+  if (pathname.includes("/tilawa-v1/")) return;
   if (pathname.startsWith("/@") || pathname.startsWith("/src/") ||
       pathname.startsWith("/node_modules/") || pathname.includes("/.vite/")) return;
   event.respondWith(caches.match(event.request).then(async (cached) => {

@@ -10,6 +10,10 @@ public/tilawa/quran_ctc_tokens.json
 public/tilawa/vocab.json
 public/tilawa/export_metadata.json
 
+# Tilawa 1.0 self-hosted files (npm run setup:v1); only the attribution file is tracked
+public/tilawa-v1/*
+!public/tilawa-v1/ATTRIBUTION.txt
+
 # Local env overrides (e.g. VITE_TILAWA_ENGINE=v1)
 .env.local
 *.local

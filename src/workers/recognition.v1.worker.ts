@@ -9,6 +9,13 @@ import type { RecognitionEvent } from "../recognition/types";
 import type { TilawaWorkerCommand } from "../recognition/tilawa/types";
 import { V1PositionMapper, type V1Event } from "../recognition/tilawa/v1Mapper";
 import { recognitionDebugEnabled } from "../recognition/debug";
+import {
+  createMemoryStorage,
+  localAssetBase,
+  parseAssetMode,
+  parseProviders,
+  resolveTier
+} from "../recognition/tilawa/v1Assets";
 
 const SAMPLE_RATE = 16000;
 
@@ -18,16 +25,10 @@ let mapper: V1PositionMapper | null = null;
 
 const post = (event: RecognitionEvent) => self.postMessage(event);
 
-function readTier(): "auto" | "full" | "lite" {
-  const value = import.meta.env.VITE_TILAWA_V1_TIER;
-  return value === "full" || value === "lite" ? value : "auto";
-}
-
-function readProviders(): ("webgpu" | "wasm")[] | undefined {
-  const value = import.meta.env.VITE_TILAWA_V1_PROVIDERS;
-  if (!value) return undefined;
-  const list = value.split(",").map((item) => item.trim()).filter((item): item is "webgpu" | "wasm" => item === "webgpu" || item === "wasm");
-  return list.length > 0 ? list : undefined;
+function reportProgress(progress: { stage: string; fraction: number; fromCache: boolean }): void {
+  if (progress.stage !== "model") return;
+  const percent = Math.round(progress.fraction * 100);
+  post({ type: "loading_status", message: `Model Tilawa 1.0: ${percent}%${progress.fromCache ? " (dari cache)" : ""}` });
 }
 
 async function initialize(): Promise<void> {
@@ -41,24 +42,39 @@ async function initialize(): Promise<void> {
   for (const ayah of reference.ayahs) wordsByAyah.set(`${ayah.s}:${ayah.a}`, ayah.w);
   mapper = new V1PositionMapper((surah, ayah) => wordsByAyah.get(`${surah}:${ayah}`));
 
-  // Tilawa 1.0 loads onnxruntime-web files from tilawa.dev for one specific version (1.30.0). Our installed
-  // onnxruntime-web may differ, so point the loader at the files of the version we actually have.
-  const ortVersion = (ort.env as { versions?: { web?: string } }).versions?.web;
-  const wasmPaths = ortVersion ? `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ortVersion}/dist/` : undefined;
+  const mode = parseAssetMode(import.meta.env.VITE_TILAWA_V1_ASSETS);
+  const tier = resolveTier(mode, import.meta.env.VITE_TILAWA_V1_TIER);
+  const providers = parseProviders(import.meta.env.VITE_TILAWA_V1_PROVIDERS);
 
-  post({ type: "loading_status", message: "Memuat model Tilawa 1.0 (unduhan pertama bisa besar)…" });
-  tilawa = await createTilawa({
-    tier: readTier(),
-    reference,
-    providers: readProviders(),
-    wasmPaths,
-    onProgress(progress) {
-      if (progress.stage === "model") {
-        const percent = Math.round(progress.fraction * 100);
-        post({ type: "loading_status", message: `Model Tilawa 1.0: ${percent}%${progress.fromCache ? " (dari cache)" : ""}` });
-      }
-    },
-  });
+  try {
+    if (mode === "local") {
+      // Self-hosted: model and onnxruntime-web files come from this app's own origin (`npm run setup:v1`),
+      // the reference is bundled, and nothing is kept in the browser cache.
+      post({ type: "loading_status", message: "Memuat model Tilawa 1.0 dari aplikasi (tanpa internet)…" });
+      tilawa = await createTilawa({
+        tier,
+        reference,
+        providers,
+        assetBase: localAssetBase(self.location.origin, import.meta.env.BASE_URL),
+        storage: createMemoryStorage(),
+        onProgress: reportProgress
+      });
+    } else {
+      // Remote: Tilawa 1.0 loads onnxruntime-web files from tilawa.dev for one specific version (1.30.0). Our
+      // installed onnxruntime-web may differ, so point the loader at the files of the version we actually have.
+      const ortVersion = (ort.env as { versions?: { web?: string } }).versions?.web;
+      const wasmPaths = ortVersion ? `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ortVersion}/dist/` : undefined;
+      post({ type: "loading_status", message: "Memuat model Tilawa 1.0 (unduhan pertama bisa besar)…" });
+      tilawa = await createTilawa({ tier, reference, providers, wasmPaths, onProgress: reportProgress });
+    }
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      mode === "local"
+        ? `${detail} (Mode lokal: jalankan "npm run setup:v1" lalu muat ulang.)`
+        : detail
+    );
+  }
   if (recognitionDebugEnabled) {
     console.debug("[TILAWA_V1]", { event: "ready", model: tilawa.model });
   }

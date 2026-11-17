@@ -99,7 +99,9 @@ Hanya di branch `eval/tilawa-1.0`. Jalankan `npm install`, buat file `.env.local
 ```text
 VITE_TILAWA_ENGINE=v1
 ```
-lalu `npm run dev`. Hapus file itu (atau isinya) untuk kembali ke engine 0.4.0, yang menjadi default. Jalur 1.0 mengunduh model dari internet (lihat `docs/TILAWA_INTEGRATION.md` bagian 6).
+lalu `npm run dev`. Hapus file itu (atau isinya) untuk kembali ke engine 0.4.0, yang menjadi default. Secara bawaan jalur 1.0 mengunduh model dari internet (lihat `docs/TILAWA_INTEGRATION.md` bagian 6).
+
+**Tanpa internet (self-host):** jalankan `npm run setup:v1` (mengunduh model 68 MB dan menyalin file WASM ke `public/tilawa-v1/`), tambahkan `VITE_TILAWA_V1_ASSETS=local` ke `.env.local`, lalu `npm run preview:local`. Detail dan batasannya di `docs/TILAWA_INTEGRATION.md` bagian 7. Atribusi CC BY 4.0: `docs/THIRD_PARTY_NOTICES.md` bagian 4.
 
 ### 3. Menjalankan Server Development
 ```bash
