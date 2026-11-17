@@ -65,6 +65,8 @@ Setelah UX utama stabil:
 
 - Ganti `ScriptProcessorNode` di `src/audio/MicrophoneCapture.ts` dengan
   `AudioWorkletNode` tanpa mengubah kontrak `onSamples(Float32Array)`.
+  Ditunda dengan sengaja (2026-11-18): mengubah jalur suara untuk semua perangkat tanpa bisa menguji mikrofon di lingkungan pengembangan; kecepatan di ponsel pemilik sudah aman. Kerjakan bila ada masalah nyata, dengan cadangan ke cara lama.
+- Wake Lock layar sudah ada (2026-11-18, `src/app/wakeLock.ts`): layar dijaga menyala selama mendengarkan. Belum dites di ponsel. Mengunci layar sendiri atau pindah aplikasi masih bisa menghentikan mikrofon (butuh uji: mikrofon saat layar mati).
 - Tambahkan caching model/aset menggunakan IndexedDB dan/atau Cache Storage.
 - Service worker sudah diperbaiki pada 2026-11-18 (`DECISIONS.md`): halaman jaringan-dulu, aset cache-dulu tanpa menyimpan HTML. Perlu dites di ponsel: buka sekali online, lalu buka lagi dalam mode pesawat; dan pastikan pengguna lama pulih setelah 1 sampai 2 kali refresh biasa. Cache aset berhash lama menumpuk di `quran-handsfree-v4` sampai versi cache dinaikkan.
 - Sediakan manifest versi, verifikasi SHA-256, progres unduhan, dan indikator
@@ -83,6 +85,8 @@ Evaluasi Tilawa 1.0 berjalan di `main` (`VITE_TILAWA_ENGINE=v1`; 0.4.0 tetap def
 - Aturan baru (lihat `DECISIONS.md` 2026-11-15): setelah surat selesai/jeda hening 10 detik/basmalah, ayat mana pun boleh terkunci (angka 10 detik dari keputusan 2026-11-17, belum diuji nyata); uji Al-Fatihah lalu An-Naba 78:31 tanpa bismillah, jeda hening >10 detik sesudah surat belum selesai, dan apakah derau mengunci ayat yang salah.
 - Ayat kembar: mulai Al-Baqarah 2:214 dan berhenti di "walamma"; kunci sementara harus pindah dari 3:142 ke 2:214. Kata terlewat di tengah ayat (mis. "min qablihim" di 29:3): sorotan mengikuti; pewarnaan kata terlewat ditunda. Belum terbukti: berhenti sebelum kata terakhir tanpa membaca ayat berikutnya lalu ayat maju sendiri (butuh log run 29:4).
 - Isti'adzah di awal dan di tengah sesi (apakah tetap mengunci ke 16:98?).
+- Berhenti lalu Mulai mendengarkan lagi membuka pencarian baru (2026-11-18, `DECISIONS.md`): uji di ponsel bahwa bacaan di ayat lain terkunci, dan bahwa Buka ayat lalu mikrofon otomatis tetap ketat ke ayat yang dibuka.
+- "Aamiin" belum punya pemicu (Tilawa 1.0 tidak mengirimnya sebagai event); sengaja belum dikerjakan.
 - Jeda panjang (>8 detik) lalu lanjut membaca; dan setelah `mismatch`.
 - Shalat sunnah: takbir, ruku', sujud, bangkit, Al-Fatihah rakaat berikutnya, surat belum selesai lalu surat baru.
 - Al-Ikhlas ke Al-Falaq dengan dan tanpa bismillah; surat berawalan huruf ambigu.

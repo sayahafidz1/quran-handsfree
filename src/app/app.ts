@@ -1,6 +1,7 @@
 import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
 import { InactivityTimer } from "./reading/InactivityTimer.ts";
 import { createListenGate } from "./listenGate.ts";
+import { createWakeLockController, type WakeLockSentinelLike } from "./wakeLock.ts";
 import { createRecognitionAdapter } from "../recognition/createAdapter.ts";
 import type { RecognitionEvent } from "../recognition/types.ts";
 import { ReadingSession, type ReadingSessionSnapshot } from "./reading/ReadingSession.ts";
@@ -121,6 +122,14 @@ export function initApp(): void {
   let ready = false;
   // Opening a verse (or a command) should switch the microphone on by itself, even while the model still loads.
   const listenGate = createListenGate();
+  // Keeps the phone screen on while listening, so the automatic screen lock does not stop the microphone.
+  const wakeLock = createWakeLockController({
+    request: "wakeLock" in navigator
+      ? (type) => navigator.wakeLock.request(type) as Promise<WakeLockSentinelLike>
+      : undefined,
+    isVisible: () => document.visibilityState === "visible"
+  });
+  document.addEventListener("visibilitychange", () => void wakeLock.onVisible());
   const microphone = new MicrophoneCapture();
   const recognition = createRecognitionAdapter(handleRecognitionEvent);
   // 10 s with no recognition event at all (real silence) means "a new search is
@@ -139,6 +148,7 @@ export function initApp(): void {
     recognition.reset();
     listening = true;
     listenGate.setListening(true);
+    void wakeLock.enable();
     pauseTimer.touch();
     status.textContent = "Mendengarkan lantunan ayat…";
     start.disabled = true;
@@ -218,6 +228,7 @@ export function initApp(): void {
     readingSession.stopListening();
     listening = false;
     listenGate.setListening(false);
+    void wakeLock.disable();
     status.textContent = "Pengenalan dihentikan.";
     start.disabled = !ready;
     stop.disabled = true;

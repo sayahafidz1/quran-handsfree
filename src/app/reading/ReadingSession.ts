@@ -116,9 +116,16 @@ export class ReadingSession {
     this.requestDiscoveryRestart();
   }
 
+  /**
+   * An explicit stop. The reader may continue somewhere else when listening starts again (rest between
+   * rak'ahs, another place), so the next detection after the restart is a new search: it locks wherever
+   * the reader is, even when a target was chosen by hand. The position shown in the UI is kept.
+   * Opening a verse and then starting to listen (no stop in between) stays strict.
+   */
   public stopListening(): void {
     if (this.state === "idle") return;
     this.state = "idle";
+    this.discoveryOpen = true;
     this.notify();
   }
 

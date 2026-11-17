@@ -218,3 +218,44 @@ test("InactivityTimer fires once after touch, restarts on touch, and stops", () 
   fake.fireAll();
   assert.equal(fired, 1);
 });
+
+test("after an explicit stop and a new start, the next detection may be anywhere (not a mismatch)", () => {
+  const session = new ReadingSession();
+  session.start({ surah: 2, ayah: 255 });
+  session.handleEvent(verseMatch(2, 255));
+  assert.equal(session.getState().state, "locked");
+  session.stopListening();
+  session.resumeListening();
+  session.handleEvent(verseMatch(36, 58));
+  const snapshot = session.getState();
+  assert.equal(snapshot.state, "locked");
+  assert.deepEqual(snapshot.currentVerse, { surah: 36, ayah: 58 });
+});
+
+test("a verse chosen by hand also opens a new search after stop and start", () => {
+  const session = new ReadingSession();
+  session.start({ surah: 2, ayah: 255 });
+  session.stopListening();
+  session.resumeListening();
+  session.handleEvent(verseMatch(18, 10));
+  const snapshot = session.getState();
+  assert.equal(snapshot.state, "locked");
+  assert.deepEqual(snapshot.currentVerse, { surah: 18, ayah: 10 });
+});
+
+test("opening a verse and starting to listen without a stop stays strict", () => {
+  const session = new ReadingSession();
+  session.start({ surah: 2, ayah: 255 });
+  session.resumeListening();
+  session.handleEvent(verseMatch(18, 10));
+  assert.equal(session.getState().state, "mismatch");
+  assert.equal(session.getState().currentVerse, null);
+});
+
+test("stopping while idle does not open a new search", () => {
+  const session = new ReadingSession();
+  session.stopListening();
+  session.start({ surah: 2, ayah: 255 });
+  session.handleEvent(verseMatch(18, 10));
+  assert.equal(session.getState().state, "mismatch");
+});
