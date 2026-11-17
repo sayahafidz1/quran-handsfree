@@ -66,6 +66,7 @@ Setelah UX utama stabil:
 - Ganti `ScriptProcessorNode` di `src/audio/MicrophoneCapture.ts` dengan
   `AudioWorkletNode` tanpa mengubah kontrak `onSamples(Float32Array)`.
 - Tambahkan caching model/aset menggunakan IndexedDB dan/atau Cache Storage.
+- Service worker sudah diperbaiki pada 2026-11-18 (`DECISIONS.md`): halaman jaringan-dulu, aset cache-dulu tanpa menyimpan HTML. Perlu dites di ponsel: buka sekali online, lalu buka lagi dalam mode pesawat; dan pastikan pengguna lama pulih setelah 1 sampai 2 kali refresh biasa. Cache aset berhash lama menumpuk di `quran-handsfree-v4` sampai versi cache dinaikkan.
 - Sediakan manifest versi, verifikasi SHA-256, progres unduhan, dan indikator
   ketersediaan offline.
 

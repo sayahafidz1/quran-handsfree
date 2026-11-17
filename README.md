@@ -53,7 +53,7 @@ quran-handsfree/
 stabil melalui `OfflineQuranContentProvider`. Provider ini tidak memiliki
 reading state dan tidak mengimpor internal recognition engine. Asset
 `public/quran/content.json` dicache oleh service worker untuk penggunaan
-offline.
+offline. Service worker (`public/sw.js`) memuat halaman dengan jaringan dulu (versi baru langsung terlihat setelah deploy) dan memakai cache hanya sebagai cadangan offline; aset berhash memakai cache dulu dan tidak pernah menyimpan jawaban HTML untuk permintaan aset.
 
 ---
 
