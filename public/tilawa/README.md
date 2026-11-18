@@ -2,6 +2,8 @@
 
 Folder ini diperuntukkan untuk menyimpan berkas aset model dan konfigurasi Tilawa yang dibutuhkan oleh Web Worker saat menjalankan inferensi pengenalan ayat di perangkat lokal.
 
+> **Catatan**: folder ini hanya untuk engine Tilawa **0.4.0** (bawaan kode). Engine 1.0 memakai `public/tilawa-v1/` atau mengunduh model saat dijalankan; lihat `docs/TILAWA_INTEGRATION.md` bagian 0.
+
 > **PENTING**: File biner model dan dataset berukuran besar sengaja diabaikan oleh Git (`.gitignore`) agar ukuran repository tetap ramping.
 
 ---

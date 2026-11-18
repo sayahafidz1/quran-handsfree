@@ -18,7 +18,7 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
                 ▼ (RecognitionAdapter)                      ▼
 ┌───────────────────────────────┐           ┌───────────────────────────────┐
 │ src/recognition/tilawa/       │           │ src/command/commandParser.ts  │
-│ - TilawaAdapter (BOUNDARY)    │           │ - Ekstraksi Surat & Nomor Ayat│
+│ - TilawaAdapter / V1Adapter   │           │ - Ekstraksi Surat & Nomor Ayat│
 │ - Isolasi @tilawa/core        │           │ - Parser Angka Kata Bahasa ID │
 └───────────────┬───────────────┘           └───────────────┬───────────────┘
                 │ Worker RPC                                │
@@ -26,7 +26,7 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
 ┌───────────────────────────────┐           ┌───────────────────────────────┐
 │ src/workers/recognition.worker│           │ src/quran/validator.ts        │
 │ - onnxruntime-web (WASM)      │           │ - Metadata 114 Surat & Ayah   │
-│ - Tilawa Zipformer2-CTC       │           │ - Validasi Batas & Alias Surat│
+│ - Tilawa 0.4.0 atau 1.0       │           │ - Validasi Batas & Alias Surat│
 └───────────────┬───────────────┘           └───────────────┬───────────────┘
                 │                                           │
                 │ verse_match (Discovery)                   │ { surah, ayah } (Valid)
@@ -84,9 +84,9 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
 - **`src/recognition/` & `src/recognition/tilawa/` (Integration Boundary)**:
   - Adapter khusus yang mengimplementasikan `RecognitionAdapter` dengan membungkus Worker `@tilawa/core`.
   - Mengisolasi seluruh interaksi `@tilawa/core` dan format pesan internal worker.
-  - Pemilihan engine ada di `src/recognition/createAdapter.ts`: default 0.4.0 Zipformer; `VITE_TILAWA_ENGINE=v1` memakai jalur evaluasi Tilawa 1.0 (`recognition.v1.worker.ts` + `v1Mapper.ts`) yang menghasilkan kontrak event yang sama, sehingga `ReadingSession` dan UI tidak berubah. Lihat `TILAWA_INTEGRATION.md` bagian 6. Sumber file 1.0 (`remote` atau `local`/self-host) dipilih di worker lewat `src/recognition/tilawa/v1Assets.ts`; lihat bagian 7.
+  - Pemilihan engine ada di `src/recognition/createAdapter.ts`: default 0.4.0 Zipformer; `VITE_TILAWA_ENGINE=v1` memakai jalur Tilawa 1.0 (dipakai di produksi Cloudflare) (`recognition.v1.worker.ts` + `v1Mapper.ts`) yang menghasilkan kontrak event yang sama, sehingga `ReadingSession` dan UI tidak berubah. Lihat `TILAWA_INTEGRATION.md` bagian 6. Sumber file 1.0 (`remote` atau `local`/self-host) dipilih di worker lewat `src/recognition/tilawa/v1Assets.ts`; lihat bagian 7.
 - **`src/workers/`**:
-  - Menjalankan inferensi ONNX Zipformer2-CTC melalui public API `@tilawa/core` di background thread.
+  - Menjalankan inferensi ONNX melalui public API paket Tilawa di background thread: `recognition.worker.ts` (0.4.0 Zipformer2-CTC) atau `recognition.v1.worker.ts` (1.0, dengan cadangan model `lite`), sesuai `createAdapter.ts`.
 - **`src/ui/`**:
   - Mengelola visual antarmuka, status anchor, Quran Reader, navigasi surat/juz/ayat, umpan balik validasi perintah suara, dan kontrol audio.
   - `QuranReader` hanya menerima `ReadingSessionSnapshot` dan `QuranContentProvider`; posisi aktif dan progress kata selalu berasal dari snapshot, bukan state UI lokal. `word_index` Tilawa (cursor zero-based) dibandingkan langsung dengan indeks kata provider yang juga zero-based, tanpa konversi: kata di cursor berstatus `current`, kata sebelum cursor atau yang ada di `matched_indices` berstatus `passed`, sisanya `upcoming`. Jika kata terakhir ayat sudah ada di `matched_indices`, seluruh ayat berstatus `passed`.
@@ -101,7 +101,7 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
    - Seluruh interaksi dengan `@tilawa/core` wajib melalui `src/recognition/tilawa/`.
    - Kode sumber upstream `../tilawa/` tidak boleh diubah.
 2. **Pemisahan Jalur Suara & Perintah**:
-   - Pengenalan lantunan ayat Al-Qur'an (*recitation*) dilakukan oleh model Tilawa Zipformer2-CTC.
+   - Pengenalan lantunan ayat Al-Qur'an (*recitation*) dilakukan oleh model Tilawa (0.4.0 Zipformer2-CTC atau 1.0; lihat `docs/TILAWA_INTEGRATION.md` bagian 0).
    - Pengenalan perintah navigasi (*voice command*) diproses melalui layer `src/command/` dan validator `src/quran/`.
    - Perintah user langsung memulai atau memindahkan `ReadingSession`; Tilawa memperbarui `detectedVerse` serta hasil `verseMatch` melalui `ReadingSession.handleEvent()`. Anchor discovery tidak berpindah ketika hasil deteksi tidak sama persis dengan target.
 3. **Desain Abstraksi Recognizer Offline**:
@@ -111,5 +111,5 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
 
 ## 4. Strategi Multi-Platform (Web/PWA -> Android)
 
-- **Web/PWA (Sekarang)**: `MicrophoneCapture` (Web Audio) + `TilawaAdapter` (Web Worker + WASM) + `WebSpeechCommandRecognizer` / `TextCommandRecognizer`.
+- **Web/PWA (Sekarang)**: `MicrophoneCapture` (Web Audio) + `TilawaAdapter`/`TilawaV1Adapter` (Web Worker + WASM) + `WebSpeechCommandRecognizer` / `TextCommandRecognizer`.
 - **Android / React Native (Masa Depan)**: `NativeAudioCapture` + `NativeTilawaAdapter` + `AndroidSpeechRecognizer` dengan mengimplementasikan kontrak yang sama. Seluruh dataset `src/quran/` dan parser `src/command/commandParser.ts` portabel 100% tanpa perubahan.

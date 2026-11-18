@@ -30,7 +30,8 @@ Dokumen ini adalah aturan mutlak dan panduan kerja untuk setiap AI coding agent 
    - Logika bisnis produk seperti `discovery -> lock -> verify -> next ayah` **dilarang keras** dicampur ke dalam adapter Tilawa (`src/recognition/tilawa/`). Logika tersebut harus berada di layer aplikasi/domain (`src/app/`).
 5. **Portabilitas Arsitektur (Web/PWA & Android)**:
    - Pastikan abstraksi pengenalan (`src/recognition/`) tetap bersih agar dapat mendukung Web/PWA saat ini dan React Native / Android native di masa depan tanpa mengubah core product logic.
-6. **Manajemen Aset Model di `public/tilawa/`**:
+6. **Manajemen Aset Model di `public/tilawa/` dan `public/tilawa-v1/`**:
+   - `public/tilawa/` untuk jalur 0.4.0 dan `public/tilawa-v1/` untuk jalur 1.0 (hanya `ATTRIBUTION.txt` yang masuk Git). Dua engine ada di kode; lihat `docs/TILAWA_INTEGRATION.md` bagian 0.
    - Jangan menyimpan file model ONNX atau dataset biner Tilawa berukuran besar ke dalam Git.
    - Setiap aset runtime di `public/tilawa/` wajib dipin versinya serta dicatat nilai checksum SHA-256 pada dokumentasi rilis/manifest.
 7. **Disiplin Dokumentasi Berkelanjutan**:
@@ -44,7 +45,11 @@ Sebelum menyelesaikan pekerjaan:
    ```bash
    npx tsc --noEmit
    ```
-2. Pastikan build aplikasi berhasil:
+2. Jalankan tes murni:
+   ```bash
+   npm test
+   ```
+3. Pastikan build aplikasi berhasil:
    ```bash
    npm run build
    ```

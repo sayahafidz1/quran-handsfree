@@ -7,11 +7,12 @@ Menyediakan pengalaman hands-free yang mulus dan intuitif bagi pengguna untuk me
 - **Fase 1 (Saat Ini): Web/PWA First**
   - Implementasi scaffold arsitektur terpisah, pipeline audio Web API, isolasi Web Worker, dan adapter `@tilawa/core`.
   - Subsistem navigasi perintah suara (*Voice Command Navigation*) & penentuan posisi awal (*Anchor Position*) tanpa memodifikasi upstream Tilawa.
-  - Kemampuan offline penuh menggunakan caching Service Worker setelah aset model diunduh.
+  - Kemampuan offline penuh menggunakan caching Service Worker dan cache model setelah aset diunduh sekali (sudah berjalan untuk bacaan dan navigasi; perintah suara Web Speech API masih butuh internet).
 - **Fase 2 (Masa Depan): Android (React Native / Native APK)**
   - Mengadopsi arsitektur modular yang sama dengan mengganti adapter platform (misal native audio capture, native ONNX runtime, dan Android SpeechRecognizer) tanpa mengubah product logic utama aplikasi.
 
-## 3. Sasaran Tahap Ini (Fondasi & Struktur Arsitektur)
+## 3. Fondasi & Struktur Arsitektur (selesai; dasar kerja saat ini)
+Status 2026-11-18: Fase 1 berjalan di Cloudflare dan teruji di ponsel; langkah berikutnya percobaan APK (Fase 2). Daftar di bawah menjadi prinsip yang tetap berlaku.
 - Proyek `quran-handsfree/` berdiri sendiri sebagai aplikasi terpisah dari upstream `tilawa/`.
 - Memisahkan boundary integrasi `@tilawa/core` di `src/recognition/tilawa/`.
 - Memisahkan boundary perintah suara navigasi di `src/command/` dan validasi Al-Qur'an di `src/quran/`.

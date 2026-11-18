@@ -67,12 +67,13 @@ Setelah UX utama stabil:
   `AudioWorkletNode` tanpa mengubah kontrak `onSamples(Float32Array)`.
   Ditunda dengan sengaja (2026-11-18): mengubah jalur suara untuk semua perangkat tanpa bisa menguji mikrofon di lingkungan pengembangan; kecepatan di ponsel pemilik sudah aman. Kerjakan bila ada masalah nyata, dengan cadangan ke cara lama.
 - Wake Lock layar sudah ada dan teruji di ponsel pemilik (2026-11-18, `src/app/wakeLock.ts`): layar tetap menyala selama mendengarkan. Mikrofon berhenti saat aplikasi ditinggalkan atau layar dikunci sendiri; itu disengaja (`DECISIONS.md` 2026-11-18), bukan masalah.
-- Tambahkan caching model/aset menggunakan IndexedDB dan/atau Cache Storage.
+- Caching sudah ada: model 1.0 disimpan SDK di Cache API (dan penanda `lite` di `tilawa-v1-prefs`), aset aplikasi oleh service worker. Indikator "tersedia offline" yang eksplisit belum ada.
 - Service worker sudah diperbaiki pada 2026-11-18 (`DECISIONS.md`): halaman jaringan-dulu, aset cache-dulu tanpa menyimpan HTML. Teruji di ponsel pemilik: offline/mode pesawat berjalan. Masih perlu dipastikan di perangkat lain bahwa pengguna lama pulih setelah 1 sampai 2 kali refresh biasa. Cache aset berhash lama menumpuk di `quran-handsfree-v4` sampai versi cache dinaikkan.
-- Sediakan manifest versi, verifikasi SHA-256, progres unduhan, dan indikator
-  ketersediaan offline.
+- SDK 1.0 sudah memeriksa SHA-256 model saat memuat dan popup pemuatan sudah ada; progres unduhan berupa persen dan indikator ketersediaan offline belum.
 
 ## 5. Evaluasi Recognition Engine
+
+Status 2026-11-18: Tilawa 1.0 sudah dipakai di produksi Cloudflare; 0.4.0 tetap bawaan kode dan cadangan (`TILAWA_INTEGRATION.md` bagian 0). Langkah berikut: jadikan 1.0 bawaan kode setelah cadangan `lite` terbukti di ponsel lain; menghapus 0.4.0 baru dipertimbangkan sesudahnya.
 
 Evaluasi versi upstream Tilawa terbaru saat tahap ini dimulai; jangan
 mengunci roadmap pada Zipformer v0.3.0. Engine baru, bila diperlukan, harus
