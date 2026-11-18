@@ -19,7 +19,7 @@ Pihak ketiga yang digunakan, termasuk `@tilawa/core`, memiliki atribusi dan lise
 ```text
 quran-handsfree/
 ├── src/
-│   ├── app/                 # Bootstrapping, orkestrasi, & state machine sesi
+│   ├── app/                 # Bootstrapping, orkestrasi, state machine sesi, bookmark (localStorage)
 │   │   └── reading/         # ReadingSession dan state machine bacaan
 │   ├── audio/               # Audio capture & resampler 16 kHz Mono Float32
 │   ├── quran/               # Offline Quran content, metadata, and navigation

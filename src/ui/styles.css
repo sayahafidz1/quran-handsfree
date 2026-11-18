@@ -79,3 +79,9 @@ footer { color: #64736e; font-size: .85rem; margin: 32px 0 0; }
 .loading-dialog h2 { margin: 0 0 8px; font-family: Georgia, serif; font-size: 1.3rem; color: #0b3b32; }
 .loading-dialog .muted { margin: 0; }
 .loading-dialog button { margin-top: 16px; }
+
+/* Bookmark & terakhir dibaca */
+.bookmark-list { display: grid; gap: 8px; margin-top: 12px; }
+.bookmark-row { display: flex; gap: 8px; }
+.bookmark-open { flex: 1; text-align: left; background: #eae4d5; color: #173b34; border: 1px solid #dcd4c3; }
+.bookmark-remove { background: #fbebee; color: #9b2c2c; border: 1px solid #f1cfd4; }

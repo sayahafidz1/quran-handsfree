@@ -24,6 +24,10 @@ Menyediakan pengalaman hands-free yang mulus dan intuitif bagi pengguna untuk me
 - Hasil perintah teks/suara dan discovery bacaan Tilawa langsung dikelola oleh `ReadingSession`; upstream Tilawa tetap tidak diubah.
 - Implementasi `WebSpeechCommandRecognizer` saat ini adalah adapter browser yang dapat diganti. Parser, data surat, dan kontrak `VoiceCommandRecognizer` tetap lokal; engine STT offline penuh (misalnya Vosk/Whisper WASM atau native Android) masih merupakan backlog.
 
+## 4b. Bookmark dan Terakhir Dibaca (Tujuan Aktif, 2026-11-18)
+- Bookmark ayat (manual) dan "terakhir dibaca" (otomatis) kini tujuan aktif, bukan lagi non-goal. Keduanya disimpan di perangkat (localStorage), jadi tetap ada tanpa internet dan ikut bekerja di dalam APK berbasis WebView.
+- Cakupan sengaja kecil: satu kartu setelah kartu navigasi, tanpa akun, tanpa sinkron antar-perangkat, tanpa catatan/folder. Rinciannya di `DECISIONS.md` 2026-11-18.
+
 ## 5. Backlog & Fitur yang Sengaja Belum Diimplementasikan (Non-Goals)
 Fitur-fitur berikut **belum diimplementasikan** pada tahap ini dan berada dalam backlog terencana:
 1. **Fitur Verifier (Penguji Ketepatan Bacaan & Tajwid)**:
@@ -32,6 +36,6 @@ Fitur-fitur berikut **belum diimplementasikan** pada tahap ini dan berada dalam 
 2. **On-Device Offline STT Model Engine (Vosk-WASM / Whisper-WASM)**:
    - Penggantian recognizer suara peramban (*browser SpeechRecognition*) dengan engine STT biner lokal/WASM untuk offline absolut tanpa ketergantungan kapabilitas browser.
 4. **Antarmuka Mushaf Penuh**:
-   - Tampilan mushaf digital interaktif bergaya Madinah/Kemenag, bookmark, transliterasi Latin, dan terjemahan bahasa Indonesia.
+   - Tampilan mushaf digital interaktif bergaya Madinah/Kemenag, transliterasi Latin, dan terjemahan bahasa Indonesia.
 5. **Porting Android Native / React Native**:
    - Native audio bridge (Oboe / AudioRecord) dan native ONNX runtime.

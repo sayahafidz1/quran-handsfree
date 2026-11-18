@@ -15,8 +15,19 @@ import type { ParseCommandResult } from "../command/types.ts";
 import { loadOfflineQuranContent } from "../quran/content/index.ts";
 import { QuranReader } from "../ui/QuranReader.ts";
 import { QuranNavigation } from "../ui/QuranNavigation.ts";
+import { BookmarksPanel } from "../ui/BookmarksPanel.ts";
+import { createBookmarkStore, type BookmarkStorage } from "./bookmarks.ts";
 import { getReadingStatus } from "../ui/readingStatus.ts";
 import { recognitionDebugEnabled } from "../recognition/debug.ts";
+
+/** Mengakses localStorage bisa melempar error (mode privat/data diblokir); hasilnya null bila gagal. */
+function safeLocalStorage(): BookmarkStorage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
 
 export function initApp(): void {
   if ("serviceWorker" in navigator) {
@@ -54,6 +65,7 @@ export function initApp(): void {
   const readerTitleElement = document.querySelector<HTMLElement>("#reader-title")!;
   const readerStateElement = document.querySelector<HTMLElement>("#reader-state")!;
   const navigationRoot = document.querySelector<HTMLElement>("#quran-navigation")!;
+  const bookmarksRoot = document.querySelector<HTMLElement>("#bookmarks")!;
 
   let reader: QuranReader | null = null;
   void loadOfflineQuranContent().then((content) => {
@@ -71,8 +83,25 @@ export function initApp(): void {
     }, () => {
       void requestListening();
     });
+    const bookmarks = new BookmarksPanel(
+      bookmarksRoot,
+      createBookmarkStore(safeLocalStorage()),
+      content,
+      () => {
+        const snapshot = readingSession.getState();
+        return snapshot.currentVerse ?? snapshot.expectedVerse;
+      },
+      (reference) => {
+        readingSession.start(reference);
+        void requestListening();
+      }
+    );
     readingSession.subscribe((snapshot) => {
-      navigation.setCurrentPosition(snapshot.currentVerse ?? snapshot.expectedVerse);
+      const position = snapshot.currentVerse ?? snapshot.expectedVerse;
+      navigation.setCurrentPosition(position);
+      bookmarks.setHasPosition(position !== null);
+      // "Terakhir dibaca" hanya dari ayat yang benar-benar terdeteksi, bukan sekadar dibuka manual.
+      if (snapshot.currentVerse) bookmarks.noteReading(snapshot.currentVerse);
     });
   }).catch((error: unknown) => {
     readerStatusElement.textContent = "Teks Quran tidak dapat dimuat.";
