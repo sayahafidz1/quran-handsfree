@@ -259,3 +259,23 @@ test("stopping while idle does not open a new search", () => {
   session.handleEvent(verseMatch(18, 10));
   assert.equal(session.getState().state, "mismatch");
 });
+
+test("opening a bookmark while reading elsewhere: old-place events are a mismatch, never the new position", () => {
+  const session = new ReadingSession();
+  session.start();
+  session.handleEvent(verseMatch(2, 100));
+  assert.deepEqual(session.getState().currentVerse, { surah: 2, ayah: 100 });
+
+  session.start({ surah: 36, ayah: 58 });
+  assert.equal(session.getState().state, "discovering");
+  assert.equal(session.getState().currentVerse, null);
+
+  session.handleEvent(verseMatch(2, 100));
+  assert.equal(session.getState().state, "mismatch");
+  assert.equal(session.getState().currentVerse, null);
+  assert.deepEqual(session.getState().expectedVerse, { surah: 36, ayah: 58 });
+
+  session.handleEvent(verseMatch(36, 58));
+  assert.equal(session.getState().state, "locked");
+  assert.deepEqual(session.getState().currentVerse, { surah: 36, ayah: 58 });
+});

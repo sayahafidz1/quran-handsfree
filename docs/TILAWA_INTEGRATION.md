@@ -90,6 +90,9 @@ Jalur ini masih tahap **evaluasi**; default aplikasi tetap `@tilawa/core` 0.4.0 
 
 ---
 
+### Catatan: R2 (belum dikerjakan, hanya evaluasi 2026-11-18)
+Menaruh model di Cloudflare R2 **tidak menghilangkan unduhan pertama** di tiap perangkat; yang menghilangkan unduhan ulang adalah cache browser, yang sudah dipakai (Cache API). R2 hanya memindahkan sumber unduhan dari `tilawa.dev` ke bucket milik sendiri: aplikasi tidak bergantung pada server pihak lain, dan tanpa biaya egress. Syaratnya: bucket publik lewat domain sendiri (bukan `r2.dev`, yang dibatasi untuk uji), aturan CORS, perubahan kecil di `v1Assets.ts` (alamat dasar model dari variabel build), dan atribusi CC BY 4.0 tetap dipenuhi. Akun R2 bisa meminta metode pembayaran walau ada kuota gratis (periksa di dashboard). Untuk benar-benar "seperti lokal" tanpa unduhan sama sekali, jalurnya adalah APK dengan model di dalam paket (mode `local`).
+
 ## 7. Self-host Tilawa 1.0 (mode `local`, tanpa internet)
 
 Tujuan akhir aplikasi adalah APK yang berjalan tanpa internet, jadi semua file 1.0 harus berasal dari aplikasi sendiri. Mode ini dipilih dengan `VITE_TILAWA_V1_ASSETS=local` (bersama `VITE_TILAWA_ENGINE=v1`); tanpa itu mode `remote` (bagian 6) tetap bawaan.

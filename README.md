@@ -138,10 +138,14 @@ npm run preview
 npm run deploy
 ```
 
-Catatan: Cloudflare Workers Static Assets membatasi satu berkas hingga 25 MiB.
-Model Tilawa Zipformer berukuran sekitar 66 MiB, sehingga
-deploy penuh memerlukan hosting model terpisah (misalnya R2) sebelum fitur
-recognition dapat dipublikasikan melalui Cloudflare.
+**Versi yang sudah berjalan:** https://quran-handsfree.sudirmanhafidz1.workers.dev (Cloudflare Workers, terhubung ke GitHub: setiap push ke `main` otomatis build dan deploy; build yang gagal tidak menimpa situs yang sedang hidup).
+
+Cara kerja deploy otomatis:
+- Build command di dashboard Cloudflare: `npm run build && rm -f dist/assets/ort-wasm-simd-threaded.jsep-*.wasm`. File WebGPU (sekitar 26,5 MiB) dihapus karena Workers Static Assets membatasi satu berkas hingga 25 MiB dan aplikasi tidak memakainya.
+- Variabel `VITE_*` (misalnya `VITE_TILAWA_ENGINE=v1`) ditanam saat build; ubah di dashboard Cloudflare, bukan di `.env.local`.
+- Model tidak ikut di situs. Mode `remote` mengunduh model dari tilawa.dev dan WASM dari jsDelivr: **pada pembukaan pertama di sebuah perangkat, model harus diunduh dulu (sekitar 68 MB `full`, atau 25 MB `lite` bila memori perangkat kurang)**, dengan popup pemuatan. Setelah itu model diambil dari cache perangkat, termasuk saat tanpa internet.
+- Jangan menjalankan `npm run preview` atau `npm run deploy` (Wrangler) saat `public/tilawa-v1/` berisi model hasil `npm run setup:v1`; berkas model 68 MB melewati batas 25 MiB. Untuk uji tanpa internet di komputer pakai `npm run preview:local`.
+- Evaluasi R2 (belum dikerjakan): lihat catatan di `docs/TILAWA_INTEGRATION.md` bagian 6.
 
 ---
 

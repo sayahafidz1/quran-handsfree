@@ -78,8 +78,7 @@ export function initApp(): void {
     );
     readingSession.subscribe((snapshot) => reader?.render(snapshot));
     const navigation = new QuranNavigation(navigationRoot, content, (reference) => {
-      readingSession.start(reference);
-      void requestListening();
+      openPosition(reference);
     }, () => {
       void requestListening();
     });
@@ -92,8 +91,7 @@ export function initApp(): void {
         return snapshot.currentVerse ?? snapshot.expectedVerse;
       },
       (reference) => {
-        readingSession.start(reference);
-        void requestListening();
+        openPosition(reference);
       }
     );
     readingSession.subscribe((snapshot) => {
@@ -242,6 +240,17 @@ export function initApp(): void {
     }
   }
 
+  /**
+   * Opens a verse as the strict manual target (Buka ayat, bookmark, last read, command "open").
+   * While already listening, the engine is reset once so words of the place the reader just left
+   * (still in the decoder context) are not matched against the new target.
+   */
+  function openPosition(reference: { surah: number; ayah: number }): void {
+    readingSession.start(reference);
+    if (listening) recognition.reset();
+    void requestListening();
+  }
+
   /** Turn the microphone on now if the model is ready, otherwise as soon as it is (loading it first if needed). */
   async function requestListening(): Promise<void> {
     const action = listenGate.request();
@@ -270,8 +279,7 @@ export function initApp(): void {
       return;
     }
     if (result.command === "open") {
-      readingSession.start({ surah: result.surah, ayah: result.ayah });
-      void requestListening();
+      openPosition({ surah: result.surah, ayah: result.ayah });
       commandFeedbackEl.className = "feedback-msg success";
       commandFeedbackEl.textContent = `✓ Berhasil dikunci ke Surat ${result.surahName} (${result.surah}) ayat ${result.ayah}.`;
       return;

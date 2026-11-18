@@ -87,6 +87,7 @@ Evaluasi Tilawa 1.0 berjalan di `main` (`VITE_TILAWA_ENGINE=v1`; 0.4.0 tetap def
 - Isti'adzah di awal dan di tengah sesi (apakah tetap mengunci ke 16:98?).
 - Berhenti lalu Mulai mendengarkan lagi membuka pencarian baru (2026-11-18, `DECISIONS.md`): sudah teruji aman di ponsel pemilik.
 - Teruji aman di ponsel pemilik (2026-11-18): popup pemuatan, mode pesawat, Al-Ikhlas ke Al-Falaq dengan dan tanpa basmalah, ayat kembar 2:214 (tetap di ayat itu sampai ayat berikutnya dibaca, sesuai maksud), jeda 10 detik, isti'adzah langsung ke mode pencarian, membaca sambil berjalan, layar tetap menyala.
+- Belum teruji di ponsel (2026-11-18): reset mesin saat bookmark/Buka ayat ditekan sambil mendengarkan; baca di tengah ayat, tekan bookmark lain, langsung baca ayat itu, pastikan terkunci tanpa `mismatch` di awal.
 - Belum ada bukti: cadangan `lite` di ponsel yang tadinya gagal, pemulihan perangkat yang rusak, log run 29:4, ketepatan `lite`.
 - "Aamiin" belum punya pemicu (Tilawa 1.0 tidak mengirimnya sebagai event); sengaja belum dikerjakan.
 - Jeda panjang (>8 detik) lalu lanjut membaca; dan setelah `mismatch`.
