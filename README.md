@@ -6,6 +6,14 @@ Proyek ini merupakan **produk terpisah** dari repository `tilawa`. Engine pengen
 
 > **Attribution:** Quran recognition powered by Tilawa. Lihat [THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md).
 
+## Coba Aplikasi
+
+**https://quran-handsfree.sudirmanhafidz1.workers.dev**
+
+- Pada pembukaan pertama di sebuah perangkat, model pengenalan diunduh dulu (sekitar 68 MB, atau 25 MB bila memori perangkat kurang). Ini hanya sekali per perangkat.
+- Setelah itu bacaan dan navigasi bisa dipakai tanpa internet. Perintah suara masih memerlukan internet.
+- Mikrofon hanya aktif saat aplikasi tampil di layar.
+
 ## Lisensi
 
 Proyek ini dilisensikan di bawah [MIT License](LICENSE).
@@ -130,22 +138,7 @@ npm run build
 ```
 
 ### 5. Deploy ke Cloudflare
-Konfigurasi Wrangler tersedia di `wrangler.jsonc`. Gunakan perintah berikut untuk
-build sekaligus menjalankan preview atau deploy ke Cloudflare:
-
-```bash
-npm run preview
-npm run deploy
-```
-
-**Versi yang sudah berjalan:** https://quran-handsfree.sudirmanhafidz1.workers.dev (Cloudflare Workers, terhubung ke GitHub: setiap push ke `main` otomatis build dan deploy; build yang gagal tidak menimpa situs yang sedang hidup).
-
-Cara kerja deploy otomatis:
-- Build command di dashboard Cloudflare: `npm run build && rm -f dist/assets/ort-wasm-simd-threaded.jsep-*.wasm`. File WebGPU (sekitar 26,5 MiB) dihapus karena Workers Static Assets membatasi satu berkas hingga 25 MiB dan aplikasi tidak memakainya.
-- Variabel `VITE_*` (misalnya `VITE_TILAWA_ENGINE=v1`) ditanam saat build; ubah di dashboard Cloudflare, bukan di `.env.local`.
-- Model tidak ikut di situs. Mode `remote` mengunduh model dari tilawa.dev dan WASM dari jsDelivr: **pada pembukaan pertama di sebuah perangkat, model harus diunduh dulu (sekitar 68 MB `full`, atau 25 MB `lite` bila memori perangkat kurang)**, dengan popup pemuatan. Setelah itu model diambil dari cache perangkat, termasuk saat tanpa internet.
-- Jangan menjalankan `npm run preview` atau `npm run deploy` (Wrangler) saat `public/tilawa-v1/` berisi model hasil `npm run setup:v1`; berkas model 68 MB melewati batas 25 MiB. Untuk uji tanpa internet di komputer pakai `npm run preview:local`.
-- Evaluasi R2 (belum dikerjakan): lihat catatan di `docs/TILAWA_INTEGRATION.md` bagian 6.
+Deploy berjalan otomatis: setiap push ke `main` memicu build dan deploy di Cloudflare Workers (`wrangler.jsonc`), tanpa perintah manual. Build command dan variabel `VITE_*` diatur di dashboard Cloudflare, bukan di `.env.local`. Jangan menjalankan `npm run preview` atau `npm run deploy` saat `public/tilawa-v1/` berisi model. Detail, batas 25 MiB, dan peringatannya ada di [docs/TILAWA_INTEGRATION.md](docs/TILAWA_INTEGRATION.md) bagian 6.
 
 ---
 
