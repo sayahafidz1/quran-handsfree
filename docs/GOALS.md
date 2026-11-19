@@ -8,7 +8,7 @@ Menyediakan pengalaman hands-free yang mulus dan intuitif bagi pengguna untuk me
   - Implementasi scaffold arsitektur terpisah, pipeline audio Web API, isolasi Web Worker, dan adapter `@tilawa/core`.
   - Subsistem navigasi perintah suara (*Voice Command Navigation*) & penentuan posisi awal (*Anchor Position*) tanpa memodifikasi upstream Tilawa.
   - Kemampuan offline penuh menggunakan caching Service Worker dan cache model setelah aset diunduh sekali (sudah berjalan untuk bacaan dan navigasi; perintah suara Web Speech API masih butuh internet).
-- **Fase 2 (Masa Depan): Android (React Native / Native APK)**
+- **Fase 2 (Dimulai 2026-11-19, percobaan): Android.** Jalur pertama yang dicoba: APK berbasis WebView (Capacitor) dari kode web yang sama, model di dalam paket (`docs/ANDROID_APK.md`, `DECISIONS.md` 2026-11-19). React Native / native penuh tetap pilihan bila percobaan ini terbukti tidak cukup.
   - Mengadopsi arsitektur modular yang sama dengan mengganti adapter platform (misal native audio capture, native ONNX runtime, dan Android SpeechRecognizer) tanpa mengubah product logic utama aplikasi.
 
 ## 3. Fondasi & Struktur Arsitektur (selesai; dasar kerja saat ini)

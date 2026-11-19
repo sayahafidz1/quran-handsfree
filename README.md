@@ -43,6 +43,8 @@ quran-handsfree/
 │   ├── quran/content.json   # Asset teks Quran offline (114 surah)
 │   ├── tilawa/              # Aset runtime Tilawa 0.4.0 (npm run setup; tidak ke Git)
 │   └── tilawa-v1/           # Aset self-host Tilawa 1.0 (npm run setup:v1; hanya ATTRIBUTION.txt di Git)
+├── capacitor.config.json    # Pengaturan APK Android (Capacitor); android/ dibuat oleh GitHub Actions
+├── .github/workflows/       # android-apk.yml: bangun APK secara manual
 ├── scripts/                 # setup-tilawa.mjs (0.4.0) dan setup-tilawa-v1.mjs (1.0)
 ├── test/                    # Tes murni tanpa browser/model (npm test)
 ├── docs/
@@ -66,6 +68,11 @@ stabil melalui `OfflineQuranContentProvider`. Provider ini tidak memiliki
 reading state dan tidak mengimpor internal recognition engine. Asset
 `public/quran/content.json` dicache oleh service worker untuk penggunaan
 offline. Service worker (`public/sw.js`) memuat halaman dengan jaringan dulu (versi baru langsung terlihat setelah deploy) dan memakai cache hanya sebagai cadangan offline; aset berhash memakai cache dulu dan tidak pernah menyimpan jawaban HTML untuk permintaan aset.
+
+---
+
+## APK Android (Percobaan)
+APK dibangun oleh GitHub Actions dari repo ini: tab **Actions**, **Build Android APK**, **Run workflow**, pilih model `lite`, `full`, atau `both`, lalu unduh APK dari Artifacts. Model ikut di dalam APK sehingga tanpa unduhan dan tanpa internet. Status: percobaan, belum teruji; panduan dan daftar uji di [docs/ANDROID_APK.md](docs/ANDROID_APK.md).
 
 ---
 

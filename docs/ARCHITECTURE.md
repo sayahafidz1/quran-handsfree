@@ -112,4 +112,5 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
 ## 4. Strategi Multi-Platform (Web/PWA -> Android)
 
 - **Web/PWA (Sekarang)**: `MicrophoneCapture` (Web Audio) + `TilawaAdapter`/`TilawaV1Adapter` (Web Worker + WASM) + `WebSpeechCommandRecognizer` / `TextCommandRecognizer`.
+- **Android WebView / Capacitor (Percobaan, 2026-11-19)**: kode web yang sama dibungkus menjadi APK dengan model di dalam paket (`VITE_TILAWA_V1_ASSETS=local`); lihat `docs/ANDROID_APK.md`. Adapter platform native (mis. pengenal suara Android) bisa ditambahkan lewat kontrak yang sama.
 - **Android / React Native (Masa Depan)**: `NativeAudioCapture` + `NativeTilawaAdapter` + `AndroidSpeechRecognizer` dengan mengimplementasikan kontrak yang sama. Seluruh dataset `src/quran/` dan parser `src/command/commandParser.ts` portabel 100% tanpa perubahan.

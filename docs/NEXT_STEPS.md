@@ -104,6 +104,8 @@ latensi, penggunaan memori, dan stabilitas perangkat.
 
 ## 6. Android dan Fitur Lanjutan
 
+Status 2026-11-19: percobaan APK jalur WebView (Capacitor) disiapkan di `.github/workflows/android-apk.yml`; panduan, daftar uji ponsel, dan hal yang belum pasti ada di `docs/ANDROID_APK.md`. Langkah setelah hasil uji: perintah suara offline lewat pengenal suara Android, cadangan `lite` di APK, APK rilis bertanda tangan. Porting native penuh hanya bila percobaan ini mentok.
+
 Setelah Quran Reader, auto-scroll, dan recognition flow stabil, porting ke
 React Native/native Android dengan offline recognition dan penyimpanan model
 lokal. Bookmark dan last read sudah ada (2026-11-18, `DECISIONS.md`; menunggu uji di ponsel). Tambahkan terjemahan, pencarian, tema, pengaturan

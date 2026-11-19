@@ -11,7 +11,8 @@ Dokumen ini mencatat status terkini, batasan mutlak, serta panduan bagi engineer
 - **Dua engine pengenalan** ada di kode: Tilawa 0.4.0 (bawaan kode, cadangan stabil, tag `v0.4.0-stabil`) dan Tilawa 1.0 (dipakai di produksi lewat `VITE_TILAWA_ENGINE=v1`). Tabel perbandingan di `docs/TILAWA_INTEGRATION.md` bagian 0. Rencana: 1.0 menjadi bawaan setelah cadangan model `lite` terbukti di ponsel lain; 0.4.0 dihapus belum direncanakan.
 - **Fitur pada 2026-11-17 sampai 2026-11-18**: model dimuat otomatis dengan popup pemblokir, mikrofon menyala otomatis dari navigasi/perintah, cadangan model `lite` otomatis, service worker jaringan-dulu (v4), Wake Lock, Berhenti membuka pencarian baru, jeda hening 10 detik, bookmark manual dan "terakhir dibaca" (localStorage), reset mesin saat membuka posisi sambil mendengarkan (yang terakhir ini belum teruji di ponsel).
 - **Prinsip produk**: mikrofon hanya aktif saat aplikasi tampil (disengaja); aturan Qur'an ketat dan dapat diprediksi; perintah suara (Web Speech API) masih butuh internet.
-- **Belum**: APK/Android (sasaran akhir, tanpa internet), cadangan `lite` di ponsel yang gagal memuat `full`, ketepatan `lite`, "aamiin", AudioWorklet, STT offline.
+- **Percobaan APK**: jalur WebView (Capacitor) lewat GitHub Actions disiapkan 2026-11-19 (`docs/ANDROID_APK.md`); belum dijalankan dan belum teruji di ponsel.
+- **Belum**: APK Android yang teruji (sasaran akhir, tanpa internet), cadangan `lite` di ponsel yang gagal memuat `full`, ketepatan `lite`, "aamiin", AudioWorklet, STT offline.
 - **Tes**: `npm test` (tes murni tanpa browser/model); build produksi: `npm run build` (`tsc --noEmit && vite build`).
 
 **Catatan rinci tahap awal (2026-09, masih berlaku sebagai deskripsi arsitektur)**

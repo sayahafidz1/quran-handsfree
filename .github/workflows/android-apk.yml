@@ -1,0 +1,88 @@
+# Percobaan APK Android (jalur WebView + Capacitor). Dijalankan manual dari tab Actions.
+# Kode aplikasi tidak diubah: Capacitor dipasang hanya di sini (--no-save), jadi package.json dan
+# package-lock.json tetap sama. Folder android/ dibuat ulang tiap build dan tidak masuk Git.
+# Penjelasan lengkap: docs/ANDROID_APK.md
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: "Model yang dibundel di dalam APK"
+        type: choice
+        default: lite
+        options:
+          - lite
+          - full
+          - both
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    name: APK ${{ matrix.tier }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tier: ${{ fromJSON(inputs.tier == 'both' && '["lite","full"]' || format('["{0}"]', inputs.tier)) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Pasang dependensi aplikasi
+        run: npm ci
+
+      - name: Unduh model Tilawa 1.0 (${{ matrix.tier }}) ke public/tilawa-v1
+        run: npm run setup:v1 -- --tier=${{ matrix.tier }}
+
+      - name: Build web (mode tanpa internet, model di dalam aplikasi)
+        env:
+          VITE_TILAWA_ENGINE: v1
+          VITE_TILAWA_V1_ASSETS: local
+          VITE_TILAWA_V1_TIER: ${{ matrix.tier }}
+        run: |
+          npm run build
+          # Berkas WebGPU (sekitar 26 MiB) tidak dipakai; buang agar APK lebih kecil.
+          rm -f dist/assets/ort-wasm-simd-threaded.jsep-*.wasm
+
+      - name: Pasang Capacitor (hanya untuk build APK ini)
+        run: npm install --no-save @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+
+      - name: Buat proyek Android
+        run: npx cap add android
+
+      - name: Tambah izin mikrofon
+        run: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          sed -i 's#<application#<uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <application#' "$MANIFEST"
+          grep -q 'android.permission.RECORD_AUDIO' "$MANIFEST" || { echo "Izin mikrofon gagal ditambahkan"; exit 1; }
+
+      - name: Salin web ke proyek Android
+        run: npx cap sync android
+
+      - name: Bangun APK debug
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Beri nama APK
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk "quran-handsfree-${{ matrix.tier }}.apk"
+          ls -lh "quran-handsfree-${{ matrix.tier }}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quran-handsfree-apk-${{ matrix.tier }}
+          path: quran-handsfree-${{ matrix.tier }}.apk
+          retention-days: 7
+          if-no-files-found: error

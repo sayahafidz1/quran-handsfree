@@ -1,0 +1,8 @@
+{
+  "appId": "com.sayahafidz.quranhandsfree",
+  "appName": "Quran Handsfree",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
