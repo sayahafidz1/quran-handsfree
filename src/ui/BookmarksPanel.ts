@@ -10,6 +10,8 @@ export function formatReferenceLabel(reference: AyahReference): string {
 /** Kartu bookmark manual dan "terakhir dibaca". Logika penyimpanan ada di `BookmarkStore`. */
 export class BookmarksPanel {
   private readonly resumeButton: HTMLButtonElement;
+  private readonly lastReadCard: HTMLElement;
+  private readonly lastReadTitle: HTMLElement;
   private readonly listElement: HTMLElement;
   private readonly feedback: HTMLElement;
 
@@ -21,6 +23,8 @@ export class BookmarksPanel {
     private readonly onChange?: () => void
   ) {
     this.resumeButton = root.querySelector<HTMLButtonElement>("#bookmark-resume")!;
+    this.lastReadCard = root.querySelector<HTMLElement>("#last-read-card")!;
+    this.lastReadTitle = root.querySelector<HTMLElement>("#last-read-title")!;
     this.listElement = root.querySelector<HTMLElement>("#bookmark-list")!;
     this.feedback = root.querySelector<HTMLElement>("#bookmark-feedback")!;
 
@@ -58,10 +62,12 @@ export class BookmarksPanel {
 
   private renderResume(): void {
     const lastRead = this.store.getLastRead();
-    this.resumeButton.disabled = !lastRead;
-    this.resumeButton.textContent = lastRead
-      ? `Lanjutkan terakhir dibaca: ${formatReferenceLabel(lastRead)}`
-      : "Belum ada bacaan terakhir";
+    this.lastReadCard.hidden = !lastRead;
+    this.lastReadTitle.textContent = lastRead ? formatReferenceLabel(lastRead) : "";
+    this.resumeButton.setAttribute(
+      "aria-label",
+      lastRead ? `Lanjutkan terakhir dibaca: ${formatReferenceLabel(lastRead)}` : "Lanjutkan terakhir dibaca"
+    );
   }
 
   private renderList(): void {
@@ -69,7 +75,7 @@ export class BookmarksPanel {
     if (items.length === 0) {
       const empty = document.createElement("p");
       empty.className = "muted";
-      empty.textContent = "Belum ada bookmark.";
+      empty.textContent = "Belum ada bookmark. Tekan ikon bookmark pada sebuah ayat saat membaca.";
       this.listElement.replaceChildren(empty);
       return;
     }
@@ -84,7 +90,7 @@ export class BookmarksPanel {
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "bookmark-remove";
-      remove.textContent = "Hapus";
+      remove.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg>';
       remove.setAttribute("aria-label", `Hapus bookmark ${formatReferenceLabel(reference)}`);
       remove.addEventListener("click", () => {
         this.store.remove(reference);

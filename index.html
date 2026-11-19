@@ -26,12 +26,18 @@
         </button>
 
         <!-- BOOKMARK & LAST READ -->
-        <section id="bookmarks" class="card" aria-live="polite">
-          <p class="label">Bookmark &amp; Terakhir Dibaca</p>
-          <p class="section-desc">Disimpan di perangkat ini, tetap ada tanpa internet.</p>
-          <div class="navigation-controls">
-            <button id="bookmark-resume" type="button" disabled>Belum ada bacaan terakhir</button>
+        <section id="bookmarks" class="bookmarks" aria-live="polite">
+          <div id="last-read-card" class="last-read-card" hidden>
+            <p class="label">Terakhir dibaca</p>
+            <div class="last-read-row">
+              <div>
+                <p id="last-read-title" class="last-read-title"></p>
+                <p class="muted">Tersimpan otomatis</p>
+              </div>
+              <button id="bookmark-resume" type="button">Lanjutkan</button>
+            </div>
           </div>
+          <p class="label bookmarks-label">Bookmark saya</p>
           <div id="bookmark-list" class="bookmark-list"></div>
           <p id="bookmark-feedback" class="feedback-msg"></p>
         </section>

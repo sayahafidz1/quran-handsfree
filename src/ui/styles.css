@@ -73,10 +73,18 @@ footer { color: #64736e; font-size: .85rem; margin: 32px 0 0; }
 @media (prefers-reduced-motion: reduce) { .loading-bar::after { animation: none; width: 100%; opacity: .5; } }
 
 /* Bookmark & terakhir dibaca */
-.bookmark-list { display: grid; gap: 8px; margin-top: 12px; }
-.bookmark-row { display: flex; gap: 8px; }
-.bookmark-open { flex: 1; text-align: left; background: #eae4d5; color: #173b34; border: 1px solid #dcd4c3; }
-.bookmark-remove { background: #fbebee; color: #9b2c2c; border: 1px solid #f1cfd4; }
+.bookmarks { margin-top: 18px; }
+.bookmarks-label { margin: 18px 4px 8px; }
+.last-read-card { background: #e6f0ea; border: 1px solid #0b3b32; border-radius: 18px; padding: 14px; }
+.last-read-card .label { margin: 0 0 8px; }
+.last-read-row { align-items: center; display: flex; gap: 12px; justify-content: space-between; }
+.last-read-title { color: #0b3b32; font-family: Georgia, serif; font-size: 1.25rem; font-weight: 700; margin: 0; }
+.last-read-row .muted { font-size: .85rem; margin: 0; min-height: 0; }
+.last-read-row button { flex: 0 0 auto; min-height: 44px; padding: 0 20px; }
+.bookmark-list { display: grid; gap: 8px; }
+.bookmark-row { align-items: center; background: #fffdf8; border: 1px solid #dfd5c2; border-radius: 14px; display: flex; gap: 8px; padding: 4px 4px 4px 14px; }
+.bookmark-open { background: transparent; color: #173b34; flex: 1; font-size: 1rem; min-height: 44px; padding: 0; text-align: left; }
+.bookmark-remove { align-items: center; background: transparent; color: #9b2c2c; display: flex; flex: 0 0 44px; height: 44px; justify-content: center; padding: 0; width: 44px; }
 
 /* Layar: header, tombol besar Beranda */
 .view-header { margin-bottom: 4px; }

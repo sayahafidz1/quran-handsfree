@@ -6,7 +6,7 @@ tetap diisolasi melalui `TilawaAdapter`.
 
 ## 0. Tata Letak Seperti Aplikasi (Sedang Dikerjakan, Branch `ui-app-layout`)
 
-Keputusan dan rancangan: `DECISIONS.md` 2026-11-19. Tahap 1 (tiga tab, layar baca penuh, halaman persiapan) dan tahap 2 (ikon bookmark di tiap ayat) selesai di branch. Sisa: (3) merapikan Beranda (kartu terakhir dibaca dan daftar bookmark sesuai mockup), (4) tombol kembali Android lewat History API dan tes. Diuji di ponsel lewat APK dari branch (Actions, Run workflow, pilih branch).
+Keputusan dan rancangan: `DECISIONS.md` 2026-11-19. Tahap 1 (tiga tab, layar baca penuh, halaman persiapan) tahap 2 (ikon bookmark di tiap ayat), tahap 3 (Beranda) dan tahap 4 (tombol kembali Android lewat History API) selesai di branch. Sisa: uji di ponsel lewat APK, keputusan jumlah ayat di layar baca, lalu PR dan merge. Diuji di ponsel lewat APK dari branch (Actions, Run workflow, pilih branch).
 
 ## 1. Quran Reader UI
 

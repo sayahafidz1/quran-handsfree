@@ -1,6 +1,7 @@
 import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
 import { InactivityTimer } from "./reading/InactivityTimer.ts";
 import { createListenGate } from "./listenGate.ts";
+import { createReaderHistory } from "./readerHistory.ts";
 import { createViewState, type AppView, type TabView } from "./viewState.ts";
 import { createWakeLockController, type WakeLockSentinelLike } from "./wakeLock.ts";
 import { createRecognitionAdapter } from "../recognition/createAdapter.ts";
@@ -91,6 +92,17 @@ export function initApp(): void {
     window.scrollTo(0, 0);
   }
   views.subscribe(renderViews);
+  // Android back button (and browser back) leaves the reading screen: one history entry per opened reader.
+  const readerHistory = createReaderHistory(window.history);
+  readerHistory.init();
+  views.subscribe((view) => {
+    if (view === "baca") readerHistory.enter();
+  });
+  window.addEventListener("popstate", () => {
+    if (!views.isReading()) return;
+    views.closeReader();
+    void stopListening();
+  });
   renderViews(views.current());
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => views.showTab(button.dataset.tab as TabView));
@@ -354,6 +366,8 @@ export function initApp(): void {
 
   /** Kembali from the reading screen: stop listening, then show the tab it was opened from. */
   async function leaveReader(): Promise<void> {
+    // While the reader has its history entry, going back closes it (the popstate handler does the stop).
+    if (views.isReading() && readerHistory.leave() === "back") return;
     views.closeReader();
     await stopListening();
   }
