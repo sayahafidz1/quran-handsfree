@@ -4,6 +4,10 @@ Dokumen ini memuat urutan pengembangan `quran-handsfree`. Prioritas saat ini
 adalah menstabilkan pengalaman membaca Al-Qur'an; recognition engine Tilawa
 tetap diisolasi melalui `TilawaAdapter`.
 
+## 0. Tata Letak Seperti Aplikasi (Sedang Dikerjakan, Branch `ui-app-layout`)
+
+Keputusan dan rancangan: `DECISIONS.md` 2026-11-19. Tahap 1 selesai di branch (tiga tab, layar baca penuh, halaman persiapan). Sisa: (2) ikon bookmark di tiap ayat, (3) merapikan Beranda (kartu terakhir dibaca dan daftar bookmark sesuai mockup), (4) tombol kembali Android lewat History API dan tes. Diuji di ponsel lewat APK dari branch (Actions, Run workflow, pilih branch).
+
 ## 1. Quran Reader UI
 
 - Tampilkan surat dan ayat dengan pemilihan surat/ayat.

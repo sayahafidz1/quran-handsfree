@@ -9,139 +9,202 @@
   </head>
   <body>
     <main class="shell">
-      <header>
-        <p class="eyebrow">QURAN HANDS-FREE</p>
-        <h1>Teman membaca Al-Qur'an tanpa tangan</h1>
-        <p class="intro">Tentukan posisi awal ayat dengan perintah suara atau mulai melantunkan bacaan langsung di perangkat Anda tanpa server.</p>
-      </header>
+      <!-- BERANDA -->
+      <section id="view-beranda" class="view" data-view="beranda" aria-label="Beranda">
+        <header class="view-header">
+          <p class="eyebrow">QURAN HANDS-FREE</p>
+          <h1>Beranda</h1>
+        </header>
+        <button id="start-reading" type="button" class="hero-button">
+          <span class="hero-icon" aria-hidden="true">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
+          </span>
+          <span class="hero-text">
+            <span class="hero-title">Mulai membaca</span>
+            <span class="hero-sub">Langsung baca, ayatnya dikenali otomatis</span>
+          </span>
+        </button>
 
-      <!-- RECITATION RECOGNITION (TILAWA) SECTION -->
-      <section class="card" aria-live="polite">
-        <p class="label">Pengenalan Bacaan (Recitation Recognition)</p>
-        <p id="status">Memeriksa kesiapan aset Tilawa…</p>
-        <p id="detail" class="muted"></p>
-        <div class="actions">
-          <button id="prepare" type="button">Siapkan pengenalan</button>
-          <button id="start" type="button" disabled>Mulai mendengarkan</button>
-          <button id="stop" type="button" disabled>Berhenti</button>
-        </div>
+        <!-- BOOKMARK & LAST READ -->
+        <section id="bookmarks" class="card" aria-live="polite">
+          <p class="label">Bookmark &amp; Terakhir Dibaca</p>
+          <p class="section-desc">Disimpan di perangkat ini, tetap ada tanpa internet.</p>
+          <div class="navigation-controls">
+            <button id="bookmark-resume" type="button" disabled>Belum ada bacaan terakhir</button>
+            <button id="bookmark-save" type="button" disabled>Simpan posisi saat ini</button>
+          </div>
+          <div id="bookmark-list" class="bookmark-list"></div>
+          <p id="bookmark-feedback" class="feedback-msg"></p>
+        </section>
       </section>
 
-      <section class="card result" aria-live="polite">
-        <p class="label">Bacaan Tilawa terdeteksi</p>
-        <p id="verse">Belum ada ayat yang terdeteksi.</p>
-        <p id="confidence" class="muted"></p>
+      <!-- CARI -->
+      <section id="view-cari" class="view" data-view="cari" aria-label="Cari" hidden>
+        <header class="view-header">
+          <h1>Cari</h1>
+          <p class="section-desc">Pilih tempat membaca, lalu mikrofon menyala otomatis.</p>
+        </header>
+
+        <section id="quran-navigation" class="card" aria-live="polite">
+          <p class="label">Navigasi Quran</p>
+          <p class="section-desc">Cari surat, pilih ayat langsung, atau buka awal juz.</p>
+          <div class="navigation-search">
+            <label for="navigation-search">Cari nama surat</label>
+            <input id="navigation-search" type="search" placeholder="Al-Baqarah atau nomor surat" />
+          </div>
+          <div class="navigation-controls">
+            <label>Surat
+              <select id="navigation-surah" aria-label="Pilih surat"></select>
+            </label>
+            <label>Ayat
+              <select id="navigation-ayah" aria-label="Pilih ayat"></select>
+            </label>
+            <button id="navigation-open" type="button">Buka ayat</button>
+          </div>
+          <div class="navigation-controls">
+            <label>Juz
+              <select id="navigation-juz" aria-label="Pilih juz"></select>
+            </label>
+            <button id="navigation-juz-open" type="button">Buka juz</button>
+            <button id="navigation-current" type="button" disabled>Kembali ke posisi saat ini</button>
+          </div>
+          <p id="navigation-feedback" class="feedback-msg"></p>
+        </section>
+
+        <!-- VOICE COMMAND NAVIGATION SECTION -->
+        <section class="card" aria-live="polite">
+          <p class="label">Navigasi Perintah Suara (Voice Command)</p>
+          <p class="section-desc">Ucapkan atau ketik nama surat dan nomor ayat untuk langsung melompat ke posisi awal.</p>
+
+          <div class="command-input-group">
+            <input
+              type="text"
+              id="command-input"
+              placeholder="Contoh: Al-Baqarah ayat 255, Surat Yasin ayat 58"
+              aria-label="Teks perintah suara"
+            />
+            <button id="command-submit" type="button">Proses</button>
+            <button id="command-voice" type="button" class="btn-voice">🎤 Bicara</button>
+          </div>
+
+          <div class="quick-examples">
+            <span class="example-label">Coba contoh:</span>
+            <button type="button" class="chip" data-cmd="Al-Baqarah ayat 255">Al-Baqarah ayat 255</button>
+            <button type="button" class="chip" data-cmd="Surat Yasin ayat 58">Surat Yasin ayat 58</button>
+            <button type="button" class="chip" data-cmd="Al-Kahfi ayat 10">Al-Kahfi ayat 10</button>
+            <button type="button" class="chip" data-cmd="Surat 2 ayat 255">Surat 2 ayat 255</button>
+            <button type="button" class="chip chip-invalid" data-cmd="Al-Baqarah ayat 300">Al-Baqarah 300 (tolak)</button>
+          </div>
+
+          <p id="command-feedback" class="feedback-msg"></p>
+        </section>
       </section>
 
-      <section class="card reader-card" aria-live="polite">
-        <div class="reader-heading">
-          <div>
-            <p class="label">Quran Reader</p>
-            <h2 id="reader-title">Belum ada posisi bacaan</h2>
+      <!-- INFO -->
+      <section id="view-info" class="view" data-view="info" aria-label="Info" hidden>
+        <header class="view-header">
+          <h1>Info</h1>
+          <p class="section-desc">Status model dan bacaan. Detail teknis ada di sini, bukan di layar baca.</p>
+        </header>
+
+        <!-- RECITATION RECOGNITION (TILAWA) SECTION -->
+        <section class="card" aria-live="polite">
+          <p class="label">Pengenalan Bacaan (Recitation Recognition)</p>
+          <p id="status">Memeriksa kesiapan aset Tilawa…</p>
+          <p id="detail" class="muted"></p>
+          <div class="actions">
+            <button id="prepare" type="button">Siapkan pengenalan</button>
+          </div>
+        </section>
+
+        <section class="card result" aria-live="polite">
+          <p class="label">Bacaan Tilawa terdeteksi</p>
+          <p id="verse">Belum ada ayat yang terdeteksi.</p>
+          <p id="confidence" class="muted"></p>
+        </section>
+
+        <!-- LOCKED POSITION / ANCHOR -->
+        <section class="card anchor-card" aria-live="polite">
+          <p class="label">Posisi Terkunci (Anchor Position)</p>
+          <div class="anchor-display">
+            <p id="anchor-position" class="anchor-text">Belum ada posisi yang dikunci</p>
+            <span id="anchor-badge" class="badge">Siap</span>
+          </div>
+          <p id="anchor-detail" class="muted">Gunakan perintah suara (misal: "Al-Baqarah ayat 255") atau baca langsung.</p>
+        </section>
+
+        <details class="card about" id="about">
+          <summary>Tentang &amp; Lisensi</summary>
+          <p>
+            Pengenalan bacaan memakai model <strong>Tilawa</strong> (tilawa.dev) yang dirilis di bawah lisensi
+            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>.
+            Kredit: Tilawa (tilawa.dev); model dibangun dari data tlog (Tarteel, CC-BY) dan Quranic Universal Ayahs
+            (QUD Technologies, CC-BY), serta karya MIT/Apache-2.0 (muaalem, quran-transcript, icefall, ONNX Runtime).
+            Teks Al-Qur'an rujukan berasal dari <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil</a>.
+            Model dipakai tanpa perubahan. Rincian lengkap: <code>docs/THIRD_PARTY_NOTICES.md</code>.
+          </p>
+        </details>
+
+        <footer>Quran recognition powered by Tilawa &amp; Quran Hands-Free Navigation.</footer>
+      </section>
+
+      <!-- BACA: full screen, no tab bar -->
+      <section id="view-baca" class="view view-reader" data-view="baca" aria-label="Baca" hidden>
+        <div class="reader-bar">
+          <button id="reader-back" type="button" class="icon-button" aria-label="Kembali (berhenti mendengarkan)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div class="reader-bar-title">
+            <h2 id="reader-title">Membaca</h2>
           </div>
           <span id="reader-state" class="badge">IDLE</span>
         </div>
-        <p id="reader-status" class="muted">Pilih ayat atau mulai melantunkan bacaan untuk membuka mushaf.</p>
+        <p id="reader-status" class="muted reader-status" aria-live="polite">Pilih ayat atau mulai melantunkan bacaan untuk membuka mushaf.</p>
+
+        <!-- Shown until a verse is known: big microphone -->
+        <div id="reader-empty" class="reader-empty" aria-live="polite">
+          <div class="mic-rings" aria-hidden="true">
+            <div class="mic-ring-2"><div class="mic-ring-1"><div class="mic-core">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
+            </div></div></div>
+          </div>
+          <p id="reader-empty-title" class="reader-empty-title" role="status">Mikrofon menyala</p>
+          <p id="reader-empty-text" class="reader-empty-text">Mulailah membaca. Ayatnya akan dikenali otomatis.</p>
+          <p class="reader-empty-hint">Tekan Kembali untuk berhenti</p>
+        </div>
+
         <div id="quran-reader" class="quran-reader" aria-label="Teks ayat Al-Qur'an"></div>
       </section>
 
-      <section id="quran-navigation" class="card" aria-live="polite">
-        <p class="label">Navigasi Quran</p>
-        <p class="section-desc">Cari surat, pilih ayat langsung, atau buka awal juz.</p>
-        <div class="navigation-search">
-          <label for="navigation-search">Cari nama surat</label>
-          <input id="navigation-search" type="search" placeholder="Al-Baqarah atau nomor surat" />
-        </div>
-        <div class="navigation-controls">
-          <label>Surat
-            <select id="navigation-surah" aria-label="Pilih surat"></select>
-          </label>
-          <label>Ayat
-            <select id="navigation-ayah" aria-label="Pilih ayat"></select>
-          </label>
-          <button id="navigation-open" type="button">Buka ayat</button>
-        </div>
-        <div class="navigation-controls">
-          <label>Juz
-            <select id="navigation-juz" aria-label="Pilih juz"></select>
-          </label>
-          <button id="navigation-juz-open" type="button">Buka juz</button>
-          <button id="navigation-current" type="button" disabled>Kembali ke posisi saat ini</button>
-        </div>
-        <p id="navigation-feedback" class="feedback-msg"></p>
-      </section>
-
-      <!-- BOOKMARK & LAST READ -->
-      <section id="bookmarks" class="card" aria-live="polite">
-        <p class="label">Bookmark &amp; Terakhir Dibaca</p>
-        <p class="section-desc">Disimpan di perangkat ini, tetap ada tanpa internet.</p>
-        <div class="navigation-controls">
-          <button id="bookmark-resume" type="button" disabled>Belum ada bacaan terakhir</button>
-          <button id="bookmark-save" type="button" disabled>Simpan posisi saat ini</button>
-        </div>
-        <div id="bookmark-list" class="bookmark-list"></div>
-        <p id="bookmark-feedback" class="feedback-msg"></p>
-      </section>
-
-      <!-- VOICE COMMAND NAVIGATION SECTION -->
-      <section class="card" aria-live="polite">
-        <p class="label">Navigasi Perintah Suara (Voice Command)</p>
-        <p class="section-desc">Ucapkan atau ketik nama surat dan nomor ayat untuk langsung melompat ke posisi awal.</p>
-        
-        <div class="command-input-group">
-          <input
-            type="text"
-            id="command-input"
-            placeholder="Contoh: Al-Baqarah ayat 255, Surat Yasin ayat 58"
-            aria-label="Teks perintah suara"
-          />
-          <button id="command-submit" type="button">Proses</button>
-          <button id="command-voice" type="button" class="btn-voice">🎤 Bicara</button>
-        </div>
-
-        <div class="quick-examples">
-          <span class="example-label">Coba contoh:</span>
-          <button type="button" class="chip" data-cmd="Al-Baqarah ayat 255">Al-Baqarah ayat 255</button>
-          <button type="button" class="chip" data-cmd="Surat Yasin ayat 58">Surat Yasin ayat 58</button>
-          <button type="button" class="chip" data-cmd="Al-Kahfi ayat 10">Al-Kahfi ayat 10</button>
-          <button type="button" class="chip" data-cmd="Surat 2 ayat 255">Surat 2 ayat 255</button>
-          <button type="button" class="chip chip-invalid" data-cmd="Al-Baqarah ayat 300">Al-Baqarah 300 (tolak)</button>
-        </div>
-
-        <p id="command-feedback" class="feedback-msg"></p>
-      </section>
-
-      <!-- LOCKED POSITION / ANCHOR -->
-      <section class="card anchor-card" aria-live="polite">
-        <p class="label">Posisi Terkunci (Anchor Position)</p>
-        <div class="anchor-display">
-          <p id="anchor-position" class="anchor-text">Belum ada posisi yang dikunci</p>
-          <span id="anchor-badge" class="badge">Siap</span>
-        </div>
-        <p id="anchor-detail" class="muted">Gunakan perintah suara (misal: "Al-Baqarah ayat 255") atau baca langsung.</p>
-      </section>
-
-      <details class="card about" id="about">
-        <summary>Tentang &amp; Lisensi</summary>
-        <p>
-          Pengenalan bacaan memakai model <strong>Tilawa</strong> (tilawa.dev) yang dirilis di bawah lisensi
-          <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>.
-          Kredit: Tilawa (tilawa.dev); model dibangun dari data tlog (Tarteel, CC-BY) dan Quranic Universal Ayahs
-          (QUD Technologies, CC-BY), serta karya MIT/Apache-2.0 (muaalem, quran-transcript, icefall, ONNX Runtime).
-          Teks Al-Qur'an rujukan berasal dari <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil</a>.
-          Model dipakai tanpa perubahan. Rincian lengkap: <code>docs/THIRD_PARTY_NOTICES.md</code>.
-        </p>
-      </details>
-
-      <footer>Quran recognition powered by Tilawa & Quran Hands-Free Navigation.</footer>
+      <nav id="tab-bar" class="tab-bar" aria-label="Navigasi utama">
+        <button type="button" class="tab" data-tab="beranda" aria-current="page">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Beranda
+        </button>
+        <button type="button" class="tab" data-tab="cari">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Cari
+        </button>
+        <button type="button" class="tab" data-tab="info">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>Info
+        </button>
+      </nav>
     </main>
-    <!-- Blocks the whole page while the recognition model loads; closes when it is ready or failed. -->
-    <dialog id="loading-dialog" class="loading-dialog" aria-labelledby="loading-dialog-title">
-      <h2 id="loading-dialog-title">Menyiapkan pengenalan…</h2>
-      <p id="loading-dialog-text" class="muted">Mohon tunggu, model pengenalan sedang dimuat.</p>
+
+    <!-- Full-screen page while the recognition model loads. Covers everything; goes away when ready. -->
+    <div id="loading-screen" class="loading-screen" role="dialog" aria-modal="true" aria-labelledby="loading-title">
+      <p class="eyebrow">QURAN HANDS-FREE</p>
+      <div class="loading-icon" aria-hidden="true">
+        <div class="loading-icon-core">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
+        </div>
+      </div>
+      <h2 id="loading-title">Menyiapkan bacaan</h2>
       <div id="loading-bar" class="loading-bar" role="progressbar" aria-label="Memuat model pengenalan"></div>
-      <button id="loading-dialog-close" type="button" hidden>Tutup</button>
-    </dialog>
+      <p id="loading-dialog-text" class="loading-text" role="status">Mohon tunggu, model pengenalan sedang dimuat.</p>
+      <p id="loading-note" class="loading-note">Hanya sekali di perangkat ini. Setelah itu aplikasi bisa dipakai tanpa internet. Mohon tunggu dan jangan tutup aplikasi.</p>
+      <p id="loading-error" class="loading-error" role="alert" hidden></p>
+      <button id="loading-retry" type="button" hidden>Coba lagi</button>
+      <button id="loading-dialog-close" type="button" class="secondary" hidden>Tutup</button>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

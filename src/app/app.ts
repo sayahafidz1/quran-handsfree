@@ -1,6 +1,7 @@
 import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
 import { InactivityTimer } from "./reading/InactivityTimer.ts";
 import { createListenGate } from "./listenGate.ts";
+import { createViewState, type AppView, type TabView } from "./viewState.ts";
 import { createWakeLockController, type WakeLockSentinelLike } from "./wakeLock.ts";
 import { createRecognitionAdapter } from "../recognition/createAdapter.ts";
 import type { RecognitionEvent } from "../recognition/types.ts";
@@ -54,18 +55,47 @@ export function initApp(): void {
   const verse = document.querySelector<HTMLParagraphElement>("#verse")!;
   const confidence = document.querySelector<HTMLParagraphElement>("#confidence")!;
   const loadingBar = document.querySelector<HTMLElement>("#loading-bar")!;
-  const loadingDialog = document.querySelector<HTMLDialogElement>("#loading-dialog")!;
+  const loadingScreen = document.querySelector<HTMLElement>("#loading-screen")!;
   const loadingDialogText = document.querySelector<HTMLParagraphElement>("#loading-dialog-text")!;
+  const loadingNote = document.querySelector<HTMLParagraphElement>("#loading-note")!;
+  const loadingError = document.querySelector<HTMLParagraphElement>("#loading-error")!;
+  const loadingRetry = document.querySelector<HTMLButtonElement>("#loading-retry")!;
   const loadingDialogClose = document.querySelector<HTMLButtonElement>("#loading-dialog-close")!;
   const prepare = document.querySelector<HTMLButtonElement>("#prepare")!;
-  const start = document.querySelector<HTMLButtonElement>("#start")!;
-  const stop = document.querySelector<HTMLButtonElement>("#stop")!;
+  const startReading = document.querySelector<HTMLButtonElement>("#start-reading")!;
+  const readerBack = document.querySelector<HTMLButtonElement>("#reader-back")!;
+  const readerEmpty = document.querySelector<HTMLElement>("#reader-empty")!;
+  const readerEmptyTitle = document.querySelector<HTMLElement>("#reader-empty-title")!;
+  const readerEmptyText = document.querySelector<HTMLElement>("#reader-empty-text")!;
+  const tabBar = document.querySelector<HTMLElement>("#tab-bar")!;
+  const viewElements = document.querySelectorAll<HTMLElement>(".view");
+  const tabButtons = document.querySelectorAll<HTMLButtonElement>(".tab");
   const readerElement = document.querySelector<HTMLElement>("#quran-reader")!;
   const readerStatusElement = document.querySelector<HTMLElement>("#reader-status")!;
   const readerTitleElement = document.querySelector<HTMLElement>("#reader-title")!;
   const readerStateElement = document.querySelector<HTMLElement>("#reader-state")!;
   const navigationRoot = document.querySelector<HTMLElement>("#quran-navigation")!;
   const bookmarksRoot = document.querySelector<HTMLElement>("#bookmarks")!;
+
+  // Screens: three tabs and a full-screen reading screen (no tab bar).
+  const views = createViewState();
+  function renderViews(view: AppView): void {
+    viewElements.forEach((element) => {
+      element.hidden = element.dataset.view !== view;
+    });
+    tabBar.hidden = view === "baca";
+    tabButtons.forEach((button) => {
+      if (button.dataset.tab === view) button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
+    });
+    window.scrollTo(0, 0);
+  }
+  views.subscribe(renderViews);
+  renderViews(views.current());
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", () => views.showTab(button.dataset.tab as TabView));
+  });
+
 
   let reader: QuranReader | null = null;
   void loadOfflineQuranContent().then((content) => {
@@ -76,7 +106,11 @@ export function initApp(): void {
       readerStateElement,
       content
     );
-    readingSession.subscribe((snapshot) => reader?.render(snapshot));
+    readingSession.subscribe((snapshot) => {
+      reader?.render(snapshot);
+      // Before any verse is known the reading screen shows the big microphone instead of an empty page.
+      readerEmpty.hidden = (snapshot.currentVerse ?? snapshot.expectedVerse) !== null;
+    });
     const navigation = new QuranNavigation(navigationRoot, content, (reference) => {
       openPosition(reference);
     }, () => {
@@ -168,6 +202,20 @@ export function initApp(): void {
     if (listening) readingSession.handlePause();
   });
 
+  /** What the big-microphone page says; "off" is only shown briefly before listening starts. */
+  function setReaderMic(kind: "on" | "waiting" | "error", message?: string): void {
+    if (kind === "on") {
+      readerEmptyTitle.textContent = "Mikrofon menyala";
+      readerEmptyText.textContent = "Mulailah membaca. Ayatnya akan dikenali otomatis.";
+    } else if (kind === "waiting") {
+      readerEmptyTitle.textContent = "Menyiapkan mikrofon…";
+      readerEmptyText.textContent = "Mohon tunggu sebentar.";
+    } else {
+      readerEmptyTitle.textContent = "Mikrofon tidak dapat digunakan";
+      readerEmptyText.textContent = message ?? "Izinkan akses mikrofon, lalu coba lagi.";
+    }
+  }
+
   async function startListening(): Promise<void> {
     if (listening || !ready) return;
     await microphone.start((samples) => recognition.feed(samples));
@@ -178,8 +226,7 @@ export function initApp(): void {
     void wakeLock.enable();
     pauseTimer.touch();
     status.textContent = "Mendengarkan lantunan ayat…";
-    start.disabled = true;
-    stop.disabled = false;
+    setReaderMic("on");
   }
 
   // The session decides when discovery must restart (end of a surah, basmalah
@@ -188,35 +235,46 @@ export function initApp(): void {
     if (listening) recognition.reset();
   });
 
-  // Popup that blocks the page while the model loads. It closes when the model is ready or loading failed.
+  // Full-screen page while the model loads. It goes away when the model is ready or loading failed.
   // Safety valve: if neither happens within LOADING_ESCAPE_MS (stalled download), a "Tutup" button appears.
   const LOADING_ESCAPE_MS = 60_000;
   let loadingEscapeTimer: number | undefined;
-  let loadingDialogWanted = false;
 
-  function openLoadingDialog(): void {
-    loadingDialogWanted = true;
+  function showLoadingScreen(): void {
+    loadingScreen.hidden = false;
+    loadingScreen.dataset.state = "loading";
+    loadingBar.hidden = false;
+    loadingNote.hidden = false;
+    loadingError.hidden = true;
+    loadingRetry.hidden = true;
     loadingDialogClose.hidden = true;
     loadingDialogText.textContent = "Mohon tunggu, model pengenalan sedang dimuat.";
-    if (!loadingDialog.open) loadingDialog.showModal();
     window.clearTimeout(loadingEscapeTimer);
     loadingEscapeTimer = window.setTimeout(() => {
       loadingDialogClose.hidden = false;
     }, LOADING_ESCAPE_MS);
   }
 
-  function closeLoadingDialog(): void {
-    loadingDialogWanted = false;
+  function hideLoadingScreen(): void {
     window.clearTimeout(loadingEscapeTimer);
-    if (loadingDialog.open) loadingDialog.close();
+    loadingScreen.hidden = true;
   }
 
-  // Esc must not dismiss the popup; if a browser closes it anyway (for example a second Esc), reopen it while loading.
-  loadingDialog.addEventListener("cancel", (event) => event.preventDefault());
-  loadingDialog.addEventListener("close", () => {
-    if (loadingDialogWanted) loadingDialog.showModal();
-  });
-  loadingDialogClose.addEventListener("click", closeLoadingDialog);
+  function showLoadingError(message: string): void {
+    window.clearTimeout(loadingEscapeTimer);
+    loadingScreen.hidden = false;
+    loadingScreen.dataset.state = "error";
+    loadingBar.hidden = true;
+    loadingNote.hidden = true;
+    loadingDialogClose.hidden = true;
+    loadingDialogText.textContent = "Belum bisa disiapkan";
+    loadingError.textContent = `${message} Pastikan internet menyala, lalu coba lagi. Jika terus gagal, kemungkinan memori perangkat kurang.`;
+    loadingError.hidden = false;
+    loadingRetry.hidden = false;
+  }
+
+  loadingDialogClose.addEventListener("click", hideLoadingScreen);
+  loadingRetry.addEventListener("click", () => beginPreparing());
 
   /** Starts loading the recognition model (once). Shows the loading popup until it is ready or fails. */
   function beginPreparing(): void {
@@ -224,8 +282,7 @@ export function initApp(): void {
     listenGate.setPreparing(true);
     prepare.disabled = true;
     prepare.textContent = "Siapkan pengenalan";
-    openLoadingDialog();
-    loadingBar.hidden = false;
+    showLoadingScreen();
     status.textContent = "Menyiapkan pengenalan Tilawa…";
     detail.textContent = "";
     recognition.initialize();
@@ -237,6 +294,7 @@ export function initApp(): void {
     } catch (error) {
       status.textContent = "Mikrofon tidak dapat digunakan.";
       detail.textContent = error instanceof Error ? error.message : String(error);
+      setReaderMic("error", detail.textContent);
     }
   }
 
@@ -253,6 +311,8 @@ export function initApp(): void {
 
   /** Turn the microphone on now if the model is ready, otherwise as soon as it is (loading it first if needed). */
   async function requestListening(): Promise<void> {
+    views.openReader();
+    if (!listening) setReaderMic("waiting");
     const action = listenGate.request();
     if (action === "prepare") beginPreparing();
     if (action === "start") await tryStartListening();
@@ -268,8 +328,12 @@ export function initApp(): void {
     listenGate.setListening(false);
     void wakeLock.disable();
     status.textContent = "Pengenalan dihentikan.";
-    start.disabled = !ready;
-    stop.disabled = true;
+  }
+
+  /** Kembali from the reading screen: stop listening, then show the tab it was opened from. */
+  async function leaveReader(): Promise<void> {
+    views.closeReader();
+    await stopListening();
   }
 
   async function applyCommand(result: ParseCommandResult): Promise<void> {
@@ -285,7 +349,7 @@ export function initApp(): void {
       return;
     }
     if (result.command === "start" || result.command === "resume") await requestListening();
-    if (result.command === "stop") await stopListening();
+    if (result.command === "stop") await leaveReader();
     if (result.command === "current") readingSession.returnToActivePosition();
     if (result.command === "repeat") readingSession.repeatActiveVerse();
     if (result.command === "next") readingSession.moveToNextVerse();
@@ -387,20 +451,15 @@ export function initApp(): void {
     beginPreparing();
   });
 
-  start.addEventListener("click", async () => {
-    try {
-      if (!readingSession.getState().currentVerse && !readingSession.getState().expectedVerse) {
-        readingSession.start();
-      }
-      await startListening();
-    } catch (error) {
-      status.textContent = "Mikrofon tidak dapat digunakan.";
-      detail.textContent = error instanceof Error ? error.message : String(error);
-    }
+  // "Mulai membaca": listen without a target (discovery), the verse is recognised on its own.
+  startReading.addEventListener("click", () => {
+    readingSession.reset();
+    readingSession.start();
+    void requestListening();
   });
 
-  stop.addEventListener("click", async () => {
-    await stopListening();
+  readerBack.addEventListener("click", () => {
+    void leaveReader();
   });
 
   function handleRecognitionEvent(event: RecognitionEvent): void {
@@ -411,16 +470,15 @@ export function initApp(): void {
     if (event.type === "ready") {
       ready = true;
       loadingBar.hidden = true;
-      closeLoadingDialog();
+      hideLoadingScreen();
       status.textContent = "Siap mendengarkan.";
       detail.textContent = "Model Tilawa berjalan di perangkat ini.";
-      start.disabled = false;
       if (listenGate.onReady() === "start") void tryStartListening();
     }
     if (event.type === "error") {
       listenGate.onError();
       loadingBar.hidden = true;
-      closeLoadingDialog();
+      showLoadingError(event.message);
       status.textContent = "Pengenalan belum siap.";
       detail.textContent = event.message;
       prepare.textContent = "Coba lagi";
