@@ -10,7 +10,6 @@ export function formatReferenceLabel(reference: AyahReference): string {
 /** Kartu bookmark manual dan "terakhir dibaca". Logika penyimpanan ada di `BookmarkStore`. */
 export class BookmarksPanel {
   private readonly resumeButton: HTMLButtonElement;
-  private readonly saveButton: HTMLButtonElement;
   private readonly listElement: HTMLElement;
   private readonly feedback: HTMLElement;
 
@@ -18,11 +17,10 @@ export class BookmarksPanel {
     root: HTMLElement,
     private readonly store: BookmarkStore,
     private readonly content: QuranContentProvider,
-    private readonly getPosition: () => AyahReference | null,
-    private readonly onOpen: (reference: AyahReference) => void
+    private readonly onOpen: (reference: AyahReference) => void,
+    private readonly onChange?: () => void
   ) {
     this.resumeButton = root.querySelector<HTMLButtonElement>("#bookmark-resume")!;
-    this.saveButton = root.querySelector<HTMLButtonElement>("#bookmark-save")!;
     this.listElement = root.querySelector<HTMLElement>("#bookmark-list")!;
     this.feedback = root.querySelector<HTMLElement>("#bookmark-feedback")!;
 
@@ -30,7 +28,6 @@ export class BookmarksPanel {
       const lastRead = this.store.getLastRead();
       if (lastRead) this.open(lastRead);
     });
-    this.saveButton.addEventListener("click", () => this.saveCurrent());
     this.render();
   }
 
@@ -40,9 +37,9 @@ export class BookmarksPanel {
     this.renderResume();
   }
 
-  /** Tombol "Simpan" hanya aktif bila ada posisi yang bisa disimpan. */
-  public setHasPosition(hasPosition: boolean): void {
-    this.saveButton.disabled = !hasPosition;
+  /** Daftar digambar ulang setelah bookmark berubah dari luar (ikon di layar baca). */
+  public refresh(): void {
+    this.renderList();
   }
 
   private open(reference: AyahReference): void {
@@ -52,23 +49,6 @@ export class BookmarksPanel {
     }
     this.showFeedback(`Dibuka: ${formatReferenceLabel(reference)}`, "success");
     this.onOpen(reference);
-  }
-
-  private saveCurrent(): void {
-    const position = this.getPosition();
-    if (!position) {
-      this.showFeedback("Belum ada posisi bacaan untuk disimpan.", "error");
-      return;
-    }
-    const label = formatReferenceLabel(position);
-    if (this.store.has(position)) {
-      this.showFeedback(`${label} sudah ada di bookmark.`, "info");
-    } else if (this.store.add(position)) {
-      this.showFeedback(`Bookmark disimpan: ${label}`, "success");
-    } else {
-      this.showFeedback("Bookmark tidak bisa disimpan (penyimpanan penuh atau tidak tersedia).", "error");
-    }
-    this.renderList();
   }
 
   private render(): void {
@@ -110,6 +90,7 @@ export class BookmarksPanel {
         this.store.remove(reference);
         this.showFeedback(`Bookmark dihapus: ${formatReferenceLabel(reference)}`, "info");
         this.renderList();
+        this.onChange?.();
       });
       row.append(open, remove);
       return row;

@@ -110,3 +110,17 @@ test("missing or refusing storage never throws", () => {
   assert.deepEqual(refusing.list(), []);
   refusing.setLastRead({ surah: 1, ayah: 1 });
 });
+
+test("toggleBookmark: saves, then removes, and reports a failed save", async () => {
+  const { toggleBookmark } = await import("../src/app/bookmarks.ts");
+  const data = new Map<string, string>();
+  const store = createBookmarkStore({
+    getItem: (key: string) => data.get(key) ?? null,
+    setItem: (key: string, value: string) => void data.set(key, value)
+  });
+  assert.equal(toggleBookmark(store, { surah: 112, ayah: 2 }), "added");
+  assert.equal(store.has({ surah: 112, ayah: 2 }), true);
+  assert.equal(toggleBookmark(store, { surah: 112, ayah: 2 }), "removed");
+  assert.equal(store.has({ surah: 112, ayah: 2 }), false);
+  assert.equal(toggleBookmark(store, { surah: 999, ayah: 1 }), "failed");
+});

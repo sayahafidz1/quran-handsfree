@@ -6,10 +6,18 @@ import { getWordHighlight } from "./wordHighlight.ts";
 
 const MANUAL_SCROLL_SUSPENSION_MS = 1800;
 
+/** Ikon bookmark di tiap ayat: apakah ayat tersimpan, dan simpan/hapus saat ikon ditekan. */
+export interface ReaderBookmarks {
+  has(reference: { surah: number; ayah: number }): boolean;
+  toggle(reference: { surah: number; ayah: number }): void;
+}
+
 export class QuranReader {
   private activePositionKey: string | null = null;
   private resumeTimer: number | null = null;
   private autoFollowSuspendedUntil = 0;
+  private lastSnapshot: ReadingSessionSnapshot | null = null;
+  private bookmarks: ReaderBookmarks | null = null;
 
   public constructor(
     private readonly element: HTMLElement,
@@ -23,7 +31,18 @@ export class QuranReader {
     window.addEventListener("keydown", this.handleManualKeydown);
   }
 
+  public setBookmarks(bookmarks: ReaderBookmarks): void {
+    this.bookmarks = bookmarks;
+    this.refresh();
+  }
+
+  /** Menggambar ulang dengan snapshot terakhir (misalnya setelah bookmark berubah). */
+  public refresh(): void {
+    if (this.lastSnapshot) this.render(this.lastSnapshot);
+  }
+
   public render(snapshot: ReadingSessionSnapshot): void {
+    this.lastSnapshot = snapshot;
     const readingStatus = getReadingStatus(snapshot);
     this.stateElement.textContent = readingStatus.label;
     this.stateElement.dataset.state = snapshot.state;
@@ -56,7 +75,7 @@ export class QuranReader {
       : null;
     const ayahs = this.content.getAyahs(position.surah)
       .filter(({ ayah }) => ayah >= position.ayah - 1 && ayah <= position.ayah + 1);
-    this.element.replaceChildren(...ayahs.map((ayah) => this.createAyah(ayah, position.ayah, wordProgress)));
+    this.element.replaceChildren(...ayahs.map((ayah) => this.createAyah(ayah, position.ayah, wordProgress, position.surah)));
 
     const positionKey = `${position.surah}:${position.ayah}`;
     if (positionKey !== this.activePositionKey) {
@@ -108,7 +127,20 @@ export class QuranReader {
     }
   }
 
-  private createAyah(ayah: QuranAyah, activeAyah: number, progress: WordProgress | null): HTMLElement {
+  private createBookmarkButton(surah: number, ayah: number): HTMLButtonElement {
+    const reference = { surah, ayah };
+    const saved = this.bookmarks!.has(reference);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = saved ? "ayah-bookmark saved" : "ayah-bookmark";
+    button.setAttribute("aria-pressed", String(saved));
+    button.setAttribute("aria-label", `${saved ? "Hapus" : "Simpan"} bookmark ayat ${surah}:${ayah}`);
+    button.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="${saved ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg>`;
+    button.addEventListener("click", () => this.bookmarks!.toggle(reference));
+    return button;
+  }
+
+  private createAyah(ayah: QuranAyah, activeAyah: number, progress: WordProgress | null, surah: number): HTMLElement {
     const article = document.createElement("article");
     article.className = ayah.ayah === activeAyah ? "reader-ayah current" : "reader-ayah";
     article.setAttribute("aria-current", ayah.ayah === activeAyah ? "true" : "false");
@@ -129,7 +161,12 @@ export class QuranReader {
     number.className = "ayah-number";
     number.dir = "ltr";
     number.textContent = String(ayah.ayah);
-    article.append(text, number);
+    const side = document.createElement("div");
+    side.className = "ayah-side";
+    side.dir = "ltr";
+    side.append(number);
+    if (this.bookmarks) side.append(this.createBookmarkButton(surah, ayah.ayah));
+    article.append(text, side);
     return article;
   }
 }

@@ -95,3 +95,14 @@ export function createBookmarkStore(storage: BookmarkStorage | null | undefined)
     }
   };
 }
+
+export type ToggleBookmarkResult = "added" | "removed" | "failed";
+
+/**
+ * Ikon bookmark di tiap ayat: sudah tersimpan berarti dihapus, belum berarti disimpan.
+ * "failed" bila tidak bisa disimpan (penyimpanan penuh, batas 50, atau storage menolak).
+ */
+export function toggleBookmark(store: BookmarkStore, reference: AyahReference): ToggleBookmarkResult {
+  if (store.has(reference)) return store.remove(reference) ? "removed" : "failed";
+  return store.add(reference) ? "added" : "failed";
+}

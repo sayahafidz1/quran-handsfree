@@ -16,8 +16,8 @@ import type { ParseCommandResult } from "../command/types.ts";
 import { loadOfflineQuranContent } from "../quran/content/index.ts";
 import { QuranReader } from "../ui/QuranReader.ts";
 import { QuranNavigation } from "../ui/QuranNavigation.ts";
-import { BookmarksPanel } from "../ui/BookmarksPanel.ts";
-import { createBookmarkStore, type BookmarkStorage } from "./bookmarks.ts";
+import { BookmarksPanel, formatReferenceLabel } from "../ui/BookmarksPanel.ts";
+import { createBookmarkStore, toggleBookmark, type BookmarkStorage } from "./bookmarks.ts";
 import { getReadingStatus } from "../ui/readingStatus.ts";
 import { recognitionDebugEnabled } from "../recognition/debug.ts";
 
@@ -97,6 +97,18 @@ export function initApp(): void {
   });
 
 
+  // Short message on the reading screen (bookmark saved/removed); clears itself.
+  const readerToast = document.querySelector<HTMLElement>("#reader-toast")!;
+  let readerToastTimer: number | undefined;
+  function showReaderToast(message: string, kind: "success" | "error" | "info"): void {
+    readerToast.textContent = message;
+    readerToast.className = `feedback-msg reader-toast ${kind}`;
+    window.clearTimeout(readerToastTimer);
+    readerToastTimer = window.setTimeout(() => {
+      readerToast.textContent = "";
+    }, 2500);
+  }
+
   let reader: QuranReader | null = null;
   void loadOfflineQuranContent().then((content) => {
     reader = new QuranReader(
@@ -106,6 +118,7 @@ export function initApp(): void {
       readerStateElement,
       content
     );
+    const bookmarkStore = createBookmarkStore(safeLocalStorage());
     readingSession.subscribe((snapshot) => {
       reader?.render(snapshot);
       // Before any verse is known the reading screen shows the big microphone instead of an empty page.
@@ -118,20 +131,29 @@ export function initApp(): void {
     });
     const bookmarks = new BookmarksPanel(
       bookmarksRoot,
-      createBookmarkStore(safeLocalStorage()),
+      bookmarkStore,
       content,
-      () => {
-        const snapshot = readingSession.getState();
-        return snapshot.currentVerse ?? snapshot.expectedVerse;
-      },
       (reference) => {
         openPosition(reference);
-      }
+      },
+      () => reader?.refresh()
     );
+    // Ikon bookmark di tiap ayat layar baca: simpan/hapus tanpa menghentikan bacaan.
+    reader.setBookmarks({
+      has: (reference) => bookmarkStore.has(reference),
+      toggle: (reference) => {
+        const result = toggleBookmark(bookmarkStore, reference);
+        const label = formatReferenceLabel(reference);
+        if (result === "added") showReaderToast(`Bookmark disimpan: ${label}`, "success");
+        else if (result === "removed") showReaderToast(`Bookmark dihapus: ${label}`, "info");
+        else showReaderToast("Bookmark tidak bisa disimpan (penyimpanan penuh atau tidak tersedia).", "error");
+        bookmarks.refresh();
+        reader?.refresh();
+      }
+    });
     readingSession.subscribe((snapshot) => {
       const position = snapshot.currentVerse ?? snapshot.expectedVerse;
       navigation.setCurrentPosition(position);
-      bookmarks.setHasPosition(position !== null);
       // "Terakhir dibaca" hanya dari ayat yang benar-benar terdeteksi, bukan sekadar dibuka manual.
       if (snapshot.currentVerse) bookmarks.noteReading(snapshot.currentVerse);
     });
