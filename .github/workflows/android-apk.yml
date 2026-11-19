@@ -57,7 +57,7 @@ jobs:
           rm -f dist/assets/ort-wasm-simd-threaded.jsep-*.wasm
 
       - name: Pasang Capacitor (hanya untuk build APK ini)
-        run: npm install --no-save @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+        run: npm install --no-save @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/app@6
 
       - name: Buat proyek Android
         run: npx cap add android

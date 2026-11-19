@@ -34,7 +34,7 @@ Catat jenis ponsel, versi Android, dan versi Android System WebView (Pengaturan,
 6. Tombol **Bicara** (perintah suara): catat apa yang terjadi. Diperkirakan tidak berfungsi (Web Speech API sering tidak ada di WebView); lihat bagian 5.
 7. Bila gagal memuat model: salin pesan error yang tampil.
 8. Tata letak baru (branch `ui-app-layout`): tab Beranda/Cari/Info; **Mulai membaca** menyalakan mikrofon; **Kembali** di layar baca menghentikan pendengaran; ikon bookmark di tiap ayat menyimpan tanpa menghentikan bacaan.
-9. **Tombol kembali Android** di layar baca: harus kembali ke tab asal dan menghentikan mikrofon, bukan menutup aplikasi. Dari Beranda, tombol kembali menutup aplikasi (normal). Catat bila ada yang berbeda.
+9. **Tombol kembali Android** di layar baca: harus kembali ke tab asal dan menghentikan mikrofon, bukan menutup aplikasi. Dari tab Cari/Info tombol kembali ke Beranda; dari Beranda menutup aplikasi. Setelah keluar dari layar baca pastikan indikator mikrofon Android mati. Catat bila ada yang berbeda.
 
 ## 5. Hal yang belum pasti
 - Alur kerja belum pernah dijalankan; percobaan pertama bisa gagal dan perlu beberapa putaran perbaikan (versi Java 17 dan Capacitor 6 dipilih berdasarkan perkiraan, bukan hasil uji).
