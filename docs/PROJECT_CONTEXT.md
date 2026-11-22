@@ -4,15 +4,16 @@ Dokumen ini mencatat status terkini, batasan mutlak, serta panduan bagi engineer
 
 ---
 
-## 1. Status Terkini (Diperbarui 2026-11-18)
+## 1. Status Terkini (Diperbarui 2026-11-23)
 
 **Ringkasan kondisi sekarang**
-- **Produk berjalan** di Cloudflare Workers (`https://quran-handsfree.sudirmanhafidz1.workers.dev`), deploy otomatis dari setiap push ke `main`. Teruji di ponsel pemilik: popup pemuatan, mode pesawat, pindah surat (dengan/tanpa basmalah), ayat kembar, jeda 10 detik, isti'adzah, layar menyala, berhenti lalu mulai, bookmark.
+- **Produk berjalan** di Cloudflare Workers (`https://quran-handsfree.sudirmanhafidz1.workers.dev`), deploy otomatis dari setiap push ke `main`. Teruji di ponsel pemilik: halaman pemuatan model, mode pesawat, pindah surat (dengan/tanpa basmalah), ayat kembar, jeda 10 detik, isti'adzah, layar menyala, berhenti lalu mulai, bookmark.
 - **Dua engine pengenalan** ada di kode: Tilawa 0.4.0 (bawaan kode, cadangan stabil, tag `v0.4.0-stabil`) dan Tilawa 1.0 (dipakai di produksi lewat `VITE_TILAWA_ENGINE=v1`). Tabel perbandingan di `docs/TILAWA_INTEGRATION.md` bagian 0. Rencana: 1.0 menjadi bawaan setelah cadangan model `lite` terbukti di ponsel lain; 0.4.0 dihapus belum direncanakan.
 - **Fitur pada 2026-11-17 sampai 2026-11-18**: model dimuat otomatis dengan layar persiapan penuh (dulu popup), mikrofon menyala otomatis dari navigasi/perintah, cadangan model `lite` otomatis, service worker jaringan-dulu (v4), Wake Lock, Berhenti membuka pencarian baru, jeda hening 10 detik, bookmark manual dan "terakhir dibaca" (localStorage), reset mesin saat membuka posisi sambil mendengarkan (yang terakhir ini belum teruji di ponsel).
 - **Prinsip produk**: mikrofon hanya aktif saat aplikasi tampil (disengaja); aturan Qur'an ketat dan dapat diprediksi; perintah suara (Web Speech API) masih butuh internet.
-- **Percobaan APK**: jalur WebView (Capacitor) lewat GitHub Actions disiapkan 2026-11-19 (`docs/ANDROID_APK.md`); belum dijalankan dan belum teruji di ponsel.
-- **Belum**: APK Android yang teruji (sasaran akhir, tanpa internet), cadangan `lite` di ponsel yang gagal memuat `full`, ketepatan `lite`, "aamiin", AudioWorklet, STT offline.
+- **APK Android (WebView/Capacitor)**: dibangun lewat GitHub Actions (`docs/ANDROID_APK.md`). Model `full` dan `lite` jalan di ponsel pemilik; `lite` juga sudah jalan di ponsel teman (kadang agak lama, tetapi berjalan). Tombol kembali Android teruji 2026-11-23: dari layar baca dan tab Cari/Info ke Beranda, dari Beranda menutup aplikasi, mikrofon mati setelah keluar.
+- **Tata letak seperti aplikasi (2026-11-23)**: tab Beranda/Cari/Info, layar baca penuh tanpa tab bar (Kembali menghentikan pendengaran), ikon bookmark di tiap ayat, kartu "Terakhir dibaca" dan daftar bookmark di Beranda, halaman persiapan model layar penuh, tombol kembali Android. Rancangan dan alasan: `DECISIONS.md` 2026-11-19; arsitektur: `ARCHITECTURE.md`. Layar baca masih menampilkan 3 ayat (keputusan jumlah ayat ditunda).
+- **Belum**: daftar uji offline APK lengkap (`docs/ANDROID_APK.md` bagian 4: perintah suara di APK diperkirakan tidak berfungsi), ketepatan `lite`, keputusan jumlah ayat di layar baca, naik ke Tilawa `rc.1`, menjadikan engine 1.0 bawaan kode, "aamiin", AudioWorklet, STT offline.
 - **Tes**: `npm test` (tes murni tanpa browser/model); build produksi: `npm run build` (`tsc --noEmit && vite build`).
 
 **Catatan rinci tahap awal (2026-09, masih berlaku sebagai deskripsi arsitektur)**

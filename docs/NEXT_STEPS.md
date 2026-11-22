@@ -6,7 +6,7 @@ tetap diisolasi melalui `TilawaAdapter`.
 
 ## 0. Tata Letak Seperti Aplikasi (Sedang Dikerjakan, Branch `ui-app-layout`)
 
-Keputusan dan rancangan: `DECISIONS.md` 2026-11-19. Tahap 1 (tiga tab, layar baca penuh, halaman persiapan) tahap 2 (ikon bookmark di tiap ayat), tahap 3 (Beranda) dan tahap 4 (tombol kembali Android lewat History API) selesai di branch. Sisa: uji di ponsel lewat APK, keputusan jumlah ayat di layar baca, lalu PR dan merge. Diuji di ponsel lewat APK dari branch (Actions, Run workflow, pilih branch).
+Keputusan dan rancangan: `DECISIONS.md` 2026-11-19. Tahap 1 (tiga tab, layar baca penuh, halaman persiapan) tahap 2 (ikon bookmark di tiap ayat), tahap 3 (Beranda) dan tahap 4 (tombol kembali Android) selesai dan teruji di ponsel pemilik (2026-11-23), lalu digabung ke `main`. Sisa: keputusan jumlah ayat di layar baca (3, sekitar 7, atau seluruh surat), naik ke Tilawa `rc.1` (periksa dulu bahwa sudah dipublikasikan di npm), dan daftar uji offline APK. Diuji di ponsel lewat APK dari branch (Actions, Run workflow, pilih branch).
 
 ## 1. Quran Reader UI
 
@@ -73,7 +73,7 @@ Setelah UX utama stabil:
 - Wake Lock layar sudah ada dan teruji di ponsel pemilik (2026-11-18, `src/app/wakeLock.ts`): layar tetap menyala selama mendengarkan. Mikrofon berhenti saat aplikasi ditinggalkan atau layar dikunci sendiri; itu disengaja (`DECISIONS.md` 2026-11-18), bukan masalah.
 - Caching sudah ada: model 1.0 disimpan SDK di Cache API (dan penanda `lite` di `tilawa-v1-prefs`), aset aplikasi oleh service worker. Indikator "tersedia offline" yang eksplisit belum ada.
 - Service worker sudah diperbaiki pada 2026-11-18 (`DECISIONS.md`): halaman jaringan-dulu, aset cache-dulu tanpa menyimpan HTML. Teruji di ponsel pemilik: offline/mode pesawat berjalan. Masih perlu dipastikan di perangkat lain bahwa pengguna lama pulih setelah 1 sampai 2 kali refresh biasa. Cache aset berhash lama menumpuk di `quran-handsfree-v4` sampai versi cache dinaikkan.
-- SDK 1.0 sudah memeriksa SHA-256 model saat memuat dan popup pemuatan sudah ada; progres unduhan berupa persen dan indikator ketersediaan offline belum.
+- SDK 1.0 sudah memeriksa SHA-256 model saat memuat dan halaman persiapan model layar penuh sudah ada (dengan kata-kata berbeda untuk peluncuran pertama dan berikutnya); progres unduhan berupa persen dan indikator ketersediaan offline belum.
 
 ## 5. Evaluasi Recognition Engine
 

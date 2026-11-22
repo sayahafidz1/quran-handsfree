@@ -1,6 +1,7 @@
 import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
 import { InactivityTimer } from "./reading/InactivityTimer.ts";
 import { createListenGate } from "./listenGate.ts";
+import { createModelReadyFlag } from "./modelReadyFlag.ts";
 import { createReaderHistory } from "./readerHistory.ts";
 import { decideBackAction, findCapacitorApp, hasCapacitor } from "./backAction.ts";
 import { createViewState, type AppView, type TabView } from "./viewState.ts";
@@ -275,15 +276,21 @@ export function initApp(): void {
   const LOADING_ESCAPE_MS = 60_000;
   let loadingEscapeTimer: number | undefined;
 
+  const modelReadyFlag = createModelReadyFlag(safeLocalStorage());
+
   function showLoadingScreen(): void {
     loadingScreen.hidden = false;
     loadingScreen.dataset.state = "loading";
     loadingBar.hidden = false;
-    loadingNote.hidden = false;
+    // After the first successful start the model is already on this device: say so, and drop the "only once" note.
+    const seenBefore = modelReadyFlag.wasReady();
+    loadingNote.hidden = seenBefore;
     loadingError.hidden = true;
     loadingRetry.hidden = true;
     loadingDialogClose.hidden = true;
-    loadingDialogText.textContent = "Mohon tunggu, model pengenalan sedang dimuat.";
+    loadingDialogText.textContent = seenBefore
+      ? "Memuat model dari perangkat…"
+      : "Mohon tunggu, model pengenalan sedang dimuat.";
     window.clearTimeout(loadingEscapeTimer);
     loadingEscapeTimer = window.setTimeout(() => {
       loadingDialogClose.hidden = false;
@@ -311,7 +318,7 @@ export function initApp(): void {
   loadingDialogClose.addEventListener("click", hideLoadingScreen);
   loadingRetry.addEventListener("click", () => beginPreparing());
 
-  /** Starts loading the recognition model (once). Shows the loading popup until it is ready or fails. */
+  /** Starts loading the recognition model (once). Shows the full-screen loading page until it is ready or fails. */
   function beginPreparing(): void {
     if (!listenGate.shouldPrepare()) return;
     listenGate.setPreparing(true);
@@ -526,6 +533,7 @@ export function initApp(): void {
       ready = true;
       loadingBar.hidden = true;
       hideLoadingScreen();
+      modelReadyFlag.markReady();
       status.textContent = "Siap mendengarkan.";
       detail.textContent = "Model Tilawa berjalan di perangkat ini.";
       if (listenGate.onReady() === "start") void tryStartListening();

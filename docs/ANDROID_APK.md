@@ -26,7 +26,7 @@ Bila build gagal, buka langkah yang merah di halaman run, salin log-nya, dan kir
 
 ## 4. Daftar uji di ponsel
 Catat jenis ponsel, versi Android, dan versi Android System WebView (Pengaturan, Aplikasi).
-1. Pasang, lalu buka dalam **mode pesawat sejak awal**: popup pemuatan selesai tanpa internet dan model siap. Catat lama muatnya.
+1. Pasang, lalu buka dalam **mode pesawat sejak awal**: halaman persiapan model selesai tanpa internet dan model siap. Catat lama muatnya.
 2. Izin mikrofon muncul dan bacaan terdeteksi (coba Al-Ikhlas).
 3. Layar tetap menyala saat mendengarkan (Wake Lock di WebView belum terbukti).
 4. Bookmark dan "terakhir dibaca" tetap ada setelah aplikasi ditutup dan dibuka lagi.

@@ -30,7 +30,6 @@ h1 { font-family: Georgia, serif; font-size: clamp(1.7rem, 6vw, 2.4rem); line-he
 button { border: 0; border-radius: 999px; background: #0b3b32; color: white; cursor: pointer; font: inherit; font-weight: 700; padding: 10px 18px; transition: opacity 0.15s ease; }
 button:hover { opacity: 0.92; }
 button:disabled { background: #a9b7b2; cursor: not-allowed; opacity: 0.8; }
-#stop { background: #85452d; }
 .btn-voice { background: #ad7021; }
 .btn-voice.listening { background: #c53030; animation: pulse 1.2s infinite; }
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.65; } 100% { opacity: 1; } }
