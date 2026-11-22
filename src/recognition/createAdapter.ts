@@ -1,8 +1,11 @@
 import type { RecognitionAdapter, RecognitionEvent } from "./types";
 import { TilawaAdapter } from "./tilawa/TilawaAdapter";
 import { createTilawaV1Adapter } from "./tilawa/TilawaV1Adapter";
+import { chooseEngine } from "./engineChoice";
 
-/** Chooses the engine at build/dev time: `VITE_TILAWA_ENGINE=v1` selects Tilawa 1.0, default is 0.4.0. */
+/** Chooses the engine at build/dev time: Tilawa 1.0 by default; `VITE_TILAWA_ENGINE=v0` selects the 0.4.0 fallback. */
 export function createRecognitionAdapter(onEvent: (event: RecognitionEvent) => void): RecognitionAdapter {
-  return import.meta.env.VITE_TILAWA_ENGINE === "v1" ? createTilawaV1Adapter(onEvent) : new TilawaAdapter(onEvent);
+  return chooseEngine(import.meta.env.VITE_TILAWA_ENGINE) === "v0"
+    ? new TilawaAdapter(onEvent)
+    : createTilawaV1Adapter(onEvent);
 }

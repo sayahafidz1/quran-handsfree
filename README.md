@@ -97,8 +97,8 @@ npm install
 
 ### 2. Pilih Engine Pengenalan
 Aplikasi memuat dua engine (tabel perbandingan: `docs/TILAWA_INTEGRATION.md` bagian 0):
-- **Tilawa 1.0**: dipakai di versi Cloudflare (`VITE_TILAWA_ENGINE=v1`). Lihat 2b.
-- **Tilawa 0.4.0 (Zipformer)**: **bawaan kode** bila variabel itu tidak diisi, jadi `npm run dev` biasa memakai ini dan butuh langkah 2a. Dijaga sebagai cadangan stabil.
+- **Tilawa 1.0**: **bawaan kode** (sejak 2026-11-23) dan dipakai di versi Cloudflare serta APK. `npm run dev` biasa memakai ini. Lihat 2b.
+- **Tilawa 0.4.0 (Zipformer)**: cadangan stabil, dipilih dengan `VITE_TILAWA_ENGINE=v0` dan butuh langkah 2a.
 
 ### 2a. Penyiapan Aset Runtime Tilawa 0.4.0
 Jalankan setup otomatis yang mengambil aset dari Tilawa release resmi ke `public/tilawa/`:
@@ -118,12 +118,8 @@ teks display ke `v0.2.0`. Untuk fresh clone, jalankan `npm run setup` setelah
 `npm install`; setup dapat dijalankan ulang dengan aman. Model dan korpus
 Zipformer berlisensi NPL-1.2 (non-komersial/share-alike), bukan MIT.
 
-### 2b. Tilawa 1.0 (engine di versi Cloudflare)
-Jalankan `npm install`, buat file `.env.local` di folder proyek (tidak ikut Git) berisi:
-```text
-VITE_TILAWA_ENGINE=v1
-```
-lalu `npm run dev`. Hapus file itu (atau isinya) untuk kembali ke engine 0.4.0, yang saat ini menjadi bawaan kode. Secara bawaan jalur 1.0 mengunduh model dari internet (lihat `docs/TILAWA_INTEGRATION.md` bagian 6).
+### 2b. Tilawa 1.0 (engine bawaan)
+Jalankan `npm install` lalu `npm run dev`; tidak perlu variabel apa pun. Untuk memakai engine 0.4.0 sebagai gantinya, buat file `.env.local` di folder proyek (tidak ikut Git) berisi `VITE_TILAWA_ENGINE=v0` (dan jalankan langkah 2a). Secara bawaan jalur 1.0 mengunduh model dari internet (lihat `docs/TILAWA_INTEGRATION.md` bagian 6).
 
 **Tanpa internet (self-host):** jalankan `npm run setup:v1` (mengunduh model 68 MB dan menyalin file WASM ke `public/tilawa-v1/`), tambahkan `VITE_TILAWA_V1_ASSETS=local` ke `.env.local`, lalu `npm run preview:local`. Detail dan batasannya di `docs/TILAWA_INTEGRATION.md` bagian 7. Atribusi CC BY 4.0: `docs/THIRD_PARTY_NOTICES.md` bagian 4.
 

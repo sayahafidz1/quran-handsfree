@@ -2,21 +2,21 @@
 
 Dokumen ini menjelaskan batas integrasi teknis antara aplikasi `quran-handsfree` dan engine pengenalan suara `@tilawa/core`.
 
-## 0. Dua Engine: Mana yang Dipakai di Mana (status 2026-11-18)
+## 0. Dua Engine: Mana yang Dipakai di Mana (status 2026-11-23)
 
 Aplikasi memuat **dua** engine di belakang kontrak `RecognitionAdapter`. Pemilihannya saat build/dev lewat `VITE_TILAWA_ENGINE` (`src/recognition/createAdapter.ts`).
 
 | | Tilawa 0.4.0 (Zipformer) | Tilawa 1.0 (`tilawa-v1`) |
 | --- | --- | --- |
-| Kapan aktif | **Bawaan kode** (tanpa variabel), jadi juga `npm run dev` biasa | `VITE_TILAWA_ENGINE=v1` |
-| Dipakai di | Komputer pengembang bila tidak diatur; tag cadangan `v0.4.0-stabil` | **Produksi Cloudflare** (variabel diisi di dashboard) |
+| Kapan aktif | `VITE_TILAWA_ENGINE=v0` | **Bawaan kode** (tanpa variabel atau `v1`), jadi juga `npm run dev` biasa |
+| Dipakai di | Hanya bila dipilih sendiri; tag cadangan `v0.4.0-stabil` | Produksi Cloudflare, APK, dan komputer pengembang |
 | Dependensi | `@tilawa/core` ^0.4.0 | `tilawa-v1` = alias `@tilawa/core@1.0.0-rc.0` |
 | Aset model | `public/tilawa/` lewat `npm run setup` (tidak masuk Git) | Diunduh saat dijalankan dari tilawa.dev (mode `remote`) atau `public/tilawa-v1/` lewat `npm run setup:v1` (mode `local`) |
 | Lisensi model | NPL-1.2 (non-komersial, share-alike) | CC BY 4.0 (kredit "Tilawa (tilawa.dev)") |
 | Worker | `src/workers/recognition.worker.ts` | `src/workers/recognition.v1.worker.ts` |
 | Bagian dokumen ini | Bagian 1 sampai 5 | Bagian 6 sampai 7 |
 
-Keduanya dipertahankan sengaja: 0.4.0 sebagai cadangan stabil sampai 1.0 terbukti di banyak ponsel (termasuk model `lite`). Menjadikan 1.0 bawaan kode adalah langkah berikutnya (satu baris di `createAdapter.ts`); menghapus 0.4.0 baru dipertimbangkan sesudahnya (lihat `DECISIONS.md` 2026-11-18).
+Keduanya dipertahankan sengaja: 0.4.0 sebagai cadangan stabil. Sejak 2026-11-23 1.0 menjadi bawaan kode (`src/recognition/engineChoice.ts`, dites), setelah model `lite` terbukti jalan di ponsel teman; menghapus 0.4.0 belum direncanakan (lihat `DECISIONS.md` 2026-11-23).
 
 ---
 
@@ -94,7 +94,7 @@ Zipformer tunduk pada NPL-1.2, bukan MIT; lihat
 
 ## 6. Jalur Tilawa 1.0
 
-Jalur ini sudah dipakai di **produksi Cloudflare**, tetapi masih dievaluasi (ketepatan `lite`, cadangan di ponsel lain); bawaan kode tetap `@tilawa/core` 0.4.0 Zipformer (lihat bagian 0). Pilih engine saat dev/build lewat `VITE_TILAWA_ENGINE=v1` (tanpa nilai itu, 0.4.0 yang jalan).
+Jalur ini sudah dipakai di **produksi Cloudflare**, tetapi masih dievaluasi (ketepatan `lite`, cadangan di ponsel lain); jalur ini bawaan kode sejak 2026-11-23 (lihat bagian 0). Untuk memakai 0.4.0, isi `VITE_TILAWA_ENGINE=v0`.
 
 - **Dependensi**: `tilawa-v1` = alias npm ke `@tilawa/core@1.0.0-rc.0` (Preview, tag npm `next`), berdampingan dengan `@tilawa/core` 0.4.0. Versi `1.0.0-rc.0` dipin dari tag upstream `v1.0.0-rc.0`. Ketersediaannya di registry npm terverifikasi pada 2026-11-17: `npm install`, `tsc --noEmit`, dan `npm run build` lolos di komputer pemilik proyek, dan `package-lock.json` di `main` memuat `tilawa-v1`.
 - **File baru**: `src/workers/recognition.v1.worker.ts` (worker 1.0), `src/recognition/tilawa/v1Mapper.ts` (pemetaan event murni, tanpa import paket, diuji di `test/tilawaV1Mapper.test.ts`), `src/recognition/tilawa/TilawaV1Adapter.ts`, `src/recognition/createAdapter.ts` (pemilih engine). `TilawaAdapter` menerima pembuat worker opsional; worker 0.4.0 dan `ReadingSession` tidak diubah.

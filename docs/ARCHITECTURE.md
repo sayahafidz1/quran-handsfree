@@ -85,7 +85,7 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
 - **`src/recognition/` & `src/recognition/tilawa/` (Integration Boundary)**:
   - Adapter khusus yang mengimplementasikan `RecognitionAdapter` dengan membungkus Worker `@tilawa/core`.
   - Mengisolasi seluruh interaksi `@tilawa/core` dan format pesan internal worker.
-  - Pemilihan engine ada di `src/recognition/createAdapter.ts`: default 0.4.0 Zipformer; `VITE_TILAWA_ENGINE=v1` memakai jalur Tilawa 1.0 (dipakai di produksi Cloudflare) (`recognition.v1.worker.ts` + `v1Mapper.ts`) yang menghasilkan kontrak event yang sama, sehingga `ReadingSession` dan UI tidak berubah. Lihat `TILAWA_INTEGRATION.md` bagian 6. Sumber file 1.0 (`remote` atau `local`/self-host) dipilih di worker lewat `src/recognition/tilawa/v1Assets.ts`; lihat bagian 7.
+  - Pemilihan engine ada di `src/recognition/createAdapter.ts`: pilihan murni di `src/recognition/engineChoice.ts` (dites): default Tilawa 1.0 (sejak 2026-11-23; dipakai di produksi Cloudflare dan APK), `VITE_TILAWA_ENGINE=v0` memakai cadangan 0.4.0 Zipformer; jalur 1.0 memakai (`recognition.v1.worker.ts` + `v1Mapper.ts`) yang menghasilkan kontrak event yang sama, sehingga `ReadingSession` dan UI tidak berubah. Lihat `TILAWA_INTEGRATION.md` bagian 6. Sumber file 1.0 (`remote` atau `local`/self-host) dipilih di worker lewat `src/recognition/tilawa/v1Assets.ts`; lihat bagian 7.
 - **`src/workers/`**:
   - Menjalankan inferensi ONNX melalui public API paket Tilawa di background thread: `recognition.worker.ts` (0.4.0 Zipformer2-CTC) atau `recognition.v1.worker.ts` (1.0, dengan cadangan model `lite`), sesuai `createAdapter.ts`.
 - **`src/ui/`**:

@@ -8,7 +8,7 @@ Dokumen ini mencatat status terkini, batasan mutlak, serta panduan bagi engineer
 
 **Ringkasan kondisi sekarang**
 - **Produk berjalan** di Cloudflare Workers (`https://quran-handsfree.sudirmanhafidz1.workers.dev`), deploy otomatis dari setiap push ke `main`. Teruji di ponsel pemilik: halaman pemuatan model, mode pesawat, pindah surat (dengan/tanpa basmalah), ayat kembar, jeda 10 detik, isti'adzah, layar menyala, berhenti lalu mulai, bookmark.
-- **Dua engine pengenalan** ada di kode: Tilawa 0.4.0 (bawaan kode, cadangan stabil, tag `v0.4.0-stabil`) dan Tilawa 1.0 (dipakai di produksi lewat `VITE_TILAWA_ENGINE=v1`). Tabel perbandingan di `docs/TILAWA_INTEGRATION.md` bagian 0. Rencana: 1.0 menjadi bawaan setelah cadangan model `lite` terbukti di ponsel lain; 0.4.0 dihapus belum direncanakan.
+- **Dua engine pengenalan** ada di kode: Tilawa 1.0 (bawaan kode sejak 2026-11-23; produksi dan APK) dan Tilawa 0.4.0 (cadangan stabil, dipilih dengan `VITE_TILAWA_ENGINE=v0`, tag `v0.4.0-stabil`). Tabel perbandingan di `docs/TILAWA_INTEGRATION.md` bagian 0. 0.4.0 dihapus belum direncanakan.
 - **Fitur pada 2026-11-17 sampai 2026-11-18**: model dimuat otomatis dengan layar persiapan penuh (dulu popup), mikrofon menyala otomatis dari navigasi/perintah, cadangan model `lite` otomatis, service worker jaringan-dulu (v4), Wake Lock, Berhenti membuka pencarian baru, jeda hening 10 detik, bookmark manual dan "terakhir dibaca" (localStorage), reset mesin saat membuka posisi sambil mendengarkan (yang terakhir ini belum teruji di ponsel).
 - **Prinsip produk**: mikrofon hanya aktif saat aplikasi tampil (disengaja); aturan Qur'an ketat dan dapat diprediksi; perintah suara (Web Speech API) masih butuh internet.
 - **APK Android (WebView/Capacitor)**: dibangun lewat GitHub Actions (`docs/ANDROID_APK.md`). Model `full` dan `lite` jalan di ponsel pemilik; `lite` juga sudah jalan di ponsel teman (kadang agak lama, tetapi berjalan). Tombol kembali Android teruji 2026-11-23: dari layar baca dan tab Cari/Info ke Beranda, dari Beranda menutup aplikasi, mikrofon mati setelah keluar.
@@ -52,6 +52,6 @@ Dokumen ini mencatat status terkini, batasan mutlak, serta panduan bagi engineer
 ## 3. Panduan Melanjutkan Pekerjaan
 
 1. Pastikan selalu membaca `AGENTS.md`, `docs/ARCHITECTURE.md`, dan `docs/GOALS.md` sebelum memulai tugas baru.
-2. Untuk menguji engine 0.4.0, siapkan aset di `public/tilawa/` (`npm run setup`, panduan [public/tilawa/README.md](../public/tilawa/README.md)). Untuk engine 1.0 isi `.env.local` dengan `VITE_TILAWA_ENGINE=v1` (lihat `docs/TILAWA_INTEGRATION.md` bagian 6 dan 7).
+2. Engine 1.0 adalah bawaan (lihat `docs/TILAWA_INTEGRATION.md` bagian 6 dan 7). Untuk menguji engine 0.4.0, isi `.env.local` dengan `VITE_TILAWA_ENGINE=v0` dan siapkan aset di `public/tilawa/` (`npm run setup`, panduan [public/tilawa/README.md](../public/tilawa/README.md)).
 3. Jalankan `npm run dev` untuk server pengujian lokal di browser.
 4. Setiap penambahan fitur atau modifikasi arsitektur wajib memperbarui berkas `.md` terkait pada perubahan yang sama.

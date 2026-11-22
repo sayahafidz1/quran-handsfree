@@ -2,7 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_DEBUG_RECOGNITION?: string;
-  /** "v1" runs the Tilawa 1.0 evaluation path; anything else keeps 0.4.0 Zipformer. */
+  /** Default (empty or "v1"): Tilawa 1.0. "v0" selects the old 0.4.0 Zipformer fallback. */
   readonly VITE_TILAWA_ENGINE?: string;
   /** Tilawa 1.0 model tier: "auto" (default), "full" or "lite". */
   readonly VITE_TILAWA_V1_TIER?: string;
