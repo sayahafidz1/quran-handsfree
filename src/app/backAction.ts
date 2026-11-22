@@ -19,13 +19,36 @@ export interface CapacitorAppLike {
   exitApp(): void;
 }
 
-/** Finds the App plugin on `window.Capacitor` (injected by the APK); null in a normal browser. */
+type CapacitorGlobal = {
+  Plugins?: { App?: Partial<CapacitorAppLike> };
+  registerPlugin?: (name: string) => Partial<CapacitorAppLike>;
+};
+
+function isApp(value: Partial<CapacitorAppLike> | undefined): value is CapacitorAppLike {
+  return !!value && typeof value.addListener === "function" && typeof value.exitApp === "function";
+}
+
+/** True inside the APK: Capacitor injects `window.Capacitor` there. */
+export function hasCapacitor(globalObject: unknown): boolean {
+  return !!(globalObject as { Capacitor?: unknown } | null)?.Capacitor;
+}
+
+/**
+ * Finds the App plugin through `window.Capacitor` (injected by the APK); null in a normal browser.
+ * Tries `Capacitor.Plugins.App` first, then `Capacitor.registerPlugin("App")`, which is what the plugin's own
+ * JavaScript does (the native side must still have the plugin installed).
+ */
 export function findCapacitorApp(globalObject: unknown): CapacitorAppLike | null {
-  const plugins = (globalObject as { Capacitor?: { Plugins?: { App?: Partial<CapacitorAppLike> } } } | null)
-    ?.Capacitor?.Plugins;
-  const app = plugins?.App;
-  if (app && typeof app.addListener === "function" && typeof app.exitApp === "function") {
-    return app as CapacitorAppLike;
+  const capacitor = (globalObject as { Capacitor?: CapacitorGlobal } | null)?.Capacitor;
+  if (!capacitor) return null;
+  if (isApp(capacitor.Plugins?.App)) return capacitor.Plugins.App;
+  if (typeof capacitor.registerPlugin === "function") {
+    try {
+      const app = capacitor.registerPlugin("App");
+      if (isApp(app)) return app;
+    } catch {
+      // plugin not available: fall back to the History API
+    }
   }
   return null;
 }

@@ -57,7 +57,9 @@ jobs:
           rm -f dist/assets/ort-wasm-simd-threaded.jsep-*.wasm
 
       - name: Pasang Capacitor (hanya untuk build APK ini)
-        run: npm install --no-save @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/app@6
+        # Tanpa --no-save: `cap sync` hanya memasang plugin yang tercatat di package.json. Perubahan ini hanya
+        # ada di salinan build (CI), package.json dan lock di repo tidak disentuh (--no-package-lock).
+        run: npm install --no-package-lock @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/app@6
 
       - name: Buat proyek Android
         run: npx cap add android

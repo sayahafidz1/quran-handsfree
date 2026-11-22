@@ -2,7 +2,7 @@ import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
 import { InactivityTimer } from "./reading/InactivityTimer.ts";
 import { createListenGate } from "./listenGate.ts";
 import { createReaderHistory } from "./readerHistory.ts";
-import { decideBackAction, findCapacitorApp } from "./backAction.ts";
+import { decideBackAction, findCapacitorApp, hasCapacitor } from "./backAction.ts";
 import { createViewState, type AppView, type TabView } from "./viewState.ts";
 import { createWakeLockController, type WakeLockSentinelLike } from "./wakeLock.ts";
 import { createRecognitionAdapter } from "../recognition/createAdapter.ts";
@@ -376,6 +376,14 @@ export function initApp(): void {
   // Inside the APK the Android back button is handled here (the History API entry is not enough there).
   // Without the Capacitor App plugin (normal browser) nothing is registered and the History API does the work.
   const capacitorApp = findCapacitorApp(window);
+  const backStatus = document.querySelector<HTMLElement>("#back-status");
+  if (backStatus) {
+    backStatus.textContent = capacitorApp
+      ? "Tombol kembali Android: ditangani aplikasi (plugin aktif)."
+      : hasCapacitor(window)
+        ? "Tombol kembali Android: APK terdeteksi tetapi plugin tidak ditemukan."
+        : "Tombol kembali: memakai riwayat browser.";
+  }
   capacitorApp?.addListener("backButton", () => {
     const action = decideBackAction(views.current());
     if (action === "leave-reader") void leaveReader();
