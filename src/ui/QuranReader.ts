@@ -152,7 +152,7 @@ export class QuranReader {
     ayah.words.forEach((word, index) => {
       if (index > 0) text.append(" ");
       const wordElement = document.createElement("span");
-      const highlight = ayah.ayah === activeAyah ? getWordHighlight(word, progress, skipped) : getWordHighlight(word, null, skipped);
+      const highlight = ayah.ayah === activeAyah ? getWordHighlight(word, progress, skipped, progress === null) : getWordHighlight(word, null, skipped);
       wordElement.className = `quran-word quran-word-${highlight}`;
       wordElement.dataset.wordIndex = String(word.index);
       wordElement.textContent = word.text;

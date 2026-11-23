@@ -25,6 +25,18 @@ export interface WordProgressEvent {
   matched_indices: number[];
 }
 
+/**
+ * The engine's checker suspects (or confirms, or withdraws) that a word of an ayah was not read.
+ * `word_index` is zero-based. Only omitted words / skipped passages are reported (Tilawa 1.0 only).
+ */
+export interface WordOmissionEvent {
+  type: "word_omission";
+  surah: number;
+  ayah: number;
+  word_index: number;
+  state: "suspected" | "confirmed" | "resolved";
+}
+
 /** Diagnostic text from the engine (checker verdicts, capabilities). Only goes to the reading log. */
 export interface EngineNoteEvent {
   type: "engine_note";
@@ -49,6 +61,7 @@ export type RecognitionEvent =
   | LoadingStatusEvent
   | ReadyEvent
   | EngineNoteEvent
+  | WordOmissionEvent
   | ErrorEvent
   | VerseMatchEvent
   | WordProgressEvent;

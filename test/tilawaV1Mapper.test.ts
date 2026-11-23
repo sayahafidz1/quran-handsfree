@@ -90,5 +90,11 @@ test("checker verdicts become a diagnostic note and never move the reader", () =
     location: { surah: 112, ayah: 1, word: 3 },
     confidence: 0.72
   } as V1CheckerEvent);
-  assert.deepEqual(out, [{ type: "engine_note", text: "checker omitted_word suspected 112:1 kata 3 72%" }]);
+  assert.deepEqual(out, [
+    { type: "engine_note", text: "checker omitted_word suspected 112:1 kata 3 72%" },
+    { type: "word_omission", surah: 112, ayah: 1, word_index: 2, state: "suspected" }
+  ]);
+  // Other checker classes are only noted, never marked.
+  const added = mapper.map({ type: "checker", state: "suspected", errorClass: "added_word", location: { surah: 112, ayah: 1, word: 2 } } as V1CheckerEvent);
+  assert.deepEqual(added.map((e) => e.type), ["engine_note"]);
 });

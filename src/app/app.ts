@@ -605,6 +605,7 @@ export function initApp(): void {
       confidence.textContent = `Keyakinan: ${Math.round(event.confidence * 100)}%`;
     }
     if (event.type === "engine_note") logEvent(event.text);
+    if (event.type === "word_omission") readingSession.handleEvent(event);
     if (event.type === "word_progress") {
       const accepted = readingSession.handleEvent(event);
       logEvent(describeRecognitionEvent(event, accepted));

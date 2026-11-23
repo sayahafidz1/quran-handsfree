@@ -66,7 +66,20 @@ export class V1PositionMapper {
 
   map(event: V1Event): RecognitionEvent[] {
     if (event.type === "checker") {
-      return [{ type: "engine_note", text: describeChecker(event as V1CheckerEvent) }];
+      const checker = event as V1CheckerEvent;
+      const out: RecognitionEvent[] = [{ type: "engine_note", text: describeChecker(checker) }];
+      const state = checker.state;
+      const isOmission = checker.errorClass === "omitted_word" || checker.errorClass === "skipped_passage";
+      if (isOmission && checker.location && (state === "suspected" || state === "confirmed" || state === "resolved")) {
+        out.push({
+          type: "word_omission",
+          surah: checker.location.surah,
+          ayah: checker.location.ayah,
+          word_index: Math.max(0, checker.location.word - 1),
+          state
+        });
+      }
+      return out;
     }
     // Only `locked` positions move the app; ambiguous/lost/acquiring are ignored.
     if (event.type !== "position") return [];

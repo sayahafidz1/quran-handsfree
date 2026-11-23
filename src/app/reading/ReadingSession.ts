@@ -1,5 +1,5 @@
 import type { SelectedVerse } from "../../command/types.ts";
-import type { RecognitionEvent, VerseMatchEvent, WordProgressEvent } from "../../recognition/types.ts";
+import type { RecognitionEvent, VerseMatchEvent, WordOmissionEvent, WordProgressEvent } from "../../recognition/types.ts";
 import { getNextVerse, getPreviousVerse } from "../../quran/index.ts";
 export interface WordProgress {
   surah: number;
@@ -32,6 +32,9 @@ export function findSkippedIndices(seen: Iterable<number>): number[] {
   for (let i = 0; i < furthest; i++) if (!set.has(i)) skipped.push(i);
   return skipped;
 }
+
+/** A suspected omission is shown only after it has stood for this long without being withdrawn. */
+export const OMISSION_HOLD_MS = 1000;
 
 export type ReadingSessionState =
   | "idle"
@@ -74,6 +77,13 @@ export class ReadingSession {
   private discoveryOpen = false;
   /** Every word index recognized so far, per ayah ("surah:ayah"). Alignments restart, so this is the history. */
   private seenWords = new Map<string, Set<number>>();
+  /** Words the engine's checker says were not read, per "surah:ayah:index". `shown` ones are marked red. */
+  private checkerMarks = new Map<string, { surah: number; ayah: number; index: number; shown: boolean; timer: ReturnType<typeof setTimeout> | null }>();
+  private readonly omissionHoldMs: number;
+
+  public constructor(options: { omissionHoldMs?: number } = {}) {
+    this.omissionHoldMs = options.omissionHoldMs ?? OMISSION_HOLD_MS;
+  }
   /**
    * True while the current lock came from discovery and its ayah is not yet
    * finished. Parallel ayahs share their opening words (3:142 vs 2:214), so the
@@ -104,6 +114,7 @@ export class ReadingSession {
     this.expectedNextVerse = null;
     this.wordProgress = null;
     this.seenWords.clear();
+    this.clearCheckerMarks();
     this.discoveryOpen = false;
     this.provisional = false;
     this.state = "discovering";
@@ -118,6 +129,7 @@ export class ReadingSession {
     this.expectedNextVerse = null;
     this.wordProgress = null;
     this.seenWords.clear();
+    this.clearCheckerMarks();
     this.discoveryOpen = false;
     this.provisional = false;
     this.notify();
@@ -182,12 +194,46 @@ export class ReadingSession {
     if (previous) this.start(previous);
   }
 
+  /**
+   * Checker verdict about a word that was not read. `confirmed` is shown at once; `suspected` only after
+   * it stood for OMISSION_HOLD_MS (the engine often withdraws a doubt within a fraction of a second);
+   * `resolved` removes the mark. Never moves the reading position.
+   */
+  public handleOmission(event: WordOmissionEvent): void {
+    const key = `${event.surah}:${event.ayah}:${event.word_index}`;
+    const existing = this.checkerMarks.get(key);
+    if (event.state === "resolved") {
+      if (!existing) return;
+      if (existing.timer) clearTimeout(existing.timer);
+      this.checkerMarks.delete(key);
+      if (existing.shown) this.notify();
+      return;
+    }
+    if (event.state === "confirmed") {
+      if (existing?.timer) clearTimeout(existing.timer);
+      this.checkerMarks.set(key, { surah: event.surah, ayah: event.ayah, index: event.word_index, shown: true, timer: null });
+      this.notify();
+      return;
+    }
+    if (existing) return;
+    const mark = { surah: event.surah, ayah: event.ayah, index: event.word_index, shown: false, timer: null as ReturnType<typeof setTimeout> | null };
+    mark.timer = setTimeout(() => {
+      mark.timer = null;
+      mark.shown = true;
+      this.notify();
+    }, this.omissionHoldMs);
+    this.checkerMarks.set(key, mark);
+  }
+
   public handleEvent(event: RecognitionEvent): boolean {
     if (event.type === "verse_match") {
       this.handleVerseMatch(event);
       return true;
     } else if (event.type === "word_progress") {
       return this.handleWordProgress(event);
+    } else if (event.type === "word_omission") {
+      this.handleOmission(event);
+      return true;
     }
     return false;
   }
@@ -381,7 +427,18 @@ export class ReadingSession {
       const skipped = findSkippedIndices(seen);
       if (skipped.length > 0) result[key] = skipped;
     }
+    for (const mark of this.checkerMarks.values()) {
+      if (!mark.shown) continue;
+      const key = `${mark.surah}:${mark.ayah}`;
+      const merged = new Set([...(result[key] ?? []), mark.index]);
+      result[key] = [...merged].sort((a, b) => a - b);
+    }
     return result;
+  }
+
+  private clearCheckerMarks(): void {
+    for (const mark of this.checkerMarks.values()) if (mark.timer) clearTimeout(mark.timer);
+    this.checkerMarks.clear();
   }
 
   private copyVerse(verse: SelectedVerse | null): SelectedVerse | null {

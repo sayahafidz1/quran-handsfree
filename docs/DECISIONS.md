@@ -225,3 +225,10 @@
 - **Arti merah:** "tidak terdeteksi terbaca", bukan penilaian tajwid/benar-salah. Kata yang dianggap terbaca oleh mesin sendiri tidak akan merah.
 - **Jeda 1 detik dan ambang 80% tidak dikerjakan** (tidak perlu selama kata terlewat terlihat merah).
 - **Diagnosis:** event `checker` Tilawa (`omitted_word`, `skipped_passage`, dst.) kini diteruskan pemeta sebagai `engine_note` dan hanya masuk catatan bacaan di tab Info. Belum dipakai untuk mewarnai; menunggu bukti dari log HP bahwa checker aktif di mode bebas dan di model `lite`.
+
+### Tambahan 2026-11-23 — merah dari checker + kata pertama ayat berikutnya
+
+- **Bukti (log HP 20:124–20:127 dan 5:72–5:73):** checker Tilawa aktif di mode bebas dan `omitted_word` yang `suspected` umumnya berakhir `confirmed`, termasuk kata yang oleh mesin sudah "dikreditkan" (aplikasi tidak bisa melihatnya). Tetapi ada dugaan yang dibatalkan dalam ~0,2 detik (5:72 kata 12, 76%; kata 13, 85%).
+- **Aturan:** `omitted_word`/`skipped_passage` menjadi event `word_omission` (indeks nol). `confirmed` = merah segera; `suspected` = merah setelah bertahan `OMISSION_HOLD_MS` (1 dtk) tanpa `resolved`; `resolved` = merah dilepas (juga saat sesi sedang `mismatch`). `added_word`/`wrong_word` hanya dicatat. Tanda checker digabung dengan tanda celah dari aplikasi di `skippedWords`.
+- **Keterlambatan sorotan:** event ayat berikutnya datang dari mesin ~2,5–3 dtk (sekali 5 dtk) setelah ayat selesai. Aplikasi kini menyorot lembut kata pertama ayat aktif selama belum ada progres (`quran-word-next`). Keterlambatan itu sendiri berasal dari mesin.
+- **Belum dikerjakan:** toleransi pindah ke ayat berikutnya saat kata terakhir belum terbaca (di log, event ayat 128 diabaikan ±8 dtk); Temuan 1 secara penuh.

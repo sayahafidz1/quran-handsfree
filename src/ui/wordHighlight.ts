@@ -1,7 +1,7 @@
 import { hasReachedVerseEnd, type WordProgress } from "../app/reading/ReadingSession.ts";
 import type { QuranWord } from "../quran/content/types.ts";
 
-export type QuranWordHighlight = "passed" | "current" | "upcoming" | "skipped";
+export type QuranWordHighlight = "passed" | "current" | "upcoming" | "skipped" | "next";
 
 /**
  * `progress.wordIndex` is the zero-based alignment cursor reported by Tilawa and
@@ -13,11 +13,13 @@ export type QuranWordHighlight = "passed" | "current" | "upcoming" | "skipped";
 export function getWordHighlight(
   word: QuranWord,
   progress: WordProgress | null,
-  skipped: readonly number[] = []
+  skipped: readonly number[] = [],
+  awaitingStart = false
 ): QuranWordHighlight {
   // A skipped word stays marked, also while the reader is further on or the ayah is finished.
   if (skipped.includes(word.index)) return "skipped";
-  if (!progress) return "upcoming";
+  // Before the engine reports any word of this ayah, the first word is shown as the place to start.
+  if (!progress) return awaitingStart && word.index === 0 ? "next" : "upcoming";
   if (hasReachedVerseEnd(progress)) return "passed";
   if (word.index === progress.wordIndex) return "current";
   if (word.index < progress.wordIndex || progress.matchedIndices.includes(word.index)) return "passed";
