@@ -1,6 +1,7 @@
 import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
 import { InactivityTimer } from "./reading/InactivityTimer.ts";
 import { createListenGate } from "./listenGate.ts";
+import { createReadingLog, describeRecognitionEvent, describeSessionChange } from "./readingLog.ts";
 import { getLastReadVerse } from "./focusVerse.ts";
 import { createModelReadyFlag } from "./modelReadyFlag.ts";
 import { createReaderHistory } from "./readerHistory.ts";
@@ -178,6 +179,52 @@ export function initApp(): void {
     readerStatusElement.textContent = "Teks Quran tidak dapat dimuat.";
     readerElement.replaceChildren();
     console.error("Unable to initialize Quran reader", error);
+  });
+
+  // Catatan bacaan (tab Info): untuk diagnosis di ponsel; hanya nomor surat/ayat/kata.
+  const readingLog = createReadingLog();
+  function logEvent(text: string | null): void {
+    if (text) readingLog.add(performance.now(), text);
+  }
+  let previousLogged: ReadingSessionSnapshot | null = null;
+  readingSession.subscribe((snapshot) => {
+    logEvent(describeSessionChange(previousLogged, snapshot));
+    previousLogged = snapshot;
+  });
+  const readingLogDetails = document.querySelector<HTMLDetailsElement>("#reading-log-details")!;
+  const readingLogText = document.querySelector<HTMLElement>("#reading-log-text")!;
+  const readingLogFeedback = document.querySelector<HTMLElement>("#reading-log-feedback")!;
+  const readingLogCopy = document.querySelector<HTMLButtonElement>("#reading-log-copy")!;
+  const buildLogText = (): string =>
+    readingLog.toText(`Quran Hands-Free catatan bacaan ${new Date().toISOString()} | ${navigator.userAgent}`);
+  readingLogDetails.addEventListener("toggle", () => {
+    if (readingLogDetails.open) readingLogText.textContent = buildLogText();
+  });
+  readingLogCopy.addEventListener("click", async () => {
+    const text = buildLogText();
+    readingLogText.textContent = text;
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(text);
+      copied = true;
+    } catch {
+      // Fallback for WebViews without the async clipboard API.
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.append(area);
+      area.select();
+      try {
+        copied = document.execCommand("copy");
+      } catch {
+        copied = false;
+      }
+      area.remove();
+    }
+    readingLogFeedback.textContent = copied
+      ? `Disalin (${readingLog.size()} baris). Tempelkan ke pengembang.`
+      : "Tidak bisa menyalin otomatis. Tekan lama teks di bawah, pilih semua, lalu salin.";
   });
 
   let lastLoggedReadingState: ReadingSessionSnapshot["state"] | null = null;
@@ -552,12 +599,14 @@ export function initApp(): void {
     }
     if (event.type === "verse_match") {
       readingSession.handleEvent(event);
+      logEvent(describeRecognitionEvent(event));
       if (listening) pauseTimer.touch();
       verse.textContent = `Surah ${event.surah}, ayat ${event.ayah}: ${event.verse_text}`;
       confidence.textContent = `Keyakinan: ${Math.round(event.confidence * 100)}%`;
     }
     if (event.type === "word_progress") {
       const accepted = readingSession.handleEvent(event);
+      logEvent(describeRecognitionEvent(event, accepted));
       if (listening) pauseTimer.touch();
       if (accepted) {
         detail.textContent = `Kemajuan ayat ${event.surah}:${event.ayah} — kata ${event.word_index + 1}/${event.total_words} (cocok ${event.matched_indices.length})`;

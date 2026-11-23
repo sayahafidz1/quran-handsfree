@@ -35,6 +35,7 @@ Catat jenis ponsel, versi Android, dan versi Android System WebView (Pengaturan,
 7. Bila gagal memuat model: salin pesan error yang tampil.
 8. Tata letak baru (branch `ui-app-layout`): tab Beranda/Cari/Info; **Mulai membaca** menyalakan mikrofon; **Kembali** di layar baca menghentikan pendengaran; ikon bookmark di tiap ayat menyimpan tanpa menghentikan bacaan.
 9. **Tombol kembali Android** di layar baca: harus kembali ke tab asal dan menghentikan mikrofon, bukan menutup aplikasi. Dari tab Cari/Info tombol kembali ke Beranda; dari Beranda menutup aplikasi. Setelah keluar dari layar baca pastikan indikator mikrofon Android mati. Di tab Info baris "Tombol kembali" menunjukkan apakah plugin terpasang (diagnosis). Catat bila ada yang berbeda.
+10. **Catatan bacaan**: bila status "Menunggu ayat berikutnya" muncul padahal kata terakhir belum dibaca, segera buka tab Info, buka "Catatan bacaan (untuk diagnosis)", tekan **Salin catatan**, lalu tempelkan ke pengembang bersama keterangan ayat dan kata mana yang belum Anda baca.
 
 ## 5. Hal yang belum pasti
 - Alur kerja belum pernah dijalankan; percobaan pertama bisa gagal dan perlu beberapa putaran perbaikan (versi Java 17 dan Capacitor 6 dipilih berdasarkan perkiraan, bukan hasil uji).
