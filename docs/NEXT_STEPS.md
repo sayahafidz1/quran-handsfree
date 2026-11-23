@@ -8,6 +8,21 @@ tetap diisolasi melalui `TilawaAdapter`.
 
 Keputusan dan rancangan: `DECISIONS.md` 2026-11-19. Tahap 1 (tiga tab, layar baca penuh, halaman persiapan) tahap 2 (ikon bookmark di tiap ayat), tahap 3 (Beranda) dan tahap 4 (tombol kembali Android) selesai dan teruji di ponsel pemilik (2026-11-23), lalu digabung ke `main`. Sisa: keputusan jumlah ayat di layar baca (3, sekitar 7, atau seluruh surat), naik ke Tilawa `rc.1` (periksa dulu bahwa sudah dipublikasikan di npm), dan daftar uji offline APK. Diuji di ponsel lewat APK dari branch (Actions, Run workflow, pilih branch).
 
+## 0b. Tampilan Teks Arab: Harakat, Ukuran Font, Mode Gelap (dicatat 2026-11-23, belum dikerjakan)
+
+Permintaan pemilik setelah uji baca panjang: harakat terasa kecil dibanding aplikasi Qur'an lain; kedepannya perlu pengaturan ukuran font dan mode gelap. Dicatat saja, tanpa perubahan kode.
+
+Temuan dari kode (`src/ui/styles.css`, `index.html`):
+- `.arabic-text` memakai `font-family: "Amiri", Georgia, serif` dan `font-size: clamp(1.7rem, 5vw, 2.6rem)`; di ponsel lebar sekitar 390 px hasilnya sekitar 27 px (batas bawah).
+- **Font Amiri tidak dimuat oleh aplikasi** (tidak ada berkas font atau tautan font). Ia hanya terpakai bila terpasang di perangkat; selain itu yang tampil font Arab bawaan sistem, yang harakatnya biasanya kecil. Ukuran harakat ditentukan oleh font, bukan hanya `font-size`.
+- Untuk APK tanpa internet font harus ikut di dalam aplikasi (dan di cache service worker untuk versi web), bukan dari Google Fonts.
+
+Rencana bila dikerjakan:
+1. Sertakan font Qur'an berlisensi OFL (kandidat: Amiri atau Scheherazade New; juga bandingkan dengan font mushaf KFGQPC bila lisensinya cocok) sebagai berkas lokal; periksa lisensi dan catat di `THIRD_PARTY_NOTICES.md`.
+2. Pengaturan ukuran huruf (misalnya A-/A+ atau penggeser) yang disimpan di localStorage dan menggeser `font-size` serta `line-height` teks Arab.
+3. Mode gelap: warna di `styles.css` masih berupa kode hex tersebar; perlu dijadikan variabel CSS dulu, lalu tema terang/gelap/ikuti sistem dengan pilihan tersimpan. Perhatikan warna sorotan kata (`quran-word-*`) dan ikon bookmark agar tetap terbaca di gelap.
+4. Untuk memilih ukuran dan font, sebuah tangkapan layar dari aplikasi Qur'an yang disukai pemilik (dan namanya) membantu sebagai acuan; tidak wajib.
+
 ## 1. Quran Reader UI
 
 - Tampilkan surat dan ayat dengan pemilihan surat/ayat.
