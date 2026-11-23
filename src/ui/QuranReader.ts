@@ -1,4 +1,5 @@
 import type { ReadingSessionSnapshot, WordProgress } from "../app/reading/ReadingSession.ts";
+import { getFocusVerse } from "../app/focusVerse.ts";
 import type { QuranContentProvider } from "../quran/content/index.ts";
 import type { QuranAyah } from "../quran/content/types.ts";
 import { getReadingStatus } from "./readingStatus.ts";
@@ -47,7 +48,8 @@ export class QuranReader {
     this.stateElement.textContent = readingStatus.label;
     this.stateElement.dataset.state = snapshot.state;
 
-    const position = snapshot.currentVerse ?? snapshot.expectedVerse;
+    const focus = getFocusVerse(snapshot);
+    const position = focus.verse;
     if (!position) {
       this.activePositionKey = null;
       this.titleElement.textContent = "Belum ada posisi bacaan";
@@ -65,7 +67,7 @@ export class QuranReader {
       return;
     }
 
-    const role = snapshot.currentVerse ? "Posisi bacaan saat ini" : "Target bacaan";
+    const role = focus.waiting ? "Menunggu ayat berikutnya" : snapshot.currentVerse ? "Posisi bacaan saat ini" : "Target bacaan";
     this.titleElement.textContent = `${surah.name} · ${surah.arabicName}`;
     this.statusElement.textContent = `${readingStatus.message} ${role}: ${surah.name} (${surah.number}), ayat ${position.ayah}.`;
     const wordProgress = snapshot.wordProgress

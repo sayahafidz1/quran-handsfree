@@ -24,7 +24,7 @@ const STATE_PRESENTATIONS: Record<Exclude<ReadingSessionState, "mismatch">, Read
   },
   expecting_next: {
     label: "Menunggu ayat berikutnya",
-    message: "Ayat selesai. Lanjutkan ke ayat yang diharapkan untuk memulihkan tracking."
+    message: "Ayat selesai. Lanjutkan ke ayat yang disorot."
   },
   completed: {
     label: "Selesai",

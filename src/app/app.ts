@@ -1,6 +1,7 @@
 import { MicrophoneCapture } from "../audio/MicrophoneCapture.ts";
 import { InactivityTimer } from "./reading/InactivityTimer.ts";
 import { createListenGate } from "./listenGate.ts";
+import { getLastReadVerse } from "./focusVerse.ts";
 import { createModelReadyFlag } from "./modelReadyFlag.ts";
 import { createReaderHistory } from "./readerHistory.ts";
 import { decideBackAction, findCapacitorApp, hasCapacitor } from "./backAction.ts";
@@ -169,7 +170,9 @@ export function initApp(): void {
       const position = snapshot.currentVerse ?? snapshot.expectedVerse;
       navigation.setCurrentPosition(position);
       // "Terakhir dibaca" hanya dari ayat yang benar-benar terdeteksi, bukan sekadar dibuka manual.
-      if (snapshot.currentVerse) bookmarks.noteReading(snapshot.currentVerse);
+      // Setelah satu ayat dibaca penuh, yang diingat adalah ayat berikutnya (tempat melanjutkan).
+      const lastRead = getLastReadVerse(snapshot);
+      if (lastRead) bookmarks.noteReading(lastRead);
     });
   }).catch((error: unknown) => {
     readerStatusElement.textContent = "Teks Quran tidak dapat dimuat.";
