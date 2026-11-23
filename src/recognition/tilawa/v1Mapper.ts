@@ -26,7 +26,24 @@ export interface V1PositionEvent {
   }[];
 }
 
-export type V1Event = V1PositionEvent | { type: string };
+export interface V1CheckerEvent {
+  type: "checker";
+  state: string;
+  errorClass: string;
+  location: V1WordRef;
+  expected?: unknown;
+  observed?: unknown;
+  confidence?: number;
+}
+
+export type V1Event = V1PositionEvent | V1CheckerEvent | { type: string };
+
+/** One line about a checker verdict, for the reading log (diagnosis only; it never moves the reader). */
+export function describeChecker(event: V1CheckerEvent): string {
+  const at = event.location ? `${event.location.surah}:${event.location.ayah} kata ${event.location.word}` : "?";
+  const confidence = typeof event.confidence === "number" ? ` ${Math.round(event.confidence * 100)}%` : "";
+  return `checker ${event.errorClass} ${event.state} ${at}${confidence}`;
+}
 
 /** Returns the words of an ayah (Uthmani), or undefined when unknown. */
 export type AyahWordsLookup = (surah: number, ayah: number) => readonly string[] | undefined;
@@ -48,6 +65,22 @@ export class V1PositionMapper {
   }
 
   map(event: V1Event): RecognitionEvent[] {
+    if (event.type === "checker") {
+      const checker = event as V1CheckerEvent;
+      const out: RecognitionEvent[] = [{ type: "engine_note", text: describeChecker(checker) }];
+      const state = checker.state;
+      const isOmission = checker.errorClass === "omitted_word" || checker.errorClass === "skipped_passage";
+      if (isOmission && checker.location && (state === "suspected" || state === "confirmed" || state === "resolved")) {
+        out.push({
+          type: "word_omission",
+          surah: checker.location.surah,
+          ayah: checker.location.ayah,
+          word_index: Math.max(0, checker.location.word - 1),
+          state
+        });
+      }
+      return out;
+    }
     // Only `locked` positions move the app; ambiguous/lost/acquiring are ignored.
     if (event.type !== "position") return [];
     const position = event as V1PositionEvent;

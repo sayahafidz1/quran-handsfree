@@ -475,3 +475,70 @@ test("ReadingSession discovery restart listeners can be removed", () => {
 
   assert.equal(calls, 0);
 });
+
+test("a word passed over without being recognized is reported as skipped and stays so", () => {
+  const session = new ReadingSession();
+  session.start({ surah: 2, ayah: 219 });
+  session.handleEvent(verseMatch(2, 219));
+  session.handleEvent(wordProgress(2, 219, 2, 10, [0, 1, 2]));
+  assert.deepEqual(session.getState().skippedWords, {});
+  // The engine restarts its alignment after word 4 (index 3), which was never recognized.
+  session.handleEvent(wordProgress(2, 219, 5, 10, [4, 5]));
+  assert.deepEqual(session.getState().skippedWords, { "2:219": [3] });
+  // The marking survives later progress, and disappears once the word is actually read.
+  session.handleEvent(wordProgress(2, 219, 6, 10, [4, 5, 6]));
+  assert.deepEqual(session.getState().skippedWords, { "2:219": [3] });
+  session.handleEvent(wordProgress(2, 219, 3, 10, [3]));
+  assert.deepEqual(session.getState().skippedWords, {});
+});
+
+test("skipped words of a finished ayah are kept while the next ayah is read, and cleared on start", () => {
+  const session = new ReadingSession();
+  session.start({ surah: 2, ayah: 219 });
+  session.handleEvent(verseMatch(2, 219));
+  session.handleEvent(wordProgress(2, 219, 0, 4, [0]));
+  session.handleEvent(wordProgress(2, 219, 3, 4, [2, 3]));
+  assert.equal(session.getState().state, "expecting_next");
+  assert.deepEqual(session.getState().skippedWords, { "2:219": [1] });
+  session.start({ surah: 2, ayah: 220 });
+  assert.deepEqual(session.getState().skippedWords, {});
+});
+
+const omission = (word_index: number, state: "suspected" | "confirmed" | "resolved") =>
+  ({ type: "word_omission" as const, surah: 20, ayah: 125, word_index, state });
+
+test("a confirmed checker omission is marked at once and removed when resolved", () => {
+  const session = new ReadingSession();
+  session.handleOmission(omission(2, "confirmed"));
+  assert.deepEqual(session.getState().skippedWords, { "20:125": [2] });
+  session.handleOmission(omission(2, "resolved"));
+  assert.deepEqual(session.getState().skippedWords, {});
+});
+
+test("a suspected omission is shown only after the hold, and never if withdrawn first", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const session = new ReadingSession({ omissionHoldMs: 1000 });
+  session.handleOmission(omission(1, "suspected"));
+  assert.deepEqual(session.getState().skippedWords, {});
+  t.mock.timers.tick(999);
+  assert.deepEqual(session.getState().skippedWords, {});
+  t.mock.timers.tick(1);
+  assert.deepEqual(session.getState().skippedWords, { "20:125": [1] });
+
+  session.handleOmission(omission(5, "suspected"));
+  session.handleOmission(omission(5, "resolved"));
+  t.mock.timers.tick(2000);
+  assert.deepEqual(session.getState().skippedWords, { "20:125": [1] });
+  session.reset();
+  assert.deepEqual(session.getState().skippedWords, {});
+});
+
+test("checker marks and engine-gap marks of the same ayah are merged", () => {
+  const session = new ReadingSession();
+  session.start({ surah: 20, ayah: 125 });
+  session.handleEvent(verseMatch(20, 125));
+  session.handleEvent(wordProgress(20, 125, 2, 8, [0, 1, 2]));
+  session.handleEvent(wordProgress(20, 125, 6, 8, [5, 6]));
+  session.handleOmission(omission(1, "confirmed"));
+  assert.deepEqual(session.getState().skippedWords, { "20:125": [1, 3, 4] });
+});

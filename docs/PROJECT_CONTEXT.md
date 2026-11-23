@@ -55,3 +55,13 @@ Dokumen ini mencatat status terkini, batasan mutlak, serta panduan bagi engineer
 2. Engine 1.0 adalah bawaan (lihat `docs/TILAWA_INTEGRATION.md` bagian 6 dan 7). Untuk menguji engine 0.4.0, isi `.env.local` dengan `VITE_TILAWA_ENGINE=v0` dan siapkan aset di `public/tilawa/` (`npm run setup`, panduan [public/tilawa/README.md](../public/tilawa/README.md)).
 3. Jalankan `npm run dev` untuk server pengujian lokal di browser.
 4. Setiap penambahan fitur atau modifikasi arsitektur wajib memperbarui berkas `.md` terkait pada perubahan yang sama.
+
+## 4. Aturan Kerja dengan Pemilik Proyek
+
+- Bahasa Indonesia sederhana; tanpa ide liar. Rencanakan dulu, **tunggu persetujuan** sebelum mengubah kode.
+- Perubahan besar di branch; tiap perubahan menyertakan tes murni dan pembaruan `.md` yang terkait.
+- **Tanya sebelum push ke `main`.** Push ke branch dan pembangunan APK `full` untuk uji ponsel boleh. `main` otomatis di-deploy ke Cloudflare.
+- Inti Tilawa tidak diubah. Pengujian ponsel: APK dari Actions (`android-apk.yml`, pilih branch dan tier), lalu pemilik menyalin "Catatan bacaan" dari tab Info untuk diagnosis.
+- Sandbox tidak bisa `npm install` atau `npm run build`; build diverifikasi oleh Actions/Cloudflare. Pesan hook "unpushed commits" sering basi: cek `git ls-remote --heads origin <branch>` terhadap `git rev-parse HEAD`.
+- Kegagalan build `403` dari Maven Central di Actions bersifat sementara: jalankan ulang (`gh run rerun`).
+

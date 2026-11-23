@@ -23,6 +23,8 @@ h1 { font-family: Georgia, serif; font-size: clamp(1.7rem, 6vw, 2.4rem); line-he
 .quran-word-passed { color: #526863; }
 .quran-word-current { background: #f2c66d; box-shadow: 0 0 0 2px #ad702140; color: #173b34; }
 .quran-word-upcoming { color: #173b34; }
+.quran-word-next { background: #f2c66d55; box-shadow: 0 0 0 2px #ad702133; border-radius: 6px; color: #173b34; }
+.quran-word-skipped { color: #c62828; text-decoration: underline wavy #c62828; text-decoration-thickness: 2px; text-underline-offset: 6px; }
 .ayah-number { align-items: center; background: #d5e5dc; border-radius: 50%; color: #0b3b32; display: inline-flex; flex: 0 0 34px; font-weight: 800; height: 34px; justify-content: center; width: 34px; }
 #status, #verse { font-size: 1.25rem; font-weight: 700; margin: 8px 0; }
 .muted { color: #64736e; line-height: 1.5; min-height: 1.5em; margin: 4px 0; }
@@ -134,3 +136,6 @@ footer { color: #64736e; font-size: .85rem; margin: 32px 0 0; }
 .ayah-bookmark { align-items: center; background: transparent; border-radius: 12px; color: #526863; display: flex; height: 44px; justify-content: center; padding: 0; width: 44px; }
 .ayah-bookmark.saved { color: #ad7021; }
 .reader-toast { margin: 0 0 4px; min-height: 1.4em; text-align: center; }
+
+/* Catatan bacaan (diagnosis) */
+.reading-log-text { background: #f8f4e9; border: 1px solid #e5dccb; border-radius: 12px; font-size: .72rem; line-height: 1.45; margin: 8px 0 0; max-height: 240px; overflow: auto; padding: 10px; white-space: pre-wrap; word-break: break-word; }

@@ -9,7 +9,8 @@ const snapshot = (state: ReadingSessionSnapshot["state"]): ReadingSessionSnapsho
   expectedVerse: null,
   detectedVerse: null,
   expectedNextVerse: null,
-  wordProgress: null
+  wordProgress: null,
+  skippedWords: {}
 });
 
 test("provides clear presentation text for every reading state", () => {

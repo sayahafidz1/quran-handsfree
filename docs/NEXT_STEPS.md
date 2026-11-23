@@ -148,3 +148,15 @@ Quran Reader UI
   -> General Quran Features
   -> Tajwid / Pronunciation Assistance
 ```
+
+## Daftar Tersisa (per 2026-11-24)
+
+Kata terlewat berwarna merah (deteksi aplikasi + checker Tilawa) sudah selesai dan digabung ke `main`. Temuan 1 (kata terakhir hanya dibaca sebagian, mis. "maj" dari "majedzub", tapi ayat dianggap selesai) **diterima sebagai batas mesin**: mesin hanya memberi posisi per kata, dan checker baru menandai kata itu bila ada suara sesudahnya. Kemungkinan perbaikan benar: keterangan cakupan huruf dari Tilawa (di luar aplikasi).
+
+1. Ukuran harakat/font, pengaturan ukuran huruf, mode gelap (bagian 0b): font Qur'an berlisensi bebas (Amiri / Scheherazade New), ukuran di localStorage, variabel CSS.
+2. Kelonggaran pindah ayat saat kata terakhir belum terbaca (log 20:127: event ayat 128 diabaikan ±8 dtk lalu sesi `idle`). Tidak mendesak karena kata merah sudah ada.
+3. Jumlah ayat di layar baca (kini 3; seluruh surat ditunda).
+4. Perintah suara offline di APK (plugin pengenal suara Android; perlu persetujuan terpisah).
+5. Naik ke Tilawa `rc.1`: pemilik menjalankan `npm view @tilawa/core@1.0.0-rc.1 version` dan `npm install`; lalu cek hash model di `scripts/setup-tilawa-v1.mjs` dan bangun APK.
+6. Daftar uji offline APK yang belum dicentang (`docs/ANDROID_APK.md`).
+7. Perawatan: hapus branch yang sudah digabung; APK bertanda tangan tetap + pengecekan update dari dalam aplikasi (kini APK debug: uninstall lalu install ulang).

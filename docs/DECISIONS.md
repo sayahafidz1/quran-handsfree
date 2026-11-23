@@ -213,3 +213,22 @@
 - **Konteks**: Uji baca panjang di ponsel pemilik: setelah satu ayat selesai (status "Menunggu ayat berikutnya"), layar tetap di ayat yang baru dibaca, dan "terakhir dibaca" tetap ayat itu. Pemilik ingin: selesai membaca Hud 12 lalu keluar, terakhir dibaca adalah Hud 13, dengan syarat satu ayat sudah dibaca penuh.
 - **Keputusan**: `src/app/focusVerse.ts` (murni, dites). Saat `expecting_next`, layar baca berfokus ke `expectedNextVerse` (di akhir surat: ayat 1 surat berikutnya) dan "terakhir dibaca" menyimpan ayat itu. Ayat yang baru terbaca sebagian tidak memajukan "terakhir dibaca". Target yang baru dibuka tetapi belum terdeteksi tidak dicatat sebagai terbaca (aturan lama). Aturan `ReadingSession` tidak diubah.
 - **Belum diubah (menunggu data)**: laporan bahwa status "menunggu ayat berikutnya" kadang muncul padahal 1 atau 2 kata terakhir belum dibaca. Aturan sekarang menyebut ayat selesai begitu kata terakhir masuk `matched_indices`; dugaan: penunjuk kata Tilawa kadang mendahului bacaan. Aturan tidak diubah sebelum ada log kejadian nyata dari ponsel.
+
+## 2026-11-23 — Catatan Bacaan di Tab Info (Alat Diagnosis)
+- **Konteks**: Untuk menyelidiki "menunggu ayat berikutnya" yang muncul terlalu dini (lihat entri sebelumnya) dibutuhkan urutan kejadian nyata dari ponsel, sedangkan alat pengembang di ponsel sulit dipakai.
+- **Keputusan**: Bagian "Catatan bacaan (untuk diagnosis)" di tab Info dengan satu tombol "Salin catatan". Berisi 150 kejadian terakhir: kejadian mesin (ayat, kata kursor/total, indeks kata cocok, diterima atau diabaikan sesi) dan perubahan status sesi, waktu relatif; hanya nomor surat/ayat/kata, tanpa suara, hanya di memori (hilang saat aplikasi ditutup), dan tidak dikirim ke mana pun kecuali bila pemilik menyalin dan menempelkannya sendiri. Tidak mengubah aturan bacaan.
+
+## 2026-11-23 — Kata terlewat ditandai merah
+
+- **Masalah:** mesin Tilawa boleh melompat di dalam satu ayat (mis. pembaca sengaja tidak membaca satu kata, lalu lanjut). Kata itu tampak sama dengan kata yang terbaca, jadi mudah terlupa.
+- **Keputusan:** `ReadingSession` mengumpulkan semua indeks kata yang pernah cocok per ayat. Kata di bawah kata terjauh yang cocok tetapi tidak pernah cocok = *terlewat*, tampil **merah + garis bergelombang** (`quran-word-skipped`, tanda non-warna untuk pembaca yang sulit membedakan warna). Tanda bertahan selama sesi baca dan hilang saat kata itu akhirnya terbaca atau saat `start`/`reset`.
+- **Arti merah:** "tidak terdeteksi terbaca", bukan penilaian tajwid/benar-salah. Kata yang dianggap terbaca oleh mesin sendiri tidak akan merah.
+- **Jeda 1 detik dan ambang 80% tidak dikerjakan** (tidak perlu selama kata terlewat terlihat merah).
+- **Diagnosis:** event `checker` Tilawa (`omitted_word`, `skipped_passage`, dst.) kini diteruskan pemeta sebagai `engine_note` dan hanya masuk catatan bacaan di tab Info. Belum dipakai untuk mewarnai; menunggu bukti dari log HP bahwa checker aktif di mode bebas dan di model `lite`.
+
+### Tambahan 2026-11-23 — merah dari checker + kata pertama ayat berikutnya
+
+- **Bukti (log HP 20:124–20:127 dan 5:72–5:73):** checker Tilawa aktif di mode bebas dan `omitted_word` yang `suspected` umumnya berakhir `confirmed`, termasuk kata yang oleh mesin sudah "dikreditkan" (aplikasi tidak bisa melihatnya). Tetapi ada dugaan yang dibatalkan dalam ~0,2 detik (5:72 kata 12, 76%; kata 13, 85%).
+- **Aturan:** `omitted_word`/`skipped_passage` menjadi event `word_omission` (indeks nol). `confirmed` = merah segera; `suspected` = merah setelah bertahan `OMISSION_HOLD_MS` (1 dtk) tanpa `resolved`; `resolved` = merah dilepas (juga saat sesi sedang `mismatch`). `added_word`/`wrong_word` hanya dicatat. Tanda checker digabung dengan tanda celah dari aplikasi di `skippedWords`.
+- **Keterlambatan sorotan:** event ayat berikutnya datang dari mesin ~2,5–3 dtk (sekali 5 dtk) setelah ayat selesai. Aplikasi kini menyorot lembut kata pertama ayat aktif selama belum ada progres (`quran-word-next`). Keterlambatan itu sendiri berasal dari mesin.
+- **Belum dikerjakan:** toleransi pindah ke ayat berikutnya saat kata terakhir belum terbaca (di log, event ayat 128 diabaikan ±8 dtk); Temuan 1 secara penuh.

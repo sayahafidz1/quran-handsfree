@@ -77,7 +77,7 @@ export class QuranReader {
       : null;
     const ayahs = this.content.getAyahs(position.surah)
       .filter(({ ayah }) => ayah >= position.ayah - 1 && ayah <= position.ayah + 1);
-    this.element.replaceChildren(...ayahs.map((ayah) => this.createAyah(ayah, position.ayah, wordProgress, position.surah)));
+    this.element.replaceChildren(...ayahs.map((ayah) => this.createAyah(ayah, position.ayah, wordProgress, position.surah, snapshot.skippedWords[`${position.surah}:${ayah.ayah}`] ?? [])));
 
     const positionKey = `${position.surah}:${position.ayah}`;
     if (positionKey !== this.activePositionKey) {
@@ -142,7 +142,7 @@ export class QuranReader {
     return button;
   }
 
-  private createAyah(ayah: QuranAyah, activeAyah: number, progress: WordProgress | null, surah: number): HTMLElement {
+  private createAyah(ayah: QuranAyah, activeAyah: number, progress: WordProgress | null, surah: number, skipped: readonly number[]): HTMLElement {
     const article = document.createElement("article");
     article.className = ayah.ayah === activeAyah ? "reader-ayah current" : "reader-ayah";
     article.setAttribute("aria-current", ayah.ayah === activeAyah ? "true" : "false");
@@ -152,11 +152,12 @@ export class QuranReader {
     ayah.words.forEach((word, index) => {
       if (index > 0) text.append(" ");
       const wordElement = document.createElement("span");
-      const highlight = ayah.ayah === activeAyah ? getWordHighlight(word, progress) : "upcoming";
+      const highlight = ayah.ayah === activeAyah ? getWordHighlight(word, progress, skipped, progress === null) : getWordHighlight(word, null, skipped);
       wordElement.className = `quran-word quran-word-${highlight}`;
       wordElement.dataset.wordIndex = String(word.index);
       wordElement.textContent = word.text;
       if (highlight === "current") wordElement.setAttribute("aria-current", "true");
+      if (highlight === "skipped") wordElement.title = "Kata ini terlewat";
       text.append(wordElement);
     });
     const number = document.createElement("span");

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { V1PositionMapper, type V1PositionEvent } from "../src/recognition/tilawa/v1Mapper.ts";
+import { V1PositionMapper, type V1CheckerEvent, type V1PositionEvent } from "../src/recognition/tilawa/v1Mapper.ts";
 
 const AYAHS: Record<string, string[]> = {
   "112:1": ["قُلْ", "هُوَ", "ٱللَّهُ", "أَحَدٌ"],
@@ -20,8 +20,7 @@ function position(
 
 test("ignores events that are not locked positions", () => {
   const mapper = new V1PositionMapper(lookup);
-  assert.deepEqual(mapper.map({ type: "checker" }), []);
-  assert.deepEqual(mapper.map({ type: "capabilities" }), []);
+    assert.deepEqual(mapper.map({ type: "capabilities" }), []);
   for (const state of ["acquiring", "ambiguous", "lost"] as const) {
     assert.deepEqual(mapper.map(position(state, [112, 1, 2])), []);
   }
@@ -80,4 +79,22 @@ test("a basmalah prefix marks verse_match with basmala: true", () => {
   assert.deepEqual(out[0], {
     type: "verse_match", surah: 112, ayah: 1, verse_text: AYAHS["112:1"].join(" "), confidence: 0.9, basmala: true
   });
+});
+
+test("checker verdicts become a diagnostic note and never move the reader", () => {
+  const mapper = new V1PositionMapper(lookup);
+  const out = mapper.map({
+    type: "checker",
+    state: "suspected",
+    errorClass: "omitted_word",
+    location: { surah: 112, ayah: 1, word: 3 },
+    confidence: 0.72
+  } as V1CheckerEvent);
+  assert.deepEqual(out, [
+    { type: "engine_note", text: "checker omitted_word suspected 112:1 kata 3 72%" },
+    { type: "word_omission", surah: 112, ayah: 1, word_index: 2, state: "suspected" }
+  ]);
+  // Other checker classes are only noted, never marked.
+  const added = mapper.map({ type: "checker", state: "suspected", errorClass: "added_word", location: { surah: 112, ayah: 1, word: 2 } } as V1CheckerEvent);
+  assert.deepEqual(added.map((e) => e.type), ["engine_note"]);
 });
