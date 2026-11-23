@@ -1,3 +1,5 @@
+/* Font Qur'an ikut di dalam aplikasi (berlisensi OFL, lihat public/fonts/OFL.txt) agar harakat tampil sama di semua perangkat, juga offline. */
+@font-face { font-family: "Amiri"; src: url("/fonts/Amiri-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
 :root { color: #173b34; background: #f6f2e8; font-family: Inter, system-ui, sans-serif; }
 * { box-sizing: border-box; }
 body { margin: 0; }

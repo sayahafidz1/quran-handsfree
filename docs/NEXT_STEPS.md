@@ -8,13 +8,15 @@ tetap diisolasi melalui `TilawaAdapter`.
 
 Keputusan dan rancangan: `DECISIONS.md` 2026-11-19. Tahap 1 (tiga tab, layar baca penuh, halaman persiapan) tahap 2 (ikon bookmark di tiap ayat), tahap 3 (Beranda) dan tahap 4 (tombol kembali Android) selesai dan teruji di ponsel pemilik (2026-11-23), lalu digabung ke `main`. Sisa: keputusan jumlah ayat di layar baca (3, sekitar 7, atau seluruh surat), naik ke Tilawa `rc.1` (periksa dulu bahwa sudah dipublikasikan di npm), dan daftar uji offline APK. Diuji di ponsel lewat APK dari branch (Actions, Run workflow, pilih branch).
 
-## 0b. Tampilan Teks Arab: Harakat, Ukuran Font, Mode Gelap (dicatat 2026-11-23, belum dikerjakan)
+## 0b. Tampilan Teks Arab: Harakat, Ukuran Font, Mode Gelap (dicatat 2026-11-23; dikerjakan satu per satu mulai 2026-11-24)
 
-Permintaan pemilik setelah uji baca panjang: harakat terasa kecil dibanding aplikasi Qur'an lain; kedepannya perlu pengaturan ukuran font dan mode gelap. Dicatat saja, tanpa perubahan kode.
+Permintaan pemilik setelah uji baca panjang: harakat terasa kecil dibanding aplikasi Qur'an lain; kedepannya perlu pengaturan ukuran font dan mode gelap. Dikerjakan **satu tahap per satu**, urutan: (1) font Qur'an lokal, (2) pengaturan ukuran huruf, (3) variabel warna lalu mode gelap.
+
+**Status tahap 1 (font), 2026-11-24:** selesai di branch `ui-font-quran`, menunggu uji di ponsel (APK dari branch). Amiri Regular 1.003 (SIL OFL) ada di `public/fonts/`, dimuat lewat `@font-face` di `styles.css`, masuk `APP_SHELL` service worker (cache v5), dan dicatat di `THIRD_PARTY_NOTICES.md` bagian 5. Ukuran huruf sengaja belum diubah, agar perbandingan font adil. Yang perlu dinilai pemilik di ponsel: apakah harakat sudah cukup jelas; bila belum, coba Amiri Quran atau Scheherazade New dengan cara yang sama. Ukuran harakat tidak bisa diatur terpisah dengan CSS biasa (ditentukan desain font dan `font-size`).
 
 Temuan dari kode (`src/ui/styles.css`, `index.html`):
 - `.arabic-text` memakai `font-family: "Amiri", Georgia, serif` dan `font-size: clamp(1.7rem, 5vw, 2.6rem)`; di ponsel lebar sekitar 390 px hasilnya sekitar 27 px (batas bawah).
-- **Font Amiri tidak dimuat oleh aplikasi** (tidak ada berkas font atau tautan font). Ia hanya terpakai bila terpasang di perangkat; selain itu yang tampil font Arab bawaan sistem, yang harakatnya biasanya kecil. Ukuran harakat ditentukan oleh font, bukan hanya `font-size`.
+- **(Diperbaiki di branch `ui-font-quran`, 2026-11-24: font kini ikut di dalam aplikasi.)** Sebelumnya font Amiri tidak dimuat oleh aplikasi (tidak ada berkas font atau tautan font). Ia hanya terpakai bila terpasang di perangkat; selain itu yang tampil font Arab bawaan sistem, yang harakatnya biasanya kecil. Ukuran harakat ditentukan oleh font, bukan hanya `font-size`.
 - Untuk APK tanpa internet font harus ikut di dalam aplikasi (dan di cache service worker untuk versi web), bukan dari Google Fonts.
 
 Rencana bila dikerjakan:
@@ -87,7 +89,7 @@ Setelah UX utama stabil:
   Ditunda dengan sengaja (2026-11-18): mengubah jalur suara untuk semua perangkat tanpa bisa menguji mikrofon di lingkungan pengembangan; kecepatan di ponsel pemilik sudah aman. Kerjakan bila ada masalah nyata, dengan cadangan ke cara lama.
 - Wake Lock layar sudah ada dan teruji di ponsel pemilik (2026-11-18, `src/app/wakeLock.ts`): layar tetap menyala selama mendengarkan. Mikrofon berhenti saat aplikasi ditinggalkan atau layar dikunci sendiri; itu disengaja (`DECISIONS.md` 2026-11-18), bukan masalah.
 - Caching sudah ada: model 1.0 disimpan SDK di Cache API (dan penanda `lite` di `tilawa-v1-prefs`), aset aplikasi oleh service worker. Indikator "tersedia offline" yang eksplisit belum ada.
-- Service worker sudah diperbaiki pada 2026-11-18 (`DECISIONS.md`): halaman jaringan-dulu, aset cache-dulu tanpa menyimpan HTML. Teruji di ponsel pemilik: offline/mode pesawat berjalan. Masih perlu dipastikan di perangkat lain bahwa pengguna lama pulih setelah 1 sampai 2 kali refresh biasa. Cache aset berhash lama menumpuk di `quran-handsfree-v4` sampai versi cache dinaikkan.
+- Service worker sudah diperbaiki pada 2026-11-18 (`DECISIONS.md`): halaman jaringan-dulu, aset cache-dulu tanpa menyimpan HTML. Teruji di ponsel pemilik: offline/mode pesawat berjalan. Masih perlu dipastikan di perangkat lain bahwa pengguna lama pulih setelah 1 sampai 2 kali refresh biasa. Cache aset berhash lama menumpuk di cache aplikasi (kini `quran-handsfree-v5`, dinaikkan 2026-11-24 untuk font) sampai versi cache dinaikkan lagi.
 - SDK 1.0 sudah memeriksa SHA-256 model saat memuat dan halaman persiapan model layar penuh sudah ada (dengan kata-kata berbeda untuk peluncuran pertama dan berikutnya); progres unduhan berupa persen dan indikator ketersediaan offline belum.
 
 ## 5. Evaluasi Recognition Engine
@@ -153,7 +155,7 @@ Quran Reader UI
 
 Kata terlewat berwarna merah (deteksi aplikasi + checker Tilawa) sudah selesai dan digabung ke `main`. Temuan 1 (kata terakhir hanya dibaca sebagian, mis. "maj" dari "majedzub", tapi ayat dianggap selesai) **diterima sebagai batas mesin**: mesin hanya memberi posisi per kata, dan checker baru menandai kata itu bila ada suara sesudahnya. Kemungkinan perbaikan benar: keterangan cakupan huruf dari Tilawa (di luar aplikasi).
 
-1. Ukuran harakat/font, pengaturan ukuran huruf, mode gelap (bagian 0b): font Qur'an berlisensi bebas (Amiri / Scheherazade New), ukuran di localStorage, variabel CSS.
+1. Ukuran harakat/font, pengaturan ukuran huruf, mode gelap (bagian 0b), dikerjakan satu per satu: (a) font Qur'an lokal Amiri: selesai di branch `ui-font-quran`, menunggu uji di ponsel; (b) pengaturan ukuran huruf (5 tingkat, tersimpan di localStorage, kontrol di layar baca); (c) variabel CSS, lalu mode gelap (terang/gelap/ikut sistem, bawaan ikut sistem, gaya hijau tua).
 2. Kelonggaran pindah ayat saat kata terakhir belum terbaca (log 20:127: event ayat 128 diabaikan ±8 dtk lalu sesi `idle`). Tidak mendesak karena kata merah sudah ada.
 3. Jumlah ayat di layar baca (kini 3; seluruh surat ditunda).
 4. Perintah suara offline di APK (plugin pengenal suara Android; perlu persetujuan terpisah).

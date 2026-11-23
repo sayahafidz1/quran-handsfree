@@ -70,3 +70,13 @@ Versi sumber, ukuran, dan SHA-256 aset tercatat di
 - **Di mana atribusi ditampilkan**: layar "Tentang & Lisensi" di aplikasi (`index.html`), `public/tilawa-v1/ATTRIBUTION.txt` (ikut terkemas bersama build), serta `NOTICE.md` dan `LICENSE.txt` paket yang disalin `npm run setup:v1` ke `public/tilawa-v1/`. Untuk APK, pastikan layar Tentang & Lisensi tetap ada dan berkas-berkas itu ikut di dalam paket.
 - **Sumber file saat berjalan**: mode `remote` (bawaan) memuat model dari `tilawa.dev` dan WASM dari jsDelivr; mode `local` memuat semuanya dari aplikasi sendiri (lihat `TILAWA_INTEGRATION.md` bagian 6).
 - Verifikasi teks `NOTICE.md` paket setelah `npm install` sebelum distribusi publik; ringkasan di atas disusun dari salinan upstream yang dibaca, bukan dari paket yang terpasang.
+
+---
+
+## 5. Font Amiri (Teks Arab)
+
+- **Berkas**: `public/fonts/Amiri-Regular.ttf` (Amiri Regular versi 1.003, sekitar 428 KB; SHA-256 `cd2550c0f4c05eb341bf97958211aaa39382bca96577ba3a67d4a3b4912c43c0`), sumber: https://github.com/aliftype/amiri.
+- **Lisensi**: SIL Open Font License 1.1, hak cipta 2010-2022 The Amiri Project Authors. Teks lisensi lengkap ada di `public/fonts/OFL.txt` dan harus selalu ikut bersama berkas font (syarat OFL butir 2). Font dipakai **tanpa perubahan** dan tidak dijual terpisah.
+- **Fungsi**: dimuat lewat `@font-face` di `src/ui/styles.css` untuk teks Arab di layar baca, agar harakat tampil sama di semua perangkat, juga tanpa internet (ikut di cache service worker dan di dalam APK).
+- **Di mana atribusi ditampilkan**: layar "Tentang & Lisensi" di aplikasi (`index.html`) dan dokumen ini.
+- Cakupan karakter diperiksa 2026-11-24: seluruh 70 kode karakter Arab yang dipakai `public/quran/content.json` ada di font ini.
