@@ -23,6 +23,7 @@ h1 { font-family: Georgia, serif; font-size: clamp(1.7rem, 6vw, 2.4rem); line-he
 .quran-word-passed { color: #526863; }
 .quran-word-current { background: #f2c66d; box-shadow: 0 0 0 2px #ad702140; color: #173b34; }
 .quran-word-upcoming { color: #173b34; }
+.quran-word-skipped { color: #c62828; text-decoration: underline wavy #c62828; text-decoration-thickness: 2px; text-underline-offset: 6px; }
 .ayah-number { align-items: center; background: #d5e5dc; border-radius: 50%; color: #0b3b32; display: inline-flex; flex: 0 0 34px; font-weight: 800; height: 34px; justify-content: center; width: 34px; }
 #status, #verse { font-size: 1.25rem; font-weight: 700; margin: 8px 0; }
 .muted { color: #64736e; line-height: 1.5; min-height: 1.5em; margin: 4px 0; }

@@ -133,3 +133,8 @@ Quran Reader UI
   -> General Quran Features
   -> Tajwid / Pronunciation Assistance
 ```
+
+## Setelah uji kata merah
+
+- Salin catatan bacaan dari Info: apakah baris `checker ...` muncul (mode bebas, `lite` vs `full`)? Jika ya dan akurat, warnai juga kata dari checker (minta persetujuan dulu).
+- Setelah Temuan 1 beres: ingatkan pengguna soal ukuran harakat/font dan mode gelap (bagian 0b).

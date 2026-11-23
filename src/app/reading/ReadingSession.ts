@@ -20,6 +20,19 @@ export function hasReachedVerseEnd(progress: Pick<WordProgress, "totalWords" | "
   return progress.totalWords > 0 && progress.matchedIndices.includes(progress.totalWords - 1);
 }
 
+/**
+ * Words that were passed over without ever being recognized: below the furthest word that was
+ * recognized, but never part of any alignment of this ayah. `seen` is everything recognized so far.
+ */
+export function findSkippedIndices(seen: Iterable<number>): number[] {
+  const set = new Set(seen);
+  if (set.size === 0) return [];
+  const furthest = Math.max(...set);
+  const skipped: number[] = [];
+  for (let i = 0; i < furthest; i++) if (!set.has(i)) skipped.push(i);
+  return skipped;
+}
+
 export type ReadingSessionState =
   | "idle"
   | "discovering"
@@ -36,6 +49,8 @@ export interface ReadingSessionSnapshot {
   detectedVerse: SelectedVerse | null;
   expectedNextVerse: SelectedVerse | null;
   wordProgress: WordProgress | null;
+  /** Skipped (never recognized) word indices per ayah, keyed "surah:ayah". Lasts until the next start/reset. */
+  skippedWords: Record<string, number[]>;
 }
 
 export type ReadingSessionListener = (snapshot: ReadingSessionSnapshot) => void;
@@ -57,6 +72,8 @@ export class ReadingSession {
    * is, instead of having to equal `expectedNextVerse`.
    */
   private discoveryOpen = false;
+  /** Every word index recognized so far, per ayah ("surah:ayah"). Alignments restart, so this is the history. */
+  private seenWords = new Map<string, Set<number>>();
   /**
    * True while the current lock came from discovery and its ayah is not yet
    * finished. Parallel ayahs share their opening words (3:142 vs 2:214), so the
@@ -75,7 +92,8 @@ export class ReadingSession {
       expectedVerse: this.copyVerse(this.expectedVerse),
       detectedVerse: this.copyVerse(this.detectedVerse),
       expectedNextVerse: this.copyVerse(this.expectedNextVerse),
-      wordProgress: this.copyWordProgress(this.wordProgress)
+      wordProgress: this.copyWordProgress(this.wordProgress),
+      skippedWords: this.skippedSnapshot()
     };
   }
 
@@ -85,6 +103,7 @@ export class ReadingSession {
     this.detectedVerse = null;
     this.expectedNextVerse = null;
     this.wordProgress = null;
+    this.seenWords.clear();
     this.discoveryOpen = false;
     this.provisional = false;
     this.state = "discovering";
@@ -98,6 +117,7 @@ export class ReadingSession {
     this.detectedVerse = null;
     this.expectedNextVerse = null;
     this.wordProgress = null;
+    this.seenWords.clear();
     this.discoveryOpen = false;
     this.provisional = false;
     this.notify();
@@ -271,6 +291,10 @@ export class ReadingSession {
     }
 
     this.wordProgress = progress;
+    const key = `${progress.surah}:${progress.ayah}`;
+    const seen = this.seenWords.get(key) ?? new Set<number>();
+    progress.matchedIndices.forEach((index) => seen.add(index));
+    this.seenWords.set(key, seen);
     let restartDiscovery = false;
     if (hasReachedVerseEnd(progress)) {
       this.provisional = false;
@@ -349,6 +373,15 @@ export class ReadingSession {
   private normalizeMatchedIndices(indices: readonly number[], totalWords: number): number[] {
     const valid = indices.filter((index) => Number.isInteger(index) && index >= 0 && index < totalWords);
     return [...new Set(valid)].sort((a, b) => a - b);
+  }
+
+  private skippedSnapshot(): Record<string, number[]> {
+    const result: Record<string, number[]> = {};
+    for (const [key, seen] of this.seenWords) {
+      const skipped = findSkippedIndices(seen);
+      if (skipped.length > 0) result[key] = skipped;
+    }
+    return result;
   }
 
   private copyVerse(verse: SelectedVerse | null): SelectedVerse | null {

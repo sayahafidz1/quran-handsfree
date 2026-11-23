@@ -604,6 +604,7 @@ export function initApp(): void {
       verse.textContent = `Surah ${event.surah}, ayat ${event.ayah}: ${event.verse_text}`;
       confidence.textContent = `Keyakinan: ${Math.round(event.confidence * 100)}%`;
     }
+    if (event.type === "engine_note") logEvent(event.text);
     if (event.type === "word_progress") {
       const accepted = readingSession.handleEvent(event);
       logEvent(describeRecognitionEvent(event, accepted));

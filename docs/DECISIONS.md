@@ -217,3 +217,11 @@
 ## 2026-11-23 — Catatan Bacaan di Tab Info (Alat Diagnosis)
 - **Konteks**: Untuk menyelidiki "menunggu ayat berikutnya" yang muncul terlalu dini (lihat entri sebelumnya) dibutuhkan urutan kejadian nyata dari ponsel, sedangkan alat pengembang di ponsel sulit dipakai.
 - **Keputusan**: Bagian "Catatan bacaan (untuk diagnosis)" di tab Info dengan satu tombol "Salin catatan". Berisi 150 kejadian terakhir: kejadian mesin (ayat, kata kursor/total, indeks kata cocok, diterima atau diabaikan sesi) dan perubahan status sesi, waktu relatif; hanya nomor surat/ayat/kata, tanpa suara, hanya di memori (hilang saat aplikasi ditutup), dan tidak dikirim ke mana pun kecuali bila pemilik menyalin dan menempelkannya sendiri. Tidak mengubah aturan bacaan.
+
+## 2026-11-23 — Kata terlewat ditandai merah
+
+- **Masalah:** mesin Tilawa boleh melompat di dalam satu ayat (mis. pembaca sengaja tidak membaca satu kata, lalu lanjut). Kata itu tampak sama dengan kata yang terbaca, jadi mudah terlupa.
+- **Keputusan:** `ReadingSession` mengumpulkan semua indeks kata yang pernah cocok per ayat. Kata di bawah kata terjauh yang cocok tetapi tidak pernah cocok = *terlewat*, tampil **merah + garis bergelombang** (`quran-word-skipped`, tanda non-warna untuk pembaca yang sulit membedakan warna). Tanda bertahan selama sesi baca dan hilang saat kata itu akhirnya terbaca atau saat `start`/`reset`.
+- **Arti merah:** "tidak terdeteksi terbaca", bukan penilaian tajwid/benar-salah. Kata yang dianggap terbaca oleh mesin sendiri tidak akan merah.
+- **Jeda 1 detik dan ambang 80% tidak dikerjakan** (tidak perlu selama kata terlewat terlihat merah).
+- **Diagnosis:** event `checker` Tilawa (`omitted_word`, `skipped_passage`, dst.) kini diteruskan pemeta sebagai `engine_note` dan hanya masuk catatan bacaan di tab Info. Belum dipakai untuk mewarnai; menunggu bukti dari log HP bahwa checker aktif di mode bebas dan di model `lite`.

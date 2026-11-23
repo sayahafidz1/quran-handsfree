@@ -25,6 +25,12 @@ export interface WordProgressEvent {
   matched_indices: number[];
 }
 
+/** Diagnostic text from the engine (checker verdicts, capabilities). Only goes to the reading log. */
+export interface EngineNoteEvent {
+  type: "engine_note";
+  text: string;
+}
+
 export interface LoadingStatusEvent {
   type: "loading_status";
   message: string;
@@ -42,6 +48,7 @@ export interface ErrorEvent {
 export type RecognitionEvent =
   | LoadingStatusEvent
   | ReadyEvent
+  | EngineNoteEvent
   | ErrorEvent
   | VerseMatchEvent
   | WordProgressEvent;
