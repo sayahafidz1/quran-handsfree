@@ -4,6 +4,7 @@ import { createListenGate } from "./listenGate.ts";
 import { createReadingLog, describeRecognitionEvent, describeSessionChange } from "./readingLog.ts";
 import { getLastReadVerse } from "./focusVerse.ts";
 import { createModelReadyFlag } from "./modelReadyFlag.ts";
+import { createArabicSize } from "./displaySettings.ts";
 import { createReaderHistory } from "./readerHistory.ts";
 import { decideBackAction, findCapacitorApp, hasCapacitor } from "./backAction.ts";
 import { createViewState, type AppView, type TabView } from "./viewState.ts";
@@ -69,6 +70,8 @@ export function initApp(): void {
   const prepare = document.querySelector<HTMLButtonElement>("#prepare")!;
   const startReading = document.querySelector<HTMLButtonElement>("#start-reading")!;
   const readerBack = document.querySelector<HTMLButtonElement>("#reader-back")!;
+  const arabicSmaller = document.querySelector<HTMLButtonElement>("#arabic-smaller")!;
+  const arabicLarger = document.querySelector<HTMLButtonElement>("#arabic-larger")!;
   const readerEmpty = document.querySelector<HTMLElement>("#reader-empty")!;
   const readerEmptyTitle = document.querySelector<HTMLElement>("#reader-empty-title")!;
   const readerEmptyText = document.querySelector<HTMLElement>("#reader-empty-text")!;
@@ -573,6 +576,23 @@ export function initApp(): void {
   readerBack.addEventListener("click", () => {
     void leaveReader();
   });
+
+  // Ukuran huruf Arab: satu variabel CSS (--arabic-scale) dipakai .arabic-text; pilihan diingat di perangkat.
+  const arabicSize = createArabicSize(safeLocalStorage());
+  function applyArabicSize(): void {
+    document.documentElement.style.setProperty("--arabic-scale", String(arabicSize.scale()));
+    arabicSmaller.disabled = !arabicSize.canStep(-1);
+    arabicLarger.disabled = !arabicSize.canStep(1);
+  }
+  function stepArabicSize(delta: 1 | -1): void {
+    arabicSize.step(delta);
+    applyArabicSize();
+    // Ukuran baru menggeser tata letak: jaga ayat yang sedang dibaca tetap terlihat.
+    requestAnimationFrame(() => document.querySelector(".reader-ayah.current")?.scrollIntoView({ block: "nearest" }));
+  }
+  arabicSmaller.addEventListener("click", () => stepArabicSize(-1));
+  arabicLarger.addEventListener("click", () => stepArabicSize(1));
+  applyArabicSize();
 
   function handleRecognitionEvent(event: RecognitionEvent): void {
     if (event.type === "loading_status") {

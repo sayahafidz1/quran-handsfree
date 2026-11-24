@@ -95,6 +95,7 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
   - Auto-follow adalah perilaku presentasi di `QuranReader`: ayat aktif di-scroll halus hanya ketika posisi ayat berubah, lalu ditangguhkan sementara setelah wheel, touch, atau navigasi keyboard manual. Resume otomatis hanya meng-scroll ulang elemen ayat yang sedang dirender dan tidak pernah mengubah `ReadingSession`.
   - `QuranNavigation` hanya meneruskan referensi tervalidasi ke callback aplikasi; target tetap dimulai melalui `ReadingSession`.
   - Font teks Arab: `styles.css` memuat `@font-face` "Amiri" dari `public/fonts/Amiri-Regular.ttf` (lisensi OFL, `OFL.txt` di folder yang sama), dipakai oleh `.arabic-text`. Berkas font ada di `APP_SHELL` `public/sw.js` agar tersedia offline, dan ikut di dalam APK lewat `dist/`. Tidak ada kode TypeScript yang berubah. Dijaga oleh `test/fontAssets.test.ts` (`DECISIONS.md` 2026-11-24).
+  - Ukuran huruf teks Arab: modul murni `src/app/displaySettings.ts` (`createArabicSize`; 5 tingkat, tingkat tengah = ukuran lama; storage disuntikkan seperti `modelReadyFlag.ts`; kunci `quran-handsfree:arabic-size`). `initApp` memasang skalanya ke variabel CSS `--arabic-scale` di `<html>`, dan `.arabic-text` mengalikan ukuran dasarnya dengan variabel itu. Tombol A−/A+ ada di bar layar baca (`#arabic-smaller`, `#arabic-larger`). Tidak menyentuh `ReadingSession`, `QuranReader`, atau adapter Tilawa. Dijaga oleh `test/displaySettings.test.ts`.
 
 ---
 
