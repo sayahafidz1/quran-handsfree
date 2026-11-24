@@ -70,3 +70,13 @@ Versi sumber, ukuran, dan SHA-256 aset tercatat di
 - **Di mana atribusi ditampilkan**: layar "Tentang & Lisensi" di aplikasi (`index.html`), `public/tilawa-v1/ATTRIBUTION.txt` (ikut terkemas bersama build), serta `NOTICE.md` dan `LICENSE.txt` paket yang disalin `npm run setup:v1` ke `public/tilawa-v1/`. Untuk APK, pastikan layar Tentang & Lisensi tetap ada dan berkas-berkas itu ikut di dalam paket.
 - **Sumber file saat berjalan**: mode `remote` (bawaan) memuat model dari `tilawa.dev` dan WASM dari jsDelivr; mode `local` memuat semuanya dari aplikasi sendiri (lihat `TILAWA_INTEGRATION.md` bagian 6).
 - Verifikasi teks `NOTICE.md` paket setelah `npm install` sebelum distribusi publik; ringkasan di atas disusun dari salinan upstream yang dibaca, bukan dari paket yang terpasang.
+
+---
+
+## 5. Font Scheherazade New (Teks Arab)
+
+- **Berkas**: `public/fonts/ScheherazadeNew-Regular.ttf` (Scheherazade New Regular versi 4.500, sekitar 324 KB; SHA-256 `794bac8dc9e83d1d620bc471ea694f5f31d0965ce8006490a79dfc51a2d283b3`), sumber: https://software.sil.org/scheherazade/.
+- **Lisensi**: SIL Open Font License 1.1, hak cipta 1994-2026 SIL Global, Reserved Font Names "Scheherazade" dan "SIL". Teks lisensi lengkap ada di `public/fonts/OFL.txt` dan harus selalu ikut bersama berkas font (syarat OFL butir 2). Font dipakai **tanpa perubahan** dan tidak dijual terpisah.
+- **Fungsi**: dimuat lewat `@font-face` di `src/ui/styles.css` untuk teks Arab di layar baca, agar harakat tampil sama di semua perangkat, juga tanpa internet (ikut di cache service worker dan di dalam APK).
+- **Di mana atribusi ditampilkan**: layar "Tentang & Lisensi" di aplikasi (`index.html`) dan dokumen ini.
+- Cakupan karakter diperiksa 2026-11-24: seluruh 69 kode karakter Arab (di luar spasi) yang dipakai `public/quran/content.json` ada di font ini. Font sebelumnya (Amiri) sudah diganti karena menumpuk tanda di beberapa kata (`DECISIONS.md` 2026-11-25).

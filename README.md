@@ -40,6 +40,7 @@ quran-handsfree/
 ├── public/
 │   ├── manifest.webmanifest # Konfigurasi PWA Web Manifest
 │   ├── sw.js                # Service worker untuk caching offline
+│   ├── fonts/               # Font Qur'an Scheherazade New (SIL OFL) + OFL.txt; ikut di cache offline dan di APK
 │   ├── quran/content.json   # Asset teks Quran offline (114 surah)
 │   ├── tilawa/              # Aset runtime Tilawa 0.4.0 (npm run setup; tidak ke Git)
 │   └── tilawa-v1/           # Aset self-host Tilawa 1.0 (npm run setup:v1; hanya ATTRIBUTION.txt di Git)
@@ -67,7 +68,7 @@ quran-handsfree/
 stabil melalui `OfflineQuranContentProvider`. Provider ini tidak memiliki
 reading state dan tidak mengimpor internal recognition engine. Asset
 `public/quran/content.json` dicache oleh service worker untuk penggunaan
-offline. Service worker (`public/sw.js`) memuat halaman dengan jaringan dulu (versi baru langsung terlihat setelah deploy) dan memakai cache hanya sebagai cadangan offline; aset berhash memakai cache dulu dan tidak pernah menyimpan jawaban HTML untuk permintaan aset.
+offline. Service worker (`public/sw.js`) memuat halaman dengan jaringan dulu (versi baru langsung terlihat setelah deploy) dan memakai cache hanya sebagai cadangan offline; aset berhash memakai cache dulu dan tidak pernah menyimpan jawaban HTML untuk permintaan aset. Font teks Arab (`public/fonts/ScheherazadeNew-Regular.ttf`, lisensi OFL) ikut di dalam aplikasi dan di daftar cache awal service worker (versi cache v6), sehingga harakat tampil sama di semua perangkat dan tetap ada tanpa internet. Ukuran huruf Arab bisa diubah lewat tombol A−/A+ di layar baca (5 tingkat, diingat di perangkat).
 
 ---
 
