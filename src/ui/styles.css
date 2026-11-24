@@ -1,5 +1,5 @@
 /* Font Qur'an ikut di dalam aplikasi (berlisensi OFL, lihat public/fonts/OFL.txt) agar harakat tampil sama di semua perangkat, juga offline. */
-@font-face { font-family: "Amiri"; src: url("/fonts/Amiri-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Scheherazade New"; src: url("/fonts/ScheherazadeNew-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
 :root { color: #173b34; background: #f6f2e8; font-family: Inter, system-ui, sans-serif; }
 * { box-sizing: border-box; }
 body { margin: 0; }
@@ -20,7 +20,7 @@ h1 { font-family: Georgia, serif; font-size: clamp(1.7rem, 6vw, 2.4rem); line-he
 .quran-reader { display: grid; gap: 10px; margin-top: 18px; }
 .reader-ayah { align-items: center; background: #f8f4e9; border: 1px solid #e5dccb; border-radius: 14px; display: flex; gap: 16px; justify-content: space-between; padding: 16px 18px; scroll-margin-block: 35vh; }
 .reader-ayah.current { background: #e6f0ea; border-color: #0b3b32; box-shadow: 0 0 0 2px #0b3b3220; }
-.arabic-text { color: #173b34; direction: rtl; flex: 1; font-family: "Amiri", Georgia, serif; font-size: calc(clamp(1.7rem, 5vw, 2.6rem) * var(--arabic-scale, 1)); line-height: 1.8; margin: 0; text-align: right; }
+.arabic-text { color: #173b34; direction: rtl; flex: 1; font-family: "Scheherazade New", Georgia, serif; font-size: calc(clamp(1.7rem, 5vw, 2.6rem) * var(--arabic-scale, 1)); line-height: 2.2; margin: 0; text-align: right; }
 .quran-word { border-radius: 6px; padding: 0 2px; scroll-margin-block: 35vh; transition: background-color 0.2s ease, color 0.2s ease; }
 .quran-word-passed { color: #526863; }
 .quran-word-current { background: #f2c66d; box-shadow: 0 0 0 2px #ad702140; color: #173b34; }

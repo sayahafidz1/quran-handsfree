@@ -30,15 +30,17 @@ test("the Arabic text uses the family declared in @font-face", () => {
 test("the font is part of the offline app shell and the cache version was bumped", () => {
   const sw = read("public/sw.js");
   assert.ok(sw.match(/APP_SHELL\s*=\s*\[[^\]]*\]/)?.[0].includes(`"${fontUrl}"`), "font tidak ada di APP_SHELL");
-  assert.ok(!sw.includes("quran-handsfree-v4"), "versi cache belum dinaikkan dari v4");
+  assert.ok(!sw.includes("quran-handsfree-v5"), "versi cache belum dinaikkan dari v5");
+  assert.ok(!sw.includes("Amiri"), "sw.js masih menyebut font lama");
 });
 
 test("the OFL license ships with the font and is credited in the notices and the About screen", () => {
   const license = read("public/fonts/OFL.txt");
   assert.match(license, /SIL OPEN FONT LICENSE Version 1\.1/);
-  assert.match(license, /Amiri Project Authors/);
+  assert.match(license, /SIL Global/);
   const notices = read("docs/THIRD_PARTY_NOTICES.md");
-  assert.match(notices, /Amiri/);
+  assert.match(notices, /Scheherazade New/);
   assert.match(notices, /SIL Open Font License|OFL/);
-  assert.match(read("index.html"), /Amiri/);
+  assert.match(read("index.html"), /Scheherazade New/);
+  assert.ok(!existsSync(new URL("../public/fonts/Amiri-Regular.ttf", import.meta.url)), "font lama masih ada di public/fonts");
 });
