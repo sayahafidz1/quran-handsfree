@@ -77,7 +77,7 @@ Aplikasi `quran-handsfree` memiliki dua jalur independen untuk menentukan posisi
     Parser juga menghasilkan command deterministik `start`, `current`, `repeat`, `next`,
     `previous`, `stop`, dan `resume`. Semua hasil command melewati handler aplikasi
     yang sama; command invalid tidak memanggil `ReadingSession`.
-  - **`recognizers/`**: Implementasi recognizer yang dapat diganti (*pluggable*), seperti `WebSpeechCommandRecognizer` dan `TextCommandRecognizer`.
+  - **`recognizers/`**: Implementasi recognizer yang dapat diganti (*pluggable*), seperti `WebSpeechCommandRecognizer` dan `TextCommandRecognizer`. `WebSpeechCommandRecognizer` (2026-11-25) menjamin tombol Bicara selalu kembali: batas waktu 6 detik bila pengenal tidak pernah mulai (`START_TIMEOUT_MS`, mis. WebView), galat bila sesi berakhir tanpa hasil, dan tidak ada galat ganda atau galat setelah Berhenti manual. Di APK (`hasCapacitor(window)`) `initApp` menyembunyikan kartu `#voice-card` dan menampilkan `#voice-maintenance`; Web tidak berubah. Dijaga oleh `test/webSpeechCommandRecognizer.test.ts`.
 - **`src/quran/`**:
   - **`surahData.ts`**: Data 114 surat Al-Qur'an lengkap dengan nama latin, nama arab, batas jumlah ayat yang akurat, serta kamus alias/variasi pelafalan.
   - **`validator.ts`**: Logika pencarian alias dan validasi batas ayat Al-Qur'an murni *offline* tanpa ketergantungan luar.

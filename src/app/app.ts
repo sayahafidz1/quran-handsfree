@@ -506,6 +506,11 @@ export function initApp(): void {
     });
   });
 
+  // Di APK (Capacitor) Web Speech API belum berfungsi di WebView, jadi kartu perintah suara diganti catatan perbaikan; di Web tidak berubah.
+  const voiceUnavailable = hasCapacitor(window);
+  document.querySelector<HTMLElement>("#voice-card")!.hidden = voiceUnavailable;
+  document.querySelector<HTMLElement>("#voice-maintenance")!.hidden = !voiceUnavailable;
+
   // Voice Recognizer for commands
   const voiceRecognizer = new WebSpeechCommandRecognizer();
   let isVoiceListening = false;

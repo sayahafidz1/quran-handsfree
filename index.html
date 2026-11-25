@@ -85,7 +85,7 @@
         </section>
 
         <!-- VOICE COMMAND NAVIGATION SECTION -->
-        <section class="card" aria-live="polite">
+        <section id="voice-card" class="card" aria-live="polite">
           <p class="label">Navigasi Perintah Suara (Voice Command)</p>
           <p class="section-desc">Ucapkan atau ketik nama surat dan nomor ayat untuk langsung melompat ke posisi awal.</p>
 
@@ -110,6 +110,12 @@
           </div>
 
           <p id="command-feedback" class="feedback-msg"></p>
+        </section>
+
+        <!-- Hanya tampil di APK (Capacitor): Web Speech API belum berfungsi di WebView Android; kartu di atas disembunyikan. -->
+        <section id="voice-maintenance" class="card" hidden>
+          <p class="label">Navigasi Perintah Suara</p>
+          <p class="section-desc">Perintah suara di aplikasi Android sedang dalam perbaikan. Gunakan Navigasi Quran di atas untuk memilih surat dan ayat.</p>
         </section>
       </section>
 

@@ -11,7 +11,7 @@ Proyek ini merupakan **produk terpisah** dari repository `tilawa`. Engine pengen
 **https://quran-handsfree.sudirmanhafidz1.workers.dev**
 
 - Pada pembukaan pertama di sebuah perangkat, model pengenalan diunduh dulu (sekitar 68 MB, atau 25 MB bila memori perangkat kurang). Ini hanya sekali per perangkat.
-- Setelah itu bacaan dan navigasi bisa dipakai tanpa internet. Perintah suara masih memerlukan internet.
+- Setelah itu bacaan dan navigasi bisa dipakai tanpa internet. Perintah suara (tombol Bicara) hanya ada di versi Web dan masih memerlukan internet; di APK kartunya diganti catatan "sedang dalam perbaikan" dan navigasi dilakukan lewat pemilih surat/ayat.
 - Mikrofon hanya aktif saat aplikasi tampil di layar.
 
 ## Lisensi
