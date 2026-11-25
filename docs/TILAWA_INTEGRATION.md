@@ -9,7 +9,7 @@ Aplikasi memuat **dua** engine di belakang kontrak `RecognitionAdapter`. Pemilih
 | | Tilawa 0.4.0 (Zipformer) | Tilawa 1.0 (`tilawa-v1`) |
 | --- | --- | --- |
 | Kapan aktif | `VITE_TILAWA_ENGINE=v0` | **Bawaan kode** (tanpa variabel atau `v1`), jadi juga `npm run dev` biasa |
-| Dipakai di | Hanya bila dipilih sendiri; tag cadangan `v0.4.0-stabil` | Produksi Cloudflare, APK, dan komputer pengembang |
+| Dipakai di | Hanya bila dipilih sendiri; tag cadangan `v0.4.0-stabil` (rilis Tilawa 1.0: tag `v1.0.0-stabil`) | Produksi Cloudflare, APK, dan komputer pengembang |
 | Dependensi | `@tilawa/core` ^0.4.0 | `tilawa-v1` = alias `@tilawa/core@1.0.0-rc.0` |
 | Aset model | `public/tilawa/` lewat `npm run setup` (tidak masuk Git) | Diunduh saat dijalankan dari tilawa.dev (mode `remote`) atau `public/tilawa-v1/` lewat `npm run setup:v1` (mode `local`) |
 | Lisensi model | NPL-1.2 (non-komersial, share-alike) | CC BY 4.0 (kredit "Tilawa (tilawa.dev)") |
