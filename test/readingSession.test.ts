@@ -542,3 +542,70 @@ test("checker marks and engine-gap marks of the same ayah are merged", () => {
   session.handleOmission(omission(1, "confirmed"));
   assert.deepEqual(session.getState().skippedWords, { "20:125": [1, 3, 4] });
 });
+
+test("the next ayah is accepted when only the last word of the current one is missing (log 20:127)", () => {
+  const session = new ReadingSession();
+  session.handleEvent(verseMatch(20, 127));
+  session.handleEvent(wordProgress(20, 127, 8, 10, [0, 1, 2, 3, 4, 5, 6, 7, 8]));
+  assert.equal(session.getState().state, "tracking");
+
+  session.handleEvent(verseMatch(20, 128));
+
+  assert.equal(session.getState().state, "tracking");
+  assert.deepEqual(session.getState().currentVerse, { surah: 20, ayah: 128 });
+});
+
+test("word progress of the next ayah is followed when only the last word is missing", () => {
+  const session = new ReadingSession();
+  session.handleEvent(verseMatch(36, 3));
+  session.handleEvent(wordProgress(36, 3, 5, 7, [0, 1, 2, 3, 4, 5]));
+
+  assert.equal(session.handleEvent(wordProgress(36, 4, 0, 8, [])), true);
+  assert.deepEqual(session.getState().currentVerse, { surah: 36, ayah: 4 });
+});
+
+test("two missing words still block the next ayah", () => {
+  const session = new ReadingSession();
+  session.handleEvent(verseMatch(36, 3));
+  session.handleEvent(wordProgress(36, 3, 4, 7, [0, 1, 2, 3, 4]));
+
+  session.handleEvent(verseMatch(36, 4));
+
+  assert.equal(session.getState().state, "mismatch");
+  assert.deepEqual(session.getState().currentVerse, { surah: 36, ayah: 3 });
+  assert.equal(session.handleEvent(wordProgress(36, 4, 0, 8, [])), false);
+});
+
+test("a missing word in the middle of the ayah still blocks the next ayah", () => {
+  const session = new ReadingSession();
+  session.handleEvent(verseMatch(36, 3));
+  session.handleEvent(wordProgress(36, 3, 5, 7, [0, 1, 2, 4, 5]));
+
+  session.handleEvent(verseMatch(36, 4));
+
+  assert.equal(session.getState().state, "mismatch");
+});
+
+test("only the ayah right after the current one is accepted when the last word is missing", () => {
+  const session = new ReadingSession();
+  session.handleEvent(verseMatch(36, 3));
+  session.handleEvent(wordProgress(36, 3, 5, 7, [0, 1, 2, 3, 4, 5]));
+
+  session.handleEvent(verseMatch(36, 5));
+
+  assert.equal(session.getState().state, "mismatch");
+  assert.deepEqual(session.getState().currentVerse, { surah: 36, ayah: 3 });
+});
+
+test("the last ayah of a surah is not relaxed (its next ayah is in another surah)", () => {
+  const session = new ReadingSession();
+  session.start({ surah: 112, ayah: 4 });
+  session.handleEvent(verseMatch(112, 4));
+  session.handleEvent(wordProgress(112, 4, 2, 4, [0, 1, 2]));
+
+  session.handleEvent(verseMatch(113, 1));
+
+  assert.notEqual(session.getState().state, "completed");
+  assert.deepEqual(session.getState().currentVerse, { surah: 112, ayah: 4 });
+});
+

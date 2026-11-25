@@ -264,6 +264,7 @@ export class ReadingSession {
     }
 
     this.detectedVerse = detected;
+    this.acceptNextAfterMissingLastWord(detected);
 
     // Keep the expected-next target authoritative while recovering from a
     // mismatch. A repeated current verse must not reset or advance it.
@@ -332,6 +333,7 @@ export class ReadingSession {
     // that was completed (expectedNextVerse is set) may be followed; progress
     // for any other verse is ignored.
     if (!this.matches(progress, this.currentVerse)) {
+      this.acceptNextAfterMissingLastWord(progress);
       if (!this.expectedNextVerse || !this.matches(progress, this.expectedNextVerse)) return false;
       this.advanceTo(this.expectedNextVerse);
     }
@@ -396,6 +398,27 @@ export class ReadingSession {
       && next.surah !== 1
       && detected.surah === 1
       && detected.ayah === 1;
+  }
+
+  /**
+   * The engine already reports the next ayah of the same surah while only the last word of the
+   * current ayah is missing. The reader has clearly moved on (that word was read, even if only
+   * partly), so the ayah counts as finished instead of the session waiting on that one word.
+   * Only one missing word, only the last one, and only once the next ayah is reported: a long ayah
+   * cut short by the engine (several words missing) stays blocked. The checker may still mark the word.
+   */
+  private acceptNextAfterMissingLastWord(reported: Pick<SelectedVerse, "surah" | "ayah">): void {
+    const current = this.currentVerse;
+    const progress = this.wordProgress;
+    if (!current || !progress || this.expectedNextVerse || !this.matches(progress, current)) return;
+    const following = getNextVerse(current);
+    if (!following || following.surah !== current.surah || !this.matches(reported, following)) return;
+    const last = progress.totalWords - 1;
+    const seen = this.seenWords.get(`${current.surah}:${current.ayah}`);
+    if (!seen || last < 1) return;
+    for (let index = 0; index < last; index += 1) if (!seen.has(index)) return;
+    this.provisional = false;
+    this.expectedNextVerse = { surah: following.surah, ayah: following.ayah };
   }
 
   private matches(
