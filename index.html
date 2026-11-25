@@ -169,7 +169,9 @@
             Kredit: Tilawa (tilawa.dev); model dibangun dari data tlog (Tarteel, CC-BY) dan Quranic Universal Ayahs
             (QUD Technologies, CC-BY), serta karya MIT/Apache-2.0 (muaalem, quran-transcript, icefall, ONNX Runtime).
             Teks Al-Qur'an rujukan berasal dari <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil</a>.
-            Huruf Arab memakai font <strong>Scheherazade New</strong> (SIL Global,
+            Huruf Arab memakai font <strong>KFGQPC Uthmanic Script HAFS</strong> (Kompleks Raja Fahd untuk Percetakan
+            Al-Qur'an Mulia, <a href="https://fonts.qurancomplex.gov.sa" target="_blank" rel="noopener">fonts.qurancomplex.gov.sa</a>)
+            dan <strong>Scheherazade New</strong> (SIL Global,
             <a href="https://openfontlicense.org/" target="_blank" rel="noopener">SIL Open Font License 1.1</a>).
             Model dipakai tanpa perubahan. Rincian lengkap: <code>docs/THIRD_PARTY_NOTICES.md</code>.
           </p>
@@ -182,7 +184,7 @@
       <section id="view-pengaturan" class="view" data-view="pengaturan" aria-label="Pengaturan" hidden>
         <header class="view-header">
           <h1>Pengaturan</h1>
-          <p class="section-desc">Atur warna dan ukuran huruf Arab. Contoh ayat di bawah langsung berubah.</p>
+          <p class="section-desc">Atur warna, font, dan ukuran huruf Arab. Contoh ayat di bawah langsung berubah.</p>
         </header>
 
         <!-- Ayat contoh: memakai kelas yang sama dengan layar baca, jadi tampilannya sama dengan hasil bacanya. -->
@@ -199,6 +201,20 @@
             <button type="button" class="segment" data-theme-choice="sistem" aria-pressed="false">Ikut sistem</button>
           </div>
           <p id="theme-hint" class="muted size-label" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="card" aria-labelledby="arabic-font-title">
+          <h2 id="arabic-font-title" class="card-title">Font Arab</h2>
+          <div id="arabic-font-choices" class="font-options" role="radiogroup" aria-label="Pilih font Arab">
+            <button type="button" class="font-option" role="radio" data-arabic-font="kfgqpc" aria-checked="false">
+              <span class="font-option-name"><span class="font-option-label">KFGQPC Hafs</span><span class="font-option-note">Bawaan. Gaya mushaf Madinah.</span></span>
+              <span class="font-option-sample font-option-sample-kfgqpc" lang="ar" dir="rtl" aria-hidden="true">بِسْمِ ٱللَّهِ</span>
+            </button>
+            <button type="button" class="font-option" role="radio" data-arabic-font="scheherazade" aria-checked="false">
+              <span class="font-option-name"><span class="font-option-label">Scheherazade New</span><span class="font-option-note">Huruf lebih lebar dan jelas.</span></span>
+              <span class="font-option-sample font-option-sample-scheherazade" lang="ar" dir="rtl" aria-hidden="true">بِسْمِ ٱللَّهِ</span>
+            </button>
+          </div>
         </section>
 
         <section class="card" aria-labelledby="arabic-size-title">

@@ -80,3 +80,13 @@ Versi sumber, ukuran, dan SHA-256 aset tercatat di
 - **Fungsi**: dimuat lewat `@font-face` di `src/ui/styles.css` untuk teks Arab di layar baca, agar harakat tampil sama di semua perangkat, juga tanpa internet (ikut di cache service worker dan di dalam APK).
 - **Di mana atribusi ditampilkan**: layar "Tentang & Lisensi" di aplikasi (`index.html`) dan dokumen ini.
 - Cakupan karakter diperiksa 2026-11-24: seluruh 69 kode karakter Arab (di luar spasi) yang dipakai `public/quran/content.json` ada di font ini. Font sebelumnya (Amiri) sudah diganti karena menumpuk tanda di beberapa kata (`DECISIONS.md` 2026-11-25).
+
+## 6. Font KFGQPC Uthmanic Script HAFS (Teks Arab, bawaan sejak 2026-11-26)
+
+- **Berkas**: `public/fonts/KFGQPC-UthmanicHafs-v2.2.ttf` (versi 2.2, sekitar 298 KB; SHA-256 `a6e59510dcaf3ec99db49427321a035ed94af555ffc7d27e7f430b5fd5e179f8`), disalin tanpa perubahan dari salinan di https://github.com/mustafa0x/qpc-fonts. Sumber resmi: https://fonts.qurancomplex.gov.sa (disarankan pemilik membandingkan hash dengan unduhan resmi).
+- **Pemilik hak**: King Fahd Glorious Quran Printing Complex (Madinah). **Ini bukan OFL.** Syarat yang dinyatakan di halaman font Kompleks: hak penuh atas font dan komponennya ada pada Kompleks; pihak lain tidak boleh memprogram ulang, mengubah, atau menjualnya demi bayaran. Berkas font tidak diubah dan tidak dijual lepas; ringkasan ini ikut bersama font di `public/fonts/KFGQPC-NOTICE.txt`.
+- **Belum terverifikasi**: teks lengkap syarat penyematan di aplikasi (halaman hak cipta Kompleks, http://dm.qurancomplex.gov.sa/copyright-2/) tidak bisa dibaca saat pekerjaan ini dibuat. Aplikasi ini tidak dijual dan gratis. **Baca syarat itu atau tanya Kompleks sebelum aplikasi dimonetisasi.** Cadangan: Scheherazade New (OFL, bagian 5) tetap terpasang dan bisa dipilih di Pengaturan, jadi mengganti bawaan cukup mengubah satu baris CSS dan satu konstanta.
+- **Fungsi**: bawaan untuk teks Arab lewat `@font-face` di `src/ui/styles.css`; pilihan font di tab Pengaturan (`src/app/arabicFont.ts`). Ikut di cache service worker dan di dalam APK.
+- **Di mana atribusi ditampilkan**: layar "Tentang & Lisensi" di aplikasi (`index.html`) dan dokumen ini.
+- Cakupan karakter diperiksa 2026-11-26: dari 70 karakter berbeda di `public/quran/content.json`, hanya U+FEFF (karakter tak terlihat, satu kali) yang tidak ada di font; semua huruf dan tanda Arab ada.
+

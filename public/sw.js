@@ -1,6 +1,6 @@
-const CACHE = "quran-handsfree-v6";
+const CACHE = "quran-handsfree-v7";
 // Font Qur'an ikut di daftar ini agar langsung tersimpan untuk offline, tidak menunggu dipakai pertama kali.
-const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/quran/content.json", "/fonts/ScheherazadeNew-Regular.ttf"];
+const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/quran/content.json", "/fonts/KFGQPC-UthmanicHafs-v2.2.ttf", "/fonts/ScheherazadeNew-Regular.ttf"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(APP_SHELL)));

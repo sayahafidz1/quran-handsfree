@@ -1,4 +1,5 @@
 /* Font Qur'an ikut di dalam aplikasi (berlisensi OFL, lihat public/fonts/OFL.txt) agar harakat tampil sama di semua perangkat, juga offline. */
+@font-face { font-family: "KFGQPC Uthmanic Script HAFS"; src: url("/fonts/KFGQPC-UthmanicHafs-v2.2.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: "Scheherazade New"; src: url("/fonts/ScheherazadeNew-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
 :root {
   /* Warna aplikasi. Semua warna di bawah ini hanya boleh ditulis di sini (dijaga test/themeTokens.test.ts). */
@@ -128,7 +129,8 @@ h1 { font-family: Georgia, serif; font-size: clamp(1.7rem, 6vw, 2.4rem); line-he
 .quran-reader { display: grid; gap: 10px; margin-top: 18px; }
 .reader-ayah { align-items: center; background: var(--panel); border: 1px solid var(--panel-line); border-radius: 14px; display: flex; gap: 16px; justify-content: space-between; padding: 16px 18px; scroll-margin-block: 35vh; }
 .reader-ayah.current { background: var(--current-bg); border-color: var(--outline); box-shadow: 0 0 0 2px var(--ring); }
-.arabic-text { color: var(--text); direction: rtl; flex: 1; font-family: "Scheherazade New", Georgia, serif; font-size: calc(clamp(1.7rem, 5vw, 2.6rem) * var(--arabic-scale, 1)); line-height: 2.2; margin: 0; text-align: right; }
+.arabic-text { color: var(--text); direction: rtl; flex: 1; font-family: "KFGQPC Uthmanic Script HAFS", "Scheherazade New", Georgia, serif; font-size: calc(clamp(1.7rem, 5vw, 2.6rem) * var(--arabic-scale, 1)); line-height: 2.2; margin: 0; text-align: right; }
+:root[data-arabic-font="scheherazade"] .arabic-text { font-family: "Scheherazade New", "KFGQPC Uthmanic Script HAFS", Georgia, serif; }
 .quran-word { border-radius: 6px; padding: 0 2px; scroll-margin-block: 35vh; transition: background-color 0.2s ease, color 0.2s ease; }
 .quran-word-passed { color: var(--muted); }
 .quran-word-current { background: var(--highlight); box-shadow: 0 0 0 2px var(--glow); color: var(--text); }
@@ -229,6 +231,15 @@ footer { color: var(--muted-2); font-size: .85rem; margin: 32px 0 0; }
 .segmented { background: var(--field); border: 1px solid var(--line); border-radius: 14px; display: flex; gap: 6px; padding: 4px; }
 .segment { background: transparent; border-radius: 10px; color: var(--text); flex: 1; font-size: .9rem; min-height: 44px; padding: 0 6px; }
 .segment[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
+.font-options { display: grid; gap: 8px; }
+.font-option { align-items: center; background: transparent; border: 2px solid var(--line); border-radius: 12px; color: var(--text); display: flex; gap: 12px; justify-content: space-between; min-height: 56px; padding: 8px 14px; text-align: left; }
+.font-option[aria-checked="true"] { background: var(--tint); border-color: var(--primary); }
+.font-option-name { display: grid; gap: 2px; }
+.font-option-label { font-size: .95rem; font-weight: 700; }
+.font-option-note { color: var(--muted); font-size: .8rem; }
+.font-option-sample { direction: rtl; font-size: 1.7rem; line-height: 1.6; }
+.font-option-sample-kfgqpc { font-family: "KFGQPC Uthmanic Script HAFS", serif; }
+.font-option-sample-scheherazade { font-family: "Scheherazade New", serif; }
 .reader-status { font-size: .85rem; text-align: center; }
 .reader-empty { align-items: center; display: flex; flex-direction: column; gap: 10px; justify-content: center; min-height: 60vh; text-align: center; }
 .mic-rings { margin-bottom: 18px; }

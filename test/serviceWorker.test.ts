@@ -127,7 +127,7 @@ test("activating removes old app caches but keeps other caches (model files, pre
   await sw.fire("activate", {});
   const names = await sw.caches.keys();
   assert.ok(!names.includes("quran-handsfree-v3"));
-  assert.ok(names.includes("quran-handsfree-v6"));
+  assert.ok(names.includes("quran-handsfree-v7"));
   assert.ok(names.includes("tilawa-v1-prefs"));
   assert.ok(names.includes("some-model-cache"));
 });

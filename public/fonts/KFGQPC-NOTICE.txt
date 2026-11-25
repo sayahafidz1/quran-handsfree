@@ -1,0 +1,11 @@
+KFGQPC Uthmanic Script HAFS (versi 2.2)
+
+Pemilik hak : King Fahd Glorious Quran Printing Complex (Kompleks Raja Fahd untuk Percetakan Al-Qur'an Mulia), Madinah.
+Sumber resmi: https://fonts.qurancomplex.gov.sa
+Berkas ini : disalin tanpa perubahan dari salinan font di https://github.com/mustafa0x/qpc-fonts
+              (SHA-256 a6e59510dcaf3ec99db49427321a035ed94af555ffc7d27e7f430b5fd5e179f8).
+
+Syarat yang dinyatakan Kompleks di halaman font-nya: hak penuh atas font dan komponennya ada pada Kompleks;
+pihak lain tidak boleh memprogram ulang, mengubah, atau menjualnya demi bayaran.
+Font ini BUKAN berlisensi SIL OFL. Berkas ini tidak boleh diubah dan tidak boleh dijual lepas.
+Teks lengkap hak cipta: http://dm.qurancomplex.gov.sa/copyright-2/ (baca sebelum aplikasi dimonetisasi).

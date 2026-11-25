@@ -4,6 +4,7 @@ import { createListenGate } from "./listenGate.ts";
 import { createReadingLog, describeRecognitionEvent, describeSessionChange } from "./readingLog.ts";
 import { getLastReadVerse } from "./focusVerse.ts";
 import { createModelReadyFlag } from "./modelReadyFlag.ts";
+import { ARABIC_FONTS, createArabicFont, type ArabicFontId } from "./arabicFont.ts";
 import { ARABIC_LEVEL_NAMES, createArabicSize } from "./displaySettings.ts";
 import { THEME_COLORS, createTheme, resolveTheme, themeHint, type ThemeChoice } from "./theme.ts";
 import { createReaderHistory } from "./readerHistory.ts";
@@ -601,6 +602,23 @@ export function initApp(): void {
   arabicSmaller.addEventListener("click", () => stepArabicSize(-1));
   arabicLarger.addEventListener("click", () => stepArabicSize(1));
   applyArabicSize();
+
+  // Font Arab (tab Pengaturan): data-arabic-font di <html> dipakai CSS (.arabic-text, termasuk ayat contoh); pilihan diingat di perangkat.
+  const arabicFont = createArabicFont(safeLocalStorage());
+  const fontButtons = document.querySelectorAll<HTMLButtonElement>("[data-arabic-font]");
+  function applyArabicFont(): void {
+    document.documentElement.dataset.arabicFont = arabicFont.choice();
+    fontButtons.forEach((button) => button.setAttribute("aria-checked", String(button.dataset.arabicFont === arabicFont.choice())));
+  }
+  fontButtons.forEach((button) =>
+    button.addEventListener("click", () => {
+      const id = ARABIC_FONTS.find((font) => font.id === button.dataset.arabicFont)?.id as ArabicFontId | undefined;
+      if (!id) return;
+      arabicFont.set(id);
+      applyArabicFont();
+    })
+  );
+  applyArabicFont();
 
   // Tema (tab Pengaturan): data-theme di <html> selalu "terang" atau "gelap"; "ikut sistem" diselesaikan di sini dan diperbarui
   // saat pengaturan ponsel berubah. Skrip kecil di index.html sudah memasang tema yang sama sebelum tampilan pertama.
