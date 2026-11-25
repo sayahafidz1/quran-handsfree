@@ -73,7 +73,7 @@ offline. Service worker (`public/sw.js`) memuat halaman dengan jaringan dulu (ve
 ---
 
 ## APK Android (Percobaan)
-APK dibangun oleh GitHub Actions dari repo ini: tab **Actions**, **Build Android APK**, **Run workflow**, pilih model `lite`, `full`, atau `both`, lalu unduh APK dari Artifacts. Model ikut di dalam APK sehingga tanpa unduhan dan tanpa internet. Status: percobaan, belum teruji; panduan dan daftar uji di [docs/ANDROID_APK.md](docs/ANDROID_APK.md).
+APK dibangun oleh GitHub Actions dari repo ini: tab **Actions**, **Build Android APK**, **Run workflow**, pilih model `lite`, `full`, atau `both`, lalu unduh APK dari Artifacts. Model ikut di dalam APK sehingga tanpa unduhan dan tanpa internet. Status: teruji di ponsel pemilik (2026-11-25); panduan dan daftar uji di [docs/ANDROID_APK.md](docs/ANDROID_APK.md).
 
 ---
 
