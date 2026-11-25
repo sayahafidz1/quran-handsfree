@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
+  ARABIC_LEVEL_NAMES,
   ARABIC_SCALES,
   ARABIC_SIZE_KEY,
   DEFAULT_ARABIC_LEVEL,
@@ -96,14 +97,34 @@ test("missing or refusing storage never throws and the choice still works in thi
 // melempar error saat start dan seluruh aplikasi tidak jalan, jadi kecocokannya dijaga di sini.
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("the size buttons exist in the reader bar and app.ts looks them up by the same ids", () => {
+test("the size controls live in the Pengaturan tab (not the reading bar) and app.ts looks them up by the same ids", () => {
   const html = read("index.html");
+  const settingsView = html.slice(html.indexOf('id="view-pengaturan"'), html.indexOf('id="view-baca"'));
   const readerView = html.slice(html.indexOf('id="view-baca"'), html.indexOf('id="quran-reader"'));
   const app = read("src/app/app.ts");
-  for (const id of ["arabic-smaller", "arabic-larger"]) {
-    assert.ok(readerView.includes(`id="${id}"`), `#${id} tidak ada di bar layar baca`);
-    assert.ok(app.includes(`"#${id}"`), `app.ts tidak mencari #${id}`);
+  for (const id of ["arabic-smaller", "arabic-larger", "arabic-dots", "arabic-size-label"]) {
+    assert.ok(settingsView.includes(`id="${id}"`), `#${id} tidak ada di tab Pengaturan`);
+    assert.ok(!readerView.includes(`id="${id}"`), `#${id} masih ada di bar layar baca`);
+    assert.ok(app.includes(`"#${id}"`) || app.includes(`"#${id} `), `app.ts tidak mencari #${id}`);
   }
+});
+
+test("the level dots and names match the number of levels", () => {
+  const html = read("index.html");
+  const dots = html.slice(html.indexOf('id="arabic-dots"'), html.indexOf("</div>", html.indexOf('id="arabic-dots"')));
+  assert.equal(dots.match(/class="size-dot"/g)?.length, ARABIC_SCALES.length, "jumlah titik di HTML berbeda dari jumlah tingkat");
+  assert.equal(ARABIC_LEVEL_NAMES.length, ARABIC_SCALES.length);
+});
+
+test("the sample verse in Pengaturan is the real text of Al-Fatihah 5 and uses the reader's own classes", () => {
+  const html = read("index.html");
+  const at = html.indexOf("sample-ayah");
+  const sample = html.slice(html.lastIndexOf("<article", at), html.indexOf("</article>", at));
+  assert.ok(sample.includes("reader-ayah") && sample.includes("arabic-text"), "ayat contoh tidak memakai kelas layar baca");
+  const content = JSON.parse(read("public/quran/content.json"));
+  const fatihah = content.surahs.find((s: { number?: number; id?: number }) => (s.number ?? s.id) === 1);
+  const ayah5 = fatihah.ayahs.find((a: { number?: number; ayah?: number }) => (a.number ?? a.ayah) === 5).text.replace(/^\uFEFF/, "");
+  assert.ok(sample.includes(ayah5), "teks ayat contoh berbeda dari content.json");
 });
 
 test("the Arabic text scales through the CSS variable that app.ts sets", () => {

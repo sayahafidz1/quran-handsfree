@@ -162,9 +162,16 @@ footer { color: var(--muted-2); font-size: .85rem; margin: 32px 0 0; }
 .reader-bar-title { flex: 1; text-align: center; }
 .reader-bar-title h2 { color: var(--heading); font-family: Georgia, serif; font-size: 1.25rem; margin: 0; }
 .icon-button { align-items: center; background: var(--tint); color: var(--heading); display: inline-flex; height: 44px; justify-content: center; padding: 0; width: 44px; }
-.size-controls { display: flex; flex: 0 0 auto; gap: 4px; }
-.size-button { font-size: .95rem; height: 40px; width: 40px; }
+/* Tab Pengaturan */
+.card-title { color: var(--heading); font-size: 1.05rem; margin: 0 0 12px; }
+.sample-ayah { margin-top: 16px; }
+.size-row { align-items: center; display: flex; gap: 10px; }
+.size-button { font-size: .95rem; height: 48px; width: 48px; }
 .size-button-large { font-size: 1.2rem; }
+.size-dots { align-items: center; display: flex; flex: 1; justify-content: space-between; padding: 0 6px; }
+.size-dot { background: var(--line); border-radius: 50%; height: 10px; width: 10px; }
+.size-dot.active { background: var(--primary); height: 16px; width: 16px; }
+.size-label { margin: 10px 0 0; min-height: 0; }
 .reader-status { font-size: .85rem; text-align: center; }
 .reader-empty { align-items: center; display: flex; flex-direction: column; gap: 10px; justify-content: center; min-height: 60vh; text-align: center; }
 .mic-rings { margin-bottom: 18px; }

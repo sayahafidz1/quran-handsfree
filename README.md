@@ -68,7 +68,7 @@ quran-handsfree/
 stabil melalui `OfflineQuranContentProvider`. Provider ini tidak memiliki
 reading state dan tidak mengimpor internal recognition engine. Asset
 `public/quran/content.json` dicache oleh service worker untuk penggunaan
-offline. Service worker (`public/sw.js`) memuat halaman dengan jaringan dulu (versi baru langsung terlihat setelah deploy) dan memakai cache hanya sebagai cadangan offline; aset berhash memakai cache dulu dan tidak pernah menyimpan jawaban HTML untuk permintaan aset. Font teks Arab (`public/fonts/ScheherazadeNew-Regular.ttf`, lisensi OFL) ikut di dalam aplikasi dan di daftar cache awal service worker (versi cache v6), sehingga harakat tampil sama di semua perangkat dan tetap ada tanpa internet. Ukuran huruf Arab bisa diubah lewat tombol A−/A+ di layar baca (5 tingkat, diingat di perangkat).
+offline. Service worker (`public/sw.js`) memuat halaman dengan jaringan dulu (versi baru langsung terlihat setelah deploy) dan memakai cache hanya sebagai cadangan offline; aset berhash memakai cache dulu dan tidak pernah menyimpan jawaban HTML untuk permintaan aset. Font teks Arab (`public/fonts/ScheherazadeNew-Regular.ttf`, lisensi OFL) ikut di dalam aplikasi dan di daftar cache awal service worker (versi cache v6), sehingga harakat tampil sama di semua perangkat dan tetap ada tanpa internet. Ukuran huruf Arab bisa diubah di tab Pengaturan lewat tombol A−/A+ (5 tingkat, diingat di perangkat), dengan ayat contoh yang langsung berubah.
 
 ---
 
