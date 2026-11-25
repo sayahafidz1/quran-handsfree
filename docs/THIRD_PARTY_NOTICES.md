@@ -64,7 +64,7 @@ Versi sumber, ukuran, dan SHA-256 aset tercatat di
 
 ## 4. Tilawa 1.0
 
-- **Kode**: `@tilawa/core` 1.0.0-rc.0 (MIT) dipasang sebagai alias `tilawa-v1`.
+- **Kode**: `@tilawa/core` 1.0.0-rc.1 (MIT) dipasang sebagai alias `tilawa-v1`.
 - **Model**: bobot `spliced-clean` (full) dan `spliced-clean-lite` berlisensi **CC BY 4.0** (model card upstream: "Credit 'Tilawa (tilawa.dev)' and the sources above when you redistribute them"). Berbeda dari NPL-1.2 untuk Zipformer 0.4.0. Model dipakai **tanpa perubahan**. Tautan lisensi: https://creativecommons.org/licenses/by/4.0/
 - **Sumber yang atribusinya ikut berlaku** (menurut `NOTICE.md` upstream): tlog (`tarteel-ai/tlog`, Tarteel, CC-BY), Quranic Universal Ayahs (QUD Technologies, CC-BY), muaalem (MIT), quran-transcript (MIT), k2-fsa icefall (Apache-2.0), ONNX Runtime (MIT), dan Tanzil (teks Uthmani rujukan; Tanzil meminta teks direproduksi apa adanya, dikreditkan ke Tanzil, dengan tautan ke https://tanzil.net).
 - **Di mana atribusi ditampilkan**: layar "Tentang & Lisensi" di aplikasi (`index.html`), `public/tilawa-v1/ATTRIBUTION.txt` (ikut terkemas bersama build), serta `NOTICE.md` dan `LICENSE.txt` paket yang disalin `npm run setup:v1` ke `public/tilawa-v1/`. Untuk APK, pastikan layar Tentang & Lisensi tetap ada dan berkas-berkas itu ikut di dalam paket.
