@@ -4,7 +4,8 @@ import { createListenGate } from "./listenGate.ts";
 import { createReadingLog, describeRecognitionEvent, describeSessionChange } from "./readingLog.ts";
 import { getLastReadVerse } from "./focusVerse.ts";
 import { createModelReadyFlag } from "./modelReadyFlag.ts";
-import { createArabicSize } from "./displaySettings.ts";
+import { ARABIC_LEVEL_NAMES, createArabicSize } from "./displaySettings.ts";
+import { THEME_COLORS, createTheme, resolveTheme, themeHint, type ThemeChoice } from "./theme.ts";
 import { createReaderHistory } from "./readerHistory.ts";
 import { decideBackAction, findCapacitorApp, hasCapacitor } from "./backAction.ts";
 import { createViewState, type AppView, type TabView } from "./viewState.ts";
@@ -72,6 +73,8 @@ export function initApp(): void {
   const readerBack = document.querySelector<HTMLButtonElement>("#reader-back")!;
   const arabicSmaller = document.querySelector<HTMLButtonElement>("#arabic-smaller")!;
   const arabicLarger = document.querySelector<HTMLButtonElement>("#arabic-larger")!;
+  const arabicDots = document.querySelectorAll<HTMLElement>("#arabic-dots .size-dot");
+  const arabicSizeLabel = document.querySelector<HTMLElement>("#arabic-size-label")!;
   const readerEmpty = document.querySelector<HTMLElement>("#reader-empty")!;
   const readerEmptyTitle = document.querySelector<HTMLElement>("#reader-empty-title")!;
   const readerEmptyText = document.querySelector<HTMLElement>("#reader-empty-text")!;
@@ -85,7 +88,7 @@ export function initApp(): void {
   const navigationRoot = document.querySelector<HTMLElement>("#quran-navigation")!;
   const bookmarksRoot = document.querySelector<HTMLElement>("#bookmarks")!;
 
-  // Screens: three tabs and a full-screen reading screen (no tab bar).
+  // Screens: four tabs and a full-screen reading screen (no tab bar).
   const views = createViewState();
   function renderViews(view: AppView): void {
     viewElements.forEach((element) => {
@@ -503,6 +506,11 @@ export function initApp(): void {
     });
   });
 
+  // Di APK (Capacitor) Web Speech API belum berfungsi di WebView, jadi kartu perintah suara diganti catatan perbaikan; di Web tidak berubah.
+  const voiceUnavailable = hasCapacitor(window);
+  document.querySelector<HTMLElement>("#voice-card")!.hidden = voiceUnavailable;
+  document.querySelector<HTMLElement>("#voice-maintenance")!.hidden = !voiceUnavailable;
+
   // Voice Recognizer for commands
   const voiceRecognizer = new WebSpeechCommandRecognizer();
   let isVoiceListening = false;
@@ -577,22 +585,44 @@ export function initApp(): void {
     void leaveReader();
   });
 
-  // Ukuran huruf Arab: satu variabel CSS (--arabic-scale) dipakai .arabic-text; pilihan diingat di perangkat.
+  // Ukuran huruf Arab (tab Pengaturan): satu variabel CSS (--arabic-scale) dipakai .arabic-text, termasuk ayat contoh di tab itu; pilihan diingat di perangkat.
   const arabicSize = createArabicSize(safeLocalStorage());
   function applyArabicSize(): void {
     document.documentElement.style.setProperty("--arabic-scale", String(arabicSize.scale()));
     arabicSmaller.disabled = !arabicSize.canStep(-1);
     arabicLarger.disabled = !arabicSize.canStep(1);
+    arabicDots.forEach((dot, index) => dot.classList.toggle("active", index === arabicSize.level()));
+    arabicSizeLabel.textContent = `Ukuran huruf ${ARABIC_LEVEL_NAMES[arabicSize.level()]}`;
   }
   function stepArabicSize(delta: 1 | -1): void {
     arabicSize.step(delta);
     applyArabicSize();
-    // Ukuran baru menggeser tata letak: jaga ayat yang sedang dibaca tetap terlihat.
-    requestAnimationFrame(() => document.querySelector(".reader-ayah.current")?.scrollIntoView({ block: "nearest" }));
   }
   arabicSmaller.addEventListener("click", () => stepArabicSize(-1));
   arabicLarger.addEventListener("click", () => stepArabicSize(1));
   applyArabicSize();
+
+  // Tema (tab Pengaturan): data-theme di <html> selalu "terang" atau "gelap"; "ikut sistem" diselesaikan di sini dan diperbarui
+  // saat pengaturan ponsel berubah. Skrip kecil di index.html sudah memasang tema yang sama sebelum tampilan pertama.
+  const theme = createTheme(safeLocalStorage());
+  const systemDark = window.matchMedia?.("(prefers-color-scheme: dark)");
+  const themeButtons = document.querySelectorAll<HTMLButtonElement>("[data-theme-choice]");
+  const themeHintElement = document.querySelector<HTMLElement>("#theme-hint")!;
+  function applyTheme(): void {
+    const resolved = resolveTheme(theme.choice(), systemDark?.matches ?? false);
+    document.documentElement.dataset.theme = resolved;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[resolved]);
+    themeButtons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.themeChoice === theme.choice())));
+    themeHintElement.textContent = themeHint(theme.choice(), resolved);
+  }
+  themeButtons.forEach((button) =>
+    button.addEventListener("click", () => {
+      theme.set(button.dataset.themeChoice as ThemeChoice);
+      applyTheme();
+    })
+  );
+  systemDark?.addEventListener?.("change", applyTheme);
+  applyTheme();
 
   function handleRecognitionEvent(event: RecognitionEvent): void {
     if (event.type === "loading_status") {

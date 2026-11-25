@@ -12,10 +12,18 @@ interface IWindowSpeech extends Window {
   webkitSpeechRecognition?: any;
 }
 
+/** Bila pengenal tidak mulai mendengar dalam waktu ini (mis. WebView yang tidak punya mesin suara), dianggap tidak responsif. */
+export const START_TIMEOUT_MS = 6000;
+
 export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
   private recognition: any = null;
   private onEventCallback: ((event: CommandRecognitionEvent) => void) | null = null;
   private isRunning = false;
+  private watchdog: ReturnType<typeof setTimeout> | null = null;
+  // Per sesi dengar: agar tombol di UI selalu kembali (hasil, galat, atau berakhir tanpa suara) dan tidak ada galat ganda.
+  private gotResult = false;
+  private gotError = false;
+  private stoppedByUser = false;
 
   public isSupported(): boolean {
     const win = typeof window !== "undefined" ? (window as IWindowSpeech) : null;
@@ -30,6 +38,9 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
 
   public async start(onEvent: (event: CommandRecognitionEvent) => void): Promise<void> {
     this.onEventCallback = onEvent;
+    this.gotResult = false;
+    this.gotError = false;
+    this.stoppedByUser = false;
 
     if (!this.isSupported()) {
       onEvent({
@@ -49,6 +60,7 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
     this.recognition.maxAlternatives = 3;
 
     this.recognition.onstart = () => {
+      this.clearWatchdog();
       this.isRunning = true;
       debugVoiceCommand("listening", { language: this.recognition.lang });
       this.notify({
@@ -86,6 +98,7 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
       }
 
       if (finalTranscript) {
+        this.gotResult = true;
         this.notify({
           type: "transcript",
           transcript: finalTranscript,
@@ -116,6 +129,8 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
 
     this.recognition.onerror = (event: any) => {
       debugVoiceCommand("error", { code: event.error, message: event.message });
+      this.clearWatchdog();
+      this.gotError = true;
       this.notify({
         type: "error",
         message: `Pengenalan suara gagal: ${event.error || "Unknown error"}`
@@ -123,8 +138,15 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
     };
 
     this.recognition.onend = () => {
+      this.clearWatchdog();
       this.isRunning = false;
       debugVoiceCommand("ended");
+      if (!this.gotResult && !this.gotError && !this.stoppedByUser) {
+        // Berakhir tanpa hasil dan tanpa galat: beri tahu agar tombol Bicara kembali dan pengguna tahu harus apa.
+        this.gotError = true;
+        this.notify({ type: "error", message: "Tidak ada perintah yang terdengar. Coba lagi atau ketik perintahnya di kotak." });
+        return;
+      }
       this.notify({
         type: "status",
         message: "Pengenalan suara perintah berhenti."
@@ -134,6 +156,7 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
     try {
       debugVoiceCommand("start_requested", { supported: true, language: this.recognition.lang });
       this.recognition.start();
+      this.watchdog = setTimeout(() => this.onStartTimeout(), START_TIMEOUT_MS);
     } catch (err) {
       debugVoiceCommand("start_failed", { message: err instanceof Error ? err.message : String(err) });
       this.notify({
@@ -144,7 +167,9 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
   }
 
   public async stop(): Promise<void> {
-    if (this.recognition && this.isRunning) {
+    this.stoppedByUser = true;
+    this.clearWatchdog();
+    if (this.recognition) {
       try {
         this.recognition.stop();
       } catch {
@@ -155,6 +180,8 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
   }
 
   public dispose(): void {
+    this.stoppedByUser = true;
+    this.clearWatchdog();
     if (this.recognition) {
       try {
         this.recognition.abort();
@@ -165,6 +192,24 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
     }
     this.isRunning = false;
     this.onEventCallback = null;
+  }
+
+  private clearWatchdog(): void {
+    if (this.watchdog !== null) clearTimeout(this.watchdog);
+    this.watchdog = null;
+  }
+
+  private onStartTimeout(): void {
+    this.watchdog = null;
+    if (this.isRunning || this.gotError || this.stoppedByUser) return;
+    debugVoiceCommand("start_timeout", { afterMs: START_TIMEOUT_MS });
+    this.gotError = true;
+    try {
+      this.recognition?.abort();
+    } catch {
+      // ignore
+    }
+    this.notify({ type: "error", message: "Pengenalan suara tidak merespons di perangkat ini. Ketik perintahnya di kotak." });
   }
 
   private notify(event: CommandRecognitionEvent): void {

@@ -31,7 +31,7 @@ Catat jenis ponsel, versi Android, dan versi Android System WebView (Pengaturan,
 3. Layar tetap menyala saat mendengarkan (Wake Lock di WebView belum terbukti).
 4. Bookmark dan "terakhir dibaca" tetap ada setelah aplikasi ditutup dan dibuka lagi.
 5. Kartu Navigasi dan kotak ketik perintah berfungsi.
-6. Tombol **Bicara** (perintah suara): catat apa yang terjadi. Diperkirakan tidak berfungsi (Web Speech API sering tidak ada di WebView); lihat bagian 5.
+6. Tab Cari: kartu **Navigasi Perintah Suara** tidak tampil, diganti kartu "sedang dalam perbaikan" (sejak 2026-11-25; Web Speech API tidak berfungsi di WebView). Di versi Web kartu suara tetap tampil. Pemilih surat/ayat/juz tetap berfungsi di APK.
 7. Bila gagal memuat model: salin pesan error yang tampil.
 8. Tata letak baru (branch `ui-app-layout`): tab Beranda/Cari/Info; **Mulai membaca** menyalakan mikrofon; **Kembali** di layar baca menghentikan pendengaran; ikon bookmark di tiap ayat menyimpan tanpa menghentikan bacaan.
 9. **Tombol kembali Android** di layar baca: harus kembali ke tab asal dan menghentikan mikrofon, bukan menutup aplikasi. Dari tab Cari/Info tombol kembali ke Beranda; dari Beranda menutup aplikasi. Setelah keluar dari layar baca pastikan indikator mikrofon Android mati. Di tab Info baris "Tombol kembali" menunjukkan apakah plugin terpasang (diagnosis). Catat bila ada yang berbeda.
@@ -41,6 +41,6 @@ Catat jenis ponsel, versi Android, dan versi Android System WebView (Pengaturan,
 - Alur kerja belum pernah dijalankan; percobaan pertama bisa gagal dan perlu beberapa putaran perbaikan (versi Java 17 dan Capacitor 6 dipilih berdasarkan perkiraan, bukan hasil uji).
 - Izin mikrofon di WebView: manifest ditambah `RECORD_AUDIO`; Capacitor seharusnya meminta izin saat web memakai mikrofon, belum terbukti.
 - Ukuran APK diperkirakan sekitar 90 sampai 110 MB untuk `full` (belum terukur); batas simpanan artifact paket Free 500 MB.
-- Perintah suara offline di APK membutuhkan langkah terpisah (plugin pengenal suara Android), dengan persetujuan tersendiri.
+- Perintah suara offline di APK membutuhkan langkah terpisah (plugin pengenal suara Android), dengan persetujuan tersendiri. Prioritas rendah (pemilik, 2026-11-25): untuk sementara kartunya disembunyikan di APK. Analisis opsi ada di `DECISIONS.md` 2026-11-25 (Perintah Suara di APK).
 - Service worker tetap terdaftar di dalam APK; efeknya belum diamati. Tidak mengganggu asetnya, karena semua berasal dari dalam aplikasi.
 - Push berkas `.github/workflows/` dari sesi pengembangan bisa ditolak GitHub (izin token). Bila terjadi, berkas ditambahkan lewat web GitHub (Add file).

@@ -12,6 +12,8 @@ test("tabs switch freely", () => {
   assert.equal(views.current(), "cari");
   views.showTab("info");
   assert.equal(views.current(), "info");
+  views.showTab("pengaturan");
+  assert.equal(views.current(), "pengaturan");
 });
 
 test("the reading screen has no tabs: switching tab while reading is ignored", () => {

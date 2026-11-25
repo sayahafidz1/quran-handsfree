@@ -1,11 +1,13 @@
 import type { FlagStorage } from "./modelReadyFlag.ts";
 
 /**
- * Ukuran huruf teks Arab di layar baca. Lima tingkat; tingkat tengah (DEFAULT_ARABIC_LEVEL) sama dengan ukuran
+ * Ukuran huruf teks Arab (diatur di tab Pengaturan, berlaku di layar baca). Lima tingkat; tingkat tengah (DEFAULT_ARABIC_LEVEL) sama dengan ukuran
  * sebelum ada pengaturan ini. Pilihan diingat di perangkat. Murni: storage disuntikkan dan boleh tidak ada atau menolak
  * bekerja (pilihan tetap berlaku selama aplikasi terbuka).
  */
 export const ARABIC_SCALES = [0.8, 0.9, 1, 1.25, 1.5] as const;
+/** Nama tingkat untuk label layar Pengaturan; urutannya sama dengan ARABIC_SCALES. */
+export const ARABIC_LEVEL_NAMES = ["paling kecil", "kecil", "sedang", "besar", "paling besar"] as const;
 export const DEFAULT_ARABIC_LEVEL = 2;
 export const ARABIC_SIZE_KEY = "quran-handsfree:arabic-size";
 

@@ -1,10 +1,10 @@
 /**
  * Pure state for "which screen is shown". No browser imports, so it can be unit-tested with plain Node.
  *
- * Three tabs (Beranda, Cari, Info) and one full-screen reading screen ("baca") that has no tab bar.
+ * Four tabs (Beranda, Cari, Info, Pengaturan) and one full-screen reading screen ("baca") that has no tab bar.
  * Leaving the reading screen goes back to the tab it was opened from (default Beranda).
  */
-export type TabView = "beranda" | "cari" | "info";
+export type TabView = "beranda" | "cari" | "info" | "pengaturan";
 export type AppView = TabView | "baca";
 
 export interface ViewState {

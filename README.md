@@ -11,7 +11,7 @@ Proyek ini merupakan **produk terpisah** dari repository `tilawa`. Engine pengen
 **https://quran-handsfree.sudirmanhafidz1.workers.dev**
 
 - Pada pembukaan pertama di sebuah perangkat, model pengenalan diunduh dulu (sekitar 68 MB, atau 25 MB bila memori perangkat kurang). Ini hanya sekali per perangkat.
-- Setelah itu bacaan dan navigasi bisa dipakai tanpa internet. Perintah suara masih memerlukan internet.
+- Setelah itu bacaan dan navigasi bisa dipakai tanpa internet. Perintah suara (tombol Bicara) hanya ada di versi Web dan masih memerlukan internet; di APK kartunya diganti catatan "sedang dalam perbaikan" dan navigasi dilakukan lewat pemilih surat/ayat.
 - Mikrofon hanya aktif saat aplikasi tampil di layar.
 
 ## Lisensi
@@ -68,7 +68,7 @@ quran-handsfree/
 stabil melalui `OfflineQuranContentProvider`. Provider ini tidak memiliki
 reading state dan tidak mengimpor internal recognition engine. Asset
 `public/quran/content.json` dicache oleh service worker untuk penggunaan
-offline. Service worker (`public/sw.js`) memuat halaman dengan jaringan dulu (versi baru langsung terlihat setelah deploy) dan memakai cache hanya sebagai cadangan offline; aset berhash memakai cache dulu dan tidak pernah menyimpan jawaban HTML untuk permintaan aset. Font teks Arab (`public/fonts/ScheherazadeNew-Regular.ttf`, lisensi OFL) ikut di dalam aplikasi dan di daftar cache awal service worker (versi cache v6), sehingga harakat tampil sama di semua perangkat dan tetap ada tanpa internet. Ukuran huruf Arab bisa diubah lewat tombol A−/A+ di layar baca (5 tingkat, diingat di perangkat).
+offline. Service worker (`public/sw.js`) memuat halaman dengan jaringan dulu (versi baru langsung terlihat setelah deploy) dan memakai cache hanya sebagai cadangan offline; aset berhash memakai cache dulu dan tidak pernah menyimpan jawaban HTML untuk permintaan aset. Font teks Arab (`public/fonts/ScheherazadeNew-Regular.ttf`, lisensi OFL) ikut di dalam aplikasi dan di daftar cache awal service worker (versi cache v6), sehingga harakat tampil sama di semua perangkat dan tetap ada tanpa internet. Ukuran huruf Arab bisa diubah di tab Pengaturan lewat tombol A−/A+ (5 tingkat, diingat di perangkat), dengan ayat contoh yang langsung berubah. Warna tampilan (Terang, Gelap, Ikut sistem; bawaan ikut sistem) dipilih di tab yang sama dan diingat di perangkat.
 
 ---
 

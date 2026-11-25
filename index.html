@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b3b32" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- Pasang tema sebelum tampilan pertama agar layar tidak berkedip terang di ponsel yang gelap. Logika dan kunci yang sama ada di src/app/theme.ts (dijaga test/theme.test.ts). -->
+    <script>
+      try {
+        var c = localStorage.getItem("quran-handsfree:theme");
+        var d = c === "gelap" || (c !== "terang" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = d ? "gelap" : "terang";
+      } catch (e) {}
+    </script>
     <title>Quran Hands-Free</title>
   </head>
   <body>
@@ -77,7 +85,7 @@
         </section>
 
         <!-- VOICE COMMAND NAVIGATION SECTION -->
-        <section class="card" aria-live="polite">
+        <section id="voice-card" class="card" aria-live="polite">
           <p class="label">Navigasi Perintah Suara (Voice Command)</p>
           <p class="section-desc">Ucapkan atau ketik nama surat dan nomor ayat untuk langsung melompat ke posisi awal.</p>
 
@@ -102,6 +110,12 @@
           </div>
 
           <p id="command-feedback" class="feedback-msg"></p>
+        </section>
+
+        <!-- Hanya tampil di APK (Capacitor): Web Speech API belum berfungsi di WebView Android; kartu di atas disembunyikan. -->
+        <section id="voice-maintenance" class="card" hidden>
+          <p class="label">Navigasi Perintah Suara</p>
+          <p class="section-desc">Perintah suara di aplikasi Android sedang dalam perbaikan. Gunakan Navigasi Quran di atas untuk memilih surat dan ayat.</p>
         </section>
       </section>
 
@@ -164,6 +178,42 @@
         <footer>Quran recognition powered by Tilawa &amp; Quran Hands-Free Navigation.</footer>
       </section>
 
+      <!-- PENGATURAN -->
+      <section id="view-pengaturan" class="view" data-view="pengaturan" aria-label="Pengaturan" hidden>
+        <header class="view-header">
+          <h1>Pengaturan</h1>
+          <p class="section-desc">Atur warna dan ukuran huruf Arab. Contoh ayat di bawah langsung berubah.</p>
+        </header>
+
+        <!-- Ayat contoh: memakai kelas yang sama dengan layar baca, jadi tampilannya sama dengan hasil bacanya. -->
+        <article class="reader-ayah current sample-ayah" aria-label="Contoh ayat">
+          <span class="ayah-number" aria-hidden="true">5</span>
+          <p class="arabic-text" lang="ar" dir="rtl">إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ</p>
+        </article>
+
+        <section class="card" aria-labelledby="theme-title">
+          <h2 id="theme-title" class="card-title">Warna</h2>
+          <div id="theme-choices" class="segmented" role="group" aria-label="Pilih warna tampilan">
+            <button type="button" class="segment" data-theme-choice="terang" aria-pressed="false">Terang</button>
+            <button type="button" class="segment" data-theme-choice="gelap" aria-pressed="false">Gelap</button>
+            <button type="button" class="segment" data-theme-choice="sistem" aria-pressed="false">Ikut sistem</button>
+          </div>
+          <p id="theme-hint" class="muted size-label" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="card" aria-labelledby="arabic-size-title">
+          <h2 id="arabic-size-title" class="card-title">Ukuran huruf</h2>
+          <div class="size-row" role="group" aria-label="Ukuran huruf Arab">
+            <button id="arabic-smaller" type="button" class="icon-button size-button" aria-label="Perkecil huruf Arab">A−</button>
+            <div id="arabic-dots" class="size-dots" aria-hidden="true">
+              <span class="size-dot"></span><span class="size-dot"></span><span class="size-dot"></span><span class="size-dot"></span><span class="size-dot"></span>
+            </div>
+            <button id="arabic-larger" type="button" class="icon-button size-button size-button-large" aria-label="Perbesar huruf Arab">A+</button>
+          </div>
+          <p id="arabic-size-label" class="muted size-label" role="status" aria-live="polite"></p>
+        </section>
+      </section>
+
       <!-- BACA: full screen, no tab bar -->
       <section id="view-baca" class="view view-reader" data-view="baca" aria-label="Baca" hidden>
         <div class="reader-bar">
@@ -172,10 +222,6 @@
           </button>
           <div class="reader-bar-title">
             <h2 id="reader-title">Membaca</h2>
-          </div>
-          <div class="size-controls" role="group" aria-label="Ukuran huruf Arab">
-            <button id="arabic-smaller" type="button" class="icon-button size-button" aria-label="Perkecil huruf Arab">A−</button>
-            <button id="arabic-larger" type="button" class="icon-button size-button size-button-large" aria-label="Perbesar huruf Arab">A+</button>
           </div>
           <span id="reader-state" class="badge">IDLE</span>
         </div>
@@ -207,6 +253,9 @@
         </button>
         <button type="button" class="tab" data-tab="info">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>Info
+        </button>
+        <button type="button" class="tab" data-tab="pengaturan">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><path d="M16 5v4M8 15v4"/></svg>Pengaturan
         </button>
       </nav>
     </main>
