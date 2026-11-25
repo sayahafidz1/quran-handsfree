@@ -6,7 +6,7 @@
 //   npm run setup:v1 -- --tier=lite  model "lite" (25 MB) instead
 //   npm run setup:v1 -- --tier=both  both models
 //
-// The model sizes and SHA-256 values below are the ones in @tilawa/core 1.0.0-rc.0's own model registry
+// The model sizes and SHA-256 values below are the ones in @tilawa/core 1.0.0-rc.1's own model registry (identical to rc.0, re-checked 2026-11-25)
 // (MODEL_REGISTRY). Layout matches https://tilawa.dev/v1/, which is what the SDK expects for `assetBase`.
 import crypto from "node:crypto";
 import fs from "node:fs";
