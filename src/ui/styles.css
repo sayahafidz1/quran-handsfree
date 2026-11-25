@@ -2,6 +2,7 @@
 @font-face { font-family: "Scheherazade New"; src: url("/fonts/ScheherazadeNew-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
 :root {
   /* Warna aplikasi. Semua warna di bawah ini hanya boleh ditulis di sini (dijaga test/themeTokens.test.ts). */
+  color-scheme: light;
   --anchor-bg: #f9fbf8;
   --bg: #f6f2e8;
   --card: #fffdf8;
@@ -54,6 +55,59 @@
   color: var(--text);
   background: var(--bg);
   font-family: Inter, system-ui, sans-serif;
+}
+:root[data-theme="gelap"] {
+  /* Palet gelap: hijau tua sangat gelap. Harus mendefinisikan token yang sama dengan :root (dijaga test/themeTokens.test.ts). */
+  color-scheme: dark;
+  --anchor-bg: #0f211c;
+  --bg: #07120f;
+  --card: #0e1f1b;
+  --chip-bg: #1a2e29;
+  --chip-line: #2b4640;
+  --current-bg: #12302a;
+  --danger: #ff8a80;
+  --danger-bg: #3a1816;
+  --danger-chip-bg: #3a1a1e;
+  --danger-chip-hover: #4a2024;
+  --danger-chip-line: #5a2a30;
+  --danger-solid: #e0605c;
+  --danger-text: #ff9c94;
+  --disabled: #6b837c;
+  --done-bg: #22381d;
+  --done-text: #b5e3a0;
+  --error: #ff8f8f;
+  --field: #0a1815;
+  --field-line: #35514a;
+  --glow: #d9a75a40;
+  --glow-soft: #d9a75a33;
+  --gold: #d9a75a;
+  --heading: #b9e6d6;
+  --highlight: #6e5018;
+  --highlight-soft: #d9a75a44;
+  --line: #22403a;
+  --muted: #93aca4;
+  --muted-2: #8aa39b;
+  --muted-3: #7f9890;
+  --num-bg: #1a3a33;
+  --ok: #7ad9b0;
+  --on-primary: #04150f;
+  --on-primary-glass: #04150f26;
+  --on-primary-soft: #124a3e;
+  --outline: #52c4a0;
+  --panel: #0b1a17;
+  --panel-line: #1d3732;
+  --primary: #52c4a0;
+  --rec: #ff7b72;
+  --ring: #52c4a033;
+  --shadow-hero: #00000066;
+  --shadow-soft: #00000055;
+  --text: #e6f1ec;
+  --text-body: #c3d3cd;
+  --text-chip: #c3d3cd;
+  --text-soft: #bccfc8;
+  --tint: #17352e;
+  --tint-2: #1f4339;
+  --warn: #e6b866;
 }
 * { box-sizing: border-box; }
 body { margin: 0; }
@@ -172,6 +226,9 @@ footer { color: var(--muted-2); font-size: .85rem; margin: 32px 0 0; }
 .size-dot { background: var(--line); border-radius: 50%; height: 10px; width: 10px; }
 .size-dot.active { background: var(--primary); height: 16px; width: 16px; }
 .size-label { margin: 10px 0 0; min-height: 0; }
+.segmented { background: var(--field); border: 1px solid var(--line); border-radius: 14px; display: flex; gap: 6px; padding: 4px; }
+.segment { background: transparent; border-radius: 10px; color: var(--text); flex: 1; font-size: .9rem; min-height: 44px; padding: 0 6px; }
+.segment[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
 .reader-status { font-size: .85rem; text-align: center; }
 .reader-empty { align-items: center; display: flex; flex-direction: column; gap: 10px; justify-content: center; min-height: 60vh; text-align: center; }
 .mic-rings { margin-bottom: 18px; }

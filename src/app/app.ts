@@ -5,6 +5,7 @@ import { createReadingLog, describeRecognitionEvent, describeSessionChange } fro
 import { getLastReadVerse } from "./focusVerse.ts";
 import { createModelReadyFlag } from "./modelReadyFlag.ts";
 import { ARABIC_LEVEL_NAMES, createArabicSize } from "./displaySettings.ts";
+import { THEME_COLORS, createTheme, resolveTheme, themeHint, type ThemeChoice } from "./theme.ts";
 import { createReaderHistory } from "./readerHistory.ts";
 import { decideBackAction, findCapacitorApp, hasCapacitor } from "./backAction.ts";
 import { createViewState, type AppView, type TabView } from "./viewState.ts";
@@ -595,6 +596,28 @@ export function initApp(): void {
   arabicSmaller.addEventListener("click", () => stepArabicSize(-1));
   arabicLarger.addEventListener("click", () => stepArabicSize(1));
   applyArabicSize();
+
+  // Tema (tab Pengaturan): data-theme di <html> selalu "terang" atau "gelap"; "ikut sistem" diselesaikan di sini dan diperbarui
+  // saat pengaturan ponsel berubah. Skrip kecil di index.html sudah memasang tema yang sama sebelum tampilan pertama.
+  const theme = createTheme(safeLocalStorage());
+  const systemDark = window.matchMedia?.("(prefers-color-scheme: dark)");
+  const themeButtons = document.querySelectorAll<HTMLButtonElement>("[data-theme-choice]");
+  const themeHintElement = document.querySelector<HTMLElement>("#theme-hint")!;
+  function applyTheme(): void {
+    const resolved = resolveTheme(theme.choice(), systemDark?.matches ?? false);
+    document.documentElement.dataset.theme = resolved;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[resolved]);
+    themeButtons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.themeChoice === theme.choice())));
+    themeHintElement.textContent = themeHint(theme.choice(), resolved);
+  }
+  themeButtons.forEach((button) =>
+    button.addEventListener("click", () => {
+      theme.set(button.dataset.themeChoice as ThemeChoice);
+      applyTheme();
+    })
+  );
+  systemDark?.addEventListener?.("change", applyTheme);
+  applyTheme();
 
   function handleRecognitionEvent(event: RecognitionEvent): void {
     if (event.type === "loading_status") {

@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b3b32" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- Pasang tema sebelum tampilan pertama agar layar tidak berkedip terang di ponsel yang gelap. Logika dan kunci yang sama ada di src/app/theme.ts (dijaga test/theme.test.ts). -->
+    <script>
+      try {
+        var c = localStorage.getItem("quran-handsfree:theme");
+        var d = c === "gelap" || (c !== "terang" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = d ? "gelap" : "terang";
+      } catch (e) {}
+    </script>
     <title>Quran Hands-Free</title>
   </head>
   <body>
@@ -168,7 +176,7 @@
       <section id="view-pengaturan" class="view" data-view="pengaturan" aria-label="Pengaturan" hidden>
         <header class="view-header">
           <h1>Pengaturan</h1>
-          <p class="section-desc">Atur ukuran huruf Arab. Contoh ayat di bawah langsung berubah.</p>
+          <p class="section-desc">Atur warna dan ukuran huruf Arab. Contoh ayat di bawah langsung berubah.</p>
         </header>
 
         <!-- Ayat contoh: memakai kelas yang sama dengan layar baca, jadi tampilannya sama dengan hasil bacanya. -->
@@ -176,6 +184,16 @@
           <span class="ayah-number" aria-hidden="true">5</span>
           <p class="arabic-text" lang="ar" dir="rtl">إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ</p>
         </article>
+
+        <section class="card" aria-labelledby="theme-title">
+          <h2 id="theme-title" class="card-title">Warna</h2>
+          <div id="theme-choices" class="segmented" role="group" aria-label="Pilih warna tampilan">
+            <button type="button" class="segment" data-theme-choice="terang" aria-pressed="false">Terang</button>
+            <button type="button" class="segment" data-theme-choice="gelap" aria-pressed="false">Gelap</button>
+            <button type="button" class="segment" data-theme-choice="sistem" aria-pressed="false">Ikut sistem</button>
+          </div>
+          <p id="theme-hint" class="muted size-label" role="status" aria-live="polite"></p>
+        </section>
 
         <section class="card" aria-labelledby="arabic-size-title">
           <h2 id="arabic-size-title" class="card-title">Ukuran huruf</h2>
