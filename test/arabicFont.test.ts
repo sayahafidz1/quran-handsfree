@@ -9,10 +9,10 @@ function memoryStorage(initial?: Record<string, string>) {
 }
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("the default font is KFGQPC", () => {
-  assert.equal(DEFAULT_ARABIC_FONT, "kfgqpc");
-  assert.equal(createArabicFont(memoryStorage()).choice(), "kfgqpc");
-  assert.equal(createArabicFont(null).choice(), "kfgqpc");
+test("the default font is Scheherazade", () => {
+  assert.equal(DEFAULT_ARABIC_FONT, "scheherazade");
+  assert.equal(createArabicFont(memoryStorage()).choice(), "scheherazade");
+  assert.equal(createArabicFont(null).choice(), "scheherazade");
 });
 
 test("the choice is remembered by a new instance on the same storage", () => {
@@ -69,5 +69,5 @@ test("the Pengaturan tab has one radio button per font, wired in app.ts", () => 
 test("every font option has a CSS sample class and a switch rule", () => {
   const css = read("src/ui/styles.css");
   for (const font of ARABIC_FONTS) assert.ok(css.includes(`font-option-sample-${font.id}`), `contoh huruf ${font.id} tidak punya gaya`);
-  assert.ok(css.includes('[data-arabic-font="scheherazade"]'));
+  assert.ok(css.includes('[data-arabic-font="kfgqpc"]'));
 });

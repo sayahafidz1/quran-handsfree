@@ -30,14 +30,14 @@ test("every @font-face points to a real TrueType file in public/fonts", () => {
   }
 });
 
-test("the Arabic text defaults to KFGQPC with Scheherazade as the fallback, and the choice can switch the order", () => {
+test("the Arabic text defaults to Scheherazade with KFGQPC as the fallback, and the choice can switch the order", () => {
   const arabicRule = css.match(/\.arabic-text\s*\{[^}]*\}/)?.[0] ?? "";
   const stack = arabicRule.match(/font-family:\s*([^;]+);/)?.[1] ?? "";
-  assert.ok(stack.indexOf('"KFGQPC Uthmanic Script HAFS"') >= 0, ".arabic-text tidak memakai KFGQPC");
-  assert.ok(stack.indexOf('"KFGQPC Uthmanic Script HAFS"') < stack.indexOf('"Scheherazade New"'), "KFGQPC harus lebih dulu");
-  const switched = css.match(/:root\[data-arabic-font="scheherazade"\]\s+\.arabic-text\s*\{[^}]*\}/)?.[0] ?? "";
+  assert.ok(stack.indexOf('"Scheherazade New"') >= 0, ".arabic-text tidak memakai Scheherazade");
+  assert.ok(stack.indexOf('"Scheherazade New"') < stack.indexOf('"KFGQPC Uthmanic Script HAFS"'), "Scheherazade harus lebih dulu");
+  const switched = css.match(/:root\[data-arabic-font="kfgqpc"\]\s+\.arabic-text\s*\{[^}]*\}/)?.[0] ?? "";
   const switchedStack = switched.match(/font-family:\s*([^;]+);/)?.[1] ?? "";
-  assert.ok(switchedStack.startsWith('"Scheherazade New"'), "pilihan Scheherazade tidak mendahulukan Scheherazade");
+  assert.ok(switchedStack.startsWith('"KFGQPC Uthmanic Script HAFS"'), "pilihan KFGQPC tidak mendahulukan KFGQPC");
 });
 
 test("both fonts are part of the offline app shell and the cache version was bumped", () => {

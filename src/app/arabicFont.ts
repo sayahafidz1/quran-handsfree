@@ -13,11 +13,11 @@ export interface ArabicFontOption {
 }
 
 export const ARABIC_FONTS: readonly ArabicFontOption[] = [
-  { id: "kfgqpc", label: "KFGQPC Hafs", note: "Bawaan. Gaya mushaf Madinah." },
-  { id: "scheherazade", label: "Scheherazade New", note: "Huruf lebih lebar dan jelas." }
+  { id: "kfgqpc", label: "KFGQPC Hafs", note: "Gaya mushaf Madinah. Tanda mim kecil kadang menempel pada tanwin." },
+  { id: "scheherazade", label: "Scheherazade New", note: "Bawaan. Huruf lebar dan tanda mim kecil terpisah jelas." }
 ];
 export type ArabicFontId = ArabicFontOption["id"];
-export const DEFAULT_ARABIC_FONT: ArabicFontId = "kfgqpc";
+export const DEFAULT_ARABIC_FONT: ArabicFontId = "scheherazade";
 export const ARABIC_FONT_KEY = "quran-handsfree:arabic-font";
 
 export interface ArabicFont {

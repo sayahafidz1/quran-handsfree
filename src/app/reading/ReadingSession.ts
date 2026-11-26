@@ -33,6 +33,13 @@ export function findSkippedIndices(seen: Iterable<number>): number[] {
   return skipped;
 }
 
+/**
+ * Following an ayah whose last word is missing (see `acceptNextAfterMissingLastWord`) is accepted only when the
+ * next ayah's recognized words begin this close to its start (zero-based index). A report that lands deep inside
+ * the next ayah (log Yusuf 12:45 -> 12:46, words 19-20 of 22 at 24% confidence) is not a sequential step.
+ */
+export const MAX_NEXT_AYAH_ENTRY_INDEX = 2;
+
 /** A suspected omission is shown only after it has stood for this long without being withdrawn. */
 export const OMISSION_HOLD_MS = 1000;
 
@@ -264,7 +271,8 @@ export class ReadingSession {
     }
 
     this.detectedVerse = detected;
-    this.acceptNextAfterMissingLastWord(detected);
+    // A verse_match alone never uses the missing-last-word allowance: it carries no word position, so it
+    // cannot show that the reader entered the next ayah at its start. word_progress decides (see below).
 
     // Keep the expected-next target authoritative while recovering from a
     // mismatch. A repeated current verse must not reset or advance it.
@@ -333,7 +341,7 @@ export class ReadingSession {
     // that was completed (expectedNextVerse is set) may be followed; progress
     // for any other verse is ignored.
     if (!this.matches(progress, this.currentVerse)) {
-      this.acceptNextAfterMissingLastWord(progress);
+      this.acceptNextAfterMissingLastWord(progress, progress);
       if (!this.expectedNextVerse || !this.matches(progress, this.expectedNextVerse)) return false;
       this.advanceTo(this.expectedNextVerse);
     }
@@ -406,13 +414,20 @@ export class ReadingSession {
    * partly), so the ayah counts as finished instead of the session waiting on that one word.
    * Only one missing word, only the last one, and only once the next ayah is reported: a long ayah
    * cut short by the engine (several words missing) stays blocked. The checker may still mark the word.
+   * The report must also enter the next ayah near its start (MAX_NEXT_AYAH_ENTRY_INDEX); one that lands
+   * deeper in is ignored and the reader stays on the current ayah.
    */
-  private acceptNextAfterMissingLastWord(reported: Pick<SelectedVerse, "surah" | "ayah">): void {
+  private acceptNextAfterMissingLastWord(
+    reported: Pick<SelectedVerse, "surah" | "ayah">,
+    entry: Pick<WordProgress, "wordIndex" | "matchedIndices">
+  ): void {
     const current = this.currentVerse;
     const progress = this.wordProgress;
     if (!current || !progress || this.expectedNextVerse || !this.matches(progress, current)) return;
     const following = getNextVerse(current);
     if (!following || following.surah !== current.surah || !this.matches(reported, following)) return;
+    const first = entry.matchedIndices[0] ?? entry.wordIndex;
+    if (first > MAX_NEXT_AYAH_ENTRY_INDEX) return;
     const last = progress.totalWords - 1;
     const seen = this.seenWords.get(`${current.surah}:${current.ayah}`);
     if (!seen || last < 1) return;

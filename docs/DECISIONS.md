@@ -296,3 +296,13 @@
 - **Keputusan**: Untuk hasil akhir, tebakan ke-k seluruh ucapan disusun dari alternatif ke-k tiap hasil akhir (bila tidak ada, dipakai tebakan pertamanya). Tebakan pertama diparse lebih dulu dan menang bila berhasil (perilaku lama tidak berubah); bila gagal, tebakan berikutnya dicoba berurutan dan yang pertama berhasil dipakai. Transkrip yang ditampilkan adalah tebakan yang dipakai. Bila semua gagal, hasil dan transkrip tetap dari tebakan pertama. Parser tidak diubah. Hanya `WebSpeechCommandRecognizer.ts`.
 - **Konsekuensi**: 8 tes baru di `test/webSpeechCommandRecognizer.test.ts` (3 di antaranya gagal tanpa perubahan kode, diperiksa); 239 tes lulus. Risiko kecil: tebakan kedua atau ketiga bisa terbaca sebagai surat lain, tetapi hanya dipakai bila tebakan pertama sudah gagal. Belum diuji dengan suara asli di browser.
 
+
+## 2026-11-26 — Scheherazade Kembali Menjadi Font Bawaan
+- **Konteks**: Di KFGQPC, tanda mim kecil (U+06E2) setelah tanwin (ikhfa/iqlab: عَامٌۭ, سَبْعٌۭ, قَلِيلًۭا) digambar di titik yang sama dengan tanwin sehingga tampak menyatu; teks data (Tanzil) sudah benar. Di Scheherazade tanda itu terpisah jelas. Kelemahan Scheherazade (fathah lam pada ٱلْمَلَأُ, Yusuf 12:43) diketahui.
+- **Keputusan**: Pemilik memilih Scheherazade sebagai bawaan; KFGQPC tetap dapat dipilih di Pengaturan. `DEFAULT_ARABIC_FONT = "scheherazade"`, tumpukan `.arabic-text` mendahulukan Scheherazade, aturan CSS pengalih kini untuk `kfgqpc`. Perangkat yang sudah menyimpan pilihan font tidak berubah.
+- **Konsekuensi**: Tes `arabicFont` dan `fontAssets` disesuaikan. Teks Al-Qur'an tidak diubah.
+
+## 2026-11-26 — Perbaikan Lompat Ayat pada Kelonggaran Kata Terakhir
+- **Konteks**: Log Yusuf 12:45 ke 12:46: kata ke-10 dari 11 (kata terakhir belum terbaca), lalu mesin melapor 12:46 dengan keyakinan 24% dan kata 19–20 dari 22. Kelonggaran 2026-11-25 hanya memeriksa "ayat sekarang kurang satu kata terakhir" dan "mesin menyebut ayat berikutnya", sehingga sesi pindah ke 12:46 dengan 18 kata belum dibaca; bacaan yang masih di 12:45 lalu menjadi `mismatch` dan akhirnya `idle`.
+- **Keputusan**: Kelonggaran hanya lewat `word_progress` yang kata cocok pertamanya paling jauh indeks 2 (`MAX_NEXT_AYAH_ENTRY_INDEX`, kata ke-3); laporan yang mendarat lebih dalam diabaikan. `verse_match` saja tidak lagi memakai kelonggaran karena tidak membawa posisi kata (mesin 1.0 mengirim keduanya bersamaan, jadi bacaan normal tidak melambat). Jalur ayat selesai penuh tidak diubah. Batas 2 adalah tebakan; sesuaikan dari log berikutnya.
+- **Konsekuensi**: 4 tes baru dan 1 tes yang disesuaikan di `test/readingSession.test.ts`; 242 tes lulus. Lompatan kata di dalam satu ayat (penyelarasan ulang mesin setelah jeda) tidak disentuh.

@@ -40,7 +40,7 @@ quran-handsfree/
 ├── public/
 │   ├── manifest.webmanifest # Konfigurasi PWA Web Manifest
 │   ├── sw.js                # Service worker untuk caching offline
-│   ├── fonts/               # Font Qur'an KFGQPC Hafs (bawaan, bukan OFL; KFGQPC-NOTICE.txt) + Scheherazade New (SIL OFL, OFL.txt); ikut di cache offline dan di APK
+│   ├── fonts/               # Font Qur'an Scheherazade New (bawaan sejak 2026-11-26, SIL OFL, OFL.txt) + KFGQPC Hafs (pilihan, bukan OFL; KFGQPC-NOTICE.txt); ikut di cache offline dan di APK
 │   ├── quran/content.json   # Asset teks Quran offline (114 surah)
 │   ├── tilawa/              # Aset runtime Tilawa 0.4.0 (npm run setup; tidak ke Git)
 │   └── tilawa-v1/           # Aset self-host Tilawa 1.0 (npm run setup:v1; hanya ATTRIBUTION.txt di Git)
