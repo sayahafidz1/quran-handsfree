@@ -150,3 +150,81 @@ test("the APK is told apart from the browser by the same check the back button u
   assert.equal(hasCapacitor({}), false, "Web: kartu suara tampil");
   assert.equal(hasCapacitor({ Capacitor: {} }), true, "APK: kartu suara disembunyikan");
 });
+
+// Beberapa tebakan (alternatif) untuk satu ucapan akhir, urutan paling yakin dulu.
+const alternativesEvent = (guesses: string[]) => ({
+  resultIndex: 0,
+  results: [Object.assign(guesses.map((transcript) => ({ transcript })), { isFinal: true })]
+});
+const commandResult = () => {
+  const found = events.find((e) => e.type === "command_result");
+  assert.ok(found && found.type === "command_result");
+  return found.result;
+};
+const finalTranscript = () => {
+  const found = events.filter((e) => e.type === "transcript" && e.isFinal).at(-1);
+  assert.ok(found && found.type === "transcript");
+  return found.transcript;
+};
+
+test("the recognizer asks the engine for alternatives", async () => {
+  const { fake } = await startListening();
+  assert.equal(fake.maxAlternatives, 3);
+});
+
+test("when the first guess is a valid command it wins, even if the others are also valid", async () => {
+  const { fake } = await startListening();
+  fake.onresult?.(alternativesEvent(["Al-Baqarah ayat 255", "Ali Imran ayat 3", "An-Nisa ayat 1"]));
+  const result = commandResult();
+  assert.ok(result.success && result.command === "open");
+  assert.equal(result.success && result.command === "open" ? result.surah : 0, 2);
+  assert.equal(finalTranscript(), "Al-Baqarah ayat 255");
+});
+
+test("when the first guess is not a command, the second is tried and shown as what was understood", async () => {
+  const { fake } = await startListening();
+  fake.onresult?.(alternativesEvent(["bla bla tidak jelas", "Al-Baqarah ayat 255", "Ali Imran ayat 3"]));
+  const result = commandResult();
+  assert.ok(result.success && result.command === "open");
+  assert.equal(result.success && result.command === "open" ? result.surah : 0, 2);
+  assert.equal(result.success && result.command === "open" ? result.ayah : 0, 255);
+  assert.equal(finalTranscript(), "Al-Baqarah ayat 255");
+});
+
+test("the third guess is used when the first two fail", async () => {
+  const { fake } = await startListening();
+  fake.onresult?.(alternativesEvent(["bla bla", "xyz xyz", "Ali Imran ayat 3"]));
+  const result = commandResult();
+  assert.ok(result.success && result.command === "open");
+  assert.equal(result.success && result.command === "open" ? result.surah : 0, 3);
+});
+
+test("when every guess fails the failure and the transcript come from the first guess", async () => {
+  const { fake } = await startListening();
+  fake.onresult?.(alternativesEvent(["bla bla", "xyz xyz", "qwerty"]));
+  const result = commandResult();
+  assert.equal(result.success, false);
+  assert.equal(finalTranscript(), "bla bla");
+  assert.equal(errors().length, 0);
+});
+
+test("repeated identical guesses are handled and a single guess behaves as before", async () => {
+  const { fake } = await startListening();
+  fake.onresult?.(alternativesEvent(["Al-Baqarah ayat 255", "Al-Baqarah ayat 255"]));
+  const result = commandResult();
+  assert.ok(result.success && result.command === "open");
+  assert.equal(finalTranscript(), "Al-Baqarah ayat 255");
+});
+
+test("a control command heard as a later guess is accepted too (next)", async () => {
+  const { fake } = await startListening();
+  fake.onresult?.(alternativesEvent(["bla bla", "berikutnya"]));
+  const result = commandResult();
+  assert.ok(result.success && result.command === "next");
+});
+
+test("interim results still never produce a command", async () => {
+  const { fake } = await startListening();
+  fake.onresult?.(resultEvent("Al-Baqarah ayat 255", false));
+  assert.equal(events.some((e) => e.type === "command_result"), false);
+});

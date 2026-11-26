@@ -15,6 +15,20 @@ interface IWindowSpeech extends Window {
 /** Bila pengenal tidak mulai mendengar dalam waktu ini (mis. WebView yang tidak punya mesin suara), dianggap tidak responsif. */
 export const START_TIMEOUT_MS = 6000;
 
+/**
+ * Tebakan ke-k untuk seluruh ucapan akhir: gabungan alternatif ke-k tiap hasil akhir (bila suatu hasil tidak
+ * punya alternatif ke-k, dipakai tebakan pertamanya). Urutan pertama sama dengan transkrip akhir biasa.
+ */
+function finalCandidates(finals: any[], firstTranscript: string): string[] {
+  const count = Math.max(1, ...finals.map((item) => Number(item.length) || 1));
+  const candidates = [firstTranscript];
+  for (let k = 1; k < count; k += 1) {
+    const text = finals.map((item) => item[k]?.transcript ?? item[0].transcript).join("");
+    if (!candidates.includes(text)) candidates.push(text);
+  }
+  return candidates;
+}
+
 export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
   private recognition: any = null;
   private onEventCallback: ((event: CommandRecognitionEvent) => void) | null = null;
@@ -72,12 +86,14 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
     this.recognition.onresult = (event: any) => {
       let finalTranscript = "";
       let interimTranscript = "";
+      const finals: any[] = [];
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const item = event.results[i];
         const text = item[0].transcript;
         if (item.isFinal) {
           finalTranscript += text;
+          finals.push(item);
         } else {
           interimTranscript += text;
         }
@@ -99,14 +115,27 @@ export class WebSpeechCommandRecognizer implements VoiceCommandRecognizer {
 
       if (finalTranscript) {
         this.gotResult = true;
+
+        // Pengenal memberi sampai maxAlternatives tebakan. Tebakan pertama menang bila bisa dibaca sebagai
+        // perintah (perilaku lama); bila tidak, coba tebakan berikutnya berurutan.
+        const candidates = finalCandidates(finals, finalTranscript);
+        let chosen = candidates[0];
+        let parseResult = parseReaderCommand(chosen);
+        for (let k = 1; !parseResult.success && k < candidates.length; k += 1) {
+          const next = parseReaderCommand(candidates[k]);
+          if (next.success) {
+            chosen = candidates[k];
+            parseResult = next;
+          }
+        }
         this.notify({
           type: "transcript",
-          transcript: finalTranscript,
+          transcript: chosen,
           isFinal: true
         });
-
-        const parseResult = parseReaderCommand(finalTranscript);
         debugVoiceCommand("parsed", {
+          alternatives: candidates,
+          chosen,
           success: parseResult.success,
           command: parseResult.success ? parseResult.command : undefined,
           reason: parseResult.success ? undefined : parseResult.reason,
